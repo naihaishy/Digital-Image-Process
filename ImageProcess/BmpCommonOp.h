@@ -2,7 +2,7 @@
 Copyright:Naihai
 Author: Naihai
 Date:2017-10-8
-Description:BMPÎÄ¼şµÄÖ÷Òª²Ù×÷
+Description:BMPæ–‡ä»¶çš„ä¸»è¦æ“ä½œ
 **************************************************/
 
 
@@ -15,10 +15,10 @@ public:
 	~BmpCommonOp();
 
 
-	//³ÉÔ±±äÁ¿
+	//æˆå‘˜å˜é‡
 
 
-	//³ÉÔ±º¯Êı
+	//æˆå‘˜å‡½æ•°
 
 	void WriteBmpDataToFile(LPCSTR FileName, BITMAPFILEHEADER BitmapFileHeader, BITMAPINFOHEADER BitmapInfoHeader, RGBQUAD colorTable[256], BYTE * Image, int ImageSize);
 };

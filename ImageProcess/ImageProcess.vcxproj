@@ -188,6 +188,7 @@
   <ItemGroup>
     <ClInclude Include="BmpCommonOp.h" />
     <ClInclude Include="HelpDlg.h" />
+    <ClInclude Include="HistogramDlg.h" />
     <ClInclude Include="ImageProcess.h" />
     <ClInclude Include="ImageProcessDoc.h" />
     <ClInclude Include="ImageProcessView.h" />
@@ -202,6 +203,7 @@
   <ItemGroup>
     <ClCompile Include="BmpCommonOp.cpp" />
     <ClCompile Include="HelpDlg.cpp" />
+    <ClCompile Include="HistogramDlg.cpp" />
     <ClCompile Include="ImageProcess.cpp" />
     <ClCompile Include="ImageProcessDoc.cpp" />
     <ClCompile Include="ImageProcessView.cpp" />

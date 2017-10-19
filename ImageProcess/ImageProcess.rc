@@ -141,6 +141,11 @@ BEGIN
         MENUITEM "双线性插值",                       ID_BILINEAR_INTERPOLATION
         MENUITEM "旋转",                          ID_ROTATE
     END
+    POPUP "作业2"
+    BEGIN
+        MENUITEM "显示直方图",                       ID_SHOW_HISTOGRAM
+        MENUITEM "直方图均衡",                       ID_HISTOGRAM_EQUALIZATION
+    END
     POPUP "帮助(&H)"
     BEGIN
         MENUITEM "使用帮助",                        ID_HELP
@@ -242,6 +247,16 @@ BEGIN
     CONTROL         "Email",IDC_MFCLINK_EMAIL,"MfcLink",WS_TABSTOP,52,103,60,14
 END
 
+IDD_DIALOG_HISTOGRAM DIALOGEX 0, 0, 326, 207
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "直方图"
+FONT 10, "Microsoft YaHei UI", 400, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "确定",IDOK,198,186,50,14
+    PUSHBUTTON      "取消",IDCANCEL,269,186,50,14
+    CONTROL         "",IDC_STATIC_HISTOGRAM,"Static",SS_WHITEFRAME | SS_CENTERIMAGE,35,12,254,161
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -329,6 +344,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 169
     END
+
+    IDD_DIALOG_HISTOGRAM, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 319
+        TOPMARGIN, 12
+        BOTTOMMARGIN, 200
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -359,6 +382,11 @@ BEGIN
 END
 
 IDD_DIALOG_HELP AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG_HISTOGRAM AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

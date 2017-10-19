@@ -1,4 +1,4 @@
-// InterpolationDlg.cpp : ÊµÏÖÎÄ¼ş
+// InterpolationDlg.cpp : å®ç°æ–‡ä»¶
 //
 
 #include "stdafx.h"
@@ -7,7 +7,7 @@
 #include "afxdialogex.h"
 
 
-// CInterpolationDlg ¶Ô»°¿ò
+// CInterpolationDlg å¯¹è¯æ¡†
 
 IMPLEMENT_DYNAMIC(CInterpolationDlg, CDialog)
 
@@ -35,5 +35,5 @@ BEGIN_MESSAGE_MAP(CInterpolationDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-// CInterpolationDlg ÏûÏ¢´¦Àí³ÌĞò
+// CInterpolationDlg æ¶ˆæ¯å¤„ç†ç¨‹åº
 

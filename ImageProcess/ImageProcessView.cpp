@@ -1,10 +1,10 @@
 
-// ImageProcessView.cpp : CImageProcessView ç±»çš„å®ç°
+// ImageProcessView.cpp : CImageProcessView ÀàµÄÊµÏÖ
 //
 
 #include "stdafx.h"
-// SHARED_HANDLERS å¯ä»¥åœ¨å®ç°é¢„è§ˆã€ç¼©ç•¥å›¾å’Œæœç´¢ç­›é€‰å™¨å¥æŸ„çš„
-// ATL é¡¹ç›®ä¸­è¿›è¡Œå®šä¹‰ï¼Œå¹¶å…è®¸ä¸è¯¥é¡¹ç›®å…±äº«æ–‡æ¡£ä»£ç ã€‚
+// SHARED_HANDLERS ¿ÉÒÔÔÚÊµÏÖÔ¤ÀÀ¡¢ËõÂÔÍ¼ºÍËÑË÷É¸Ñ¡Æ÷¾ä±úµÄ
+// ATL ÏîÄ¿ÖĞ½øĞĞ¶¨Òå£¬²¢ÔÊĞíÓë¸ÃÏîÄ¿¹²ÏíÎÄµµ´úÂë¡£
 #ifndef SHARED_HANDLERS
 #include "ImageProcess.h"
 #endif
@@ -16,6 +16,8 @@
 #include "RotateDlg.h"
 #include "HelpDlg.h"
 #include "BmpCommonOp.h"
+#include "HistogramDlg.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -27,7 +29,7 @@
 IMPLEMENT_DYNCREATE(CImageProcessView, CScrollView)
 
 BEGIN_MESSAGE_MAP(CImageProcessView, CScrollView)
-	// æ ‡å‡†æ‰“å°å‘½ä»¤
+	// ±ê×¼´òÓ¡ÃüÁî
 	ON_COMMAND(ID_FILE_PRINT, &CScrollView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_DIRECT, &CScrollView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CScrollView::OnFilePrintPreview)
@@ -37,13 +39,15 @@ BEGIN_MESSAGE_MAP(CImageProcessView, CScrollView)
 	ON_COMMAND(ID_BILINEAR_INTERPOLATION, &CImageProcessView::OnBilinearInterpolation)
 	ON_COMMAND(ID_ROTATE, &CImageProcessView::OnRotate)
 	ON_COMMAND(ID_HELP, &CImageProcessView::OnHelp)
+	ON_COMMAND(ID_SHOW_HISTOGRAM, &CImageProcessView::OnShowHistogram)
+	ON_COMMAND(ID_HISTOGRAM_EQUALIZATION, &CImageProcessView::OnHistogramEqualization)
 END_MESSAGE_MAP()
 
-// CImageProcessView æ„é€ /ææ„
+// CImageProcessView ¹¹Ôì/Îö¹¹
 
 CImageProcessView::CImageProcessView()
 {
-	// TODO: åœ¨æ­¤å¤„æ·»åŠ æ„é€ ä»£ç 
+	// TODO: ÔÚ´Ë´¦Ìí¼Ó¹¹Ôì´úÂë
 
 }
 
@@ -53,8 +57,8 @@ CImageProcessView::~CImageProcessView()
 
 BOOL CImageProcessView::PreCreateWindow(CREATESTRUCT& cs)
 {
-	// TODO: åœ¨æ­¤å¤„é€šè¿‡ä¿®æ”¹
-	//  CREATESTRUCT cs æ¥ä¿®æ”¹çª—å£ç±»æˆ–æ ·å¼
+	// TODO: ÔÚ´Ë´¦Í¨¹ıĞŞ¸Ä
+	//  CREATESTRUCT cs À´ĞŞ¸Ä´°¿ÚÀà»òÑùÊ½
 
 	return CScrollView::PreCreateWindow(cs);
 }
@@ -64,12 +68,12 @@ void CImageProcessView::OnInitialUpdate()
 {
 	CScrollView::OnInitialUpdate();
 
-	// TODO: åœ¨æ­¤æ·»åŠ ä¸“ç”¨ä»£ç å’Œ/æˆ–è°ƒç”¨åŸºç±»
+	// TODO: ÔÚ´ËÌí¼Ó×¨ÓÃ´úÂëºÍ/»òµ÷ÓÃ»ùÀà
 
 	SetScrollSizes(MM_TEXT, CSize(1200, 900));
 	 
 }
-// CImageProcessView ç»˜åˆ¶
+// CImageProcessView »æÖÆ
 
 //void CImageProcessView::OnDraw(CDC* /*pDC*/)
 //{
@@ -78,30 +82,30 @@ void CImageProcessView::OnInitialUpdate()
 //	if (!pDoc)
 //		return;
 //
-//	// TODO: åœ¨æ­¤å¤„ä¸ºæœ¬æœºæ•°æ®æ·»åŠ ç»˜åˆ¶ä»£ç 
+//	// TODO: ÔÚ´Ë´¦Îª±¾»úÊı¾İÌí¼Ó»æÖÆ´úÂë
 //}
 
 
-// CImageProcessView æ‰“å°
+// CImageProcessView ´òÓ¡
 
 BOOL CImageProcessView::OnPreparePrinting(CPrintInfo* pInfo)
 {
-	// é»˜è®¤å‡†å¤‡
+	// Ä¬ÈÏ×¼±¸
 	return DoPreparePrinting(pInfo);
 }
 
 void CImageProcessView::OnBeginPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 {
-	// TODO: æ·»åŠ é¢å¤–çš„æ‰“å°å‰è¿›è¡Œçš„åˆå§‹åŒ–è¿‡ç¨‹
+	// TODO: Ìí¼Ó¶îÍâµÄ´òÓ¡Ç°½øĞĞµÄ³õÊ¼»¯¹ı³Ì
 }
 
 void CImageProcessView::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 {
-	// TODO: æ·»åŠ æ‰“å°åè¿›è¡Œçš„æ¸…ç†è¿‡ç¨‹
+	// TODO: Ìí¼Ó´òÓ¡ºó½øĞĞµÄÇåÀí¹ı³Ì
 }
 
 
-// CImageProcessView è¯Šæ–­
+// CImageProcessView Õï¶Ï
 
 #ifdef _DEBUG
 void CImageProcessView::AssertValid() const
@@ -114,7 +118,7 @@ void CImageProcessView::Dump(CDumpContext& dc) const
 	CScrollView::Dump(dc);
 }
 
-CImageProcessDoc* CImageProcessView::GetDocument() const // éè°ƒè¯•ç‰ˆæœ¬æ˜¯å†…è”çš„
+CImageProcessDoc* CImageProcessView::GetDocument() const // ·Çµ÷ÊÔ°æ±¾ÊÇÄÚÁªµÄ
 {
 	ASSERT(m_pDocument->IsKindOf(RUNTIME_CLASS(CImageProcessDoc)));
 	return (CImageProcessDoc*)m_pDocument;
@@ -122,91 +126,91 @@ CImageProcessDoc* CImageProcessView::GetDocument() const // éè°ƒè¯•ç‰ˆæœ¬æ˜¯å†
 #endif //_DEBUG
 
 
-// CImageProcessView æ¶ˆæ¯å¤„ç†ç¨‹åº
+// CImageProcessView ÏûÏ¢´¦Àí³ÌĞò
 
 
 /*************************************************************/
-/* numPictureå˜é‡æ˜¾ç¤ºå›¾ç‰‡æ•°é‡
-/* 0-æç¤ºé”™è¯¯æˆ–æœªæ‰“å¼€å›¾ç‰‡ 1-æ˜¾ç¤ºä¸€å¼ å›¾ç‰‡ 2-æ˜¾ç¤ºä¸¤å¼ å›¾ç‰‡å’Œå¤„ç†
+/* numPicture±äÁ¿ÏÔÊ¾Í¼Æ¬ÊıÁ¿
+/* 0-ÌáÊ¾´íÎó»òÎ´´ò¿ªÍ¼Æ¬ 1-ÏÔÊ¾Ò»ÕÅÍ¼Æ¬ 2-ÏÔÊ¾Á½ÕÅÍ¼Æ¬ºÍ´¦Àí
 /*************************************************************/
 int numPicture = 0;
-CString flag  = _T("normal"); //æ ‡å¿—ä½
+CString flag  = _T("normal"); //±êÖ¾Î»
 
 
-//****************æ˜¾ç¤ºBMPæ ¼å¼å›¾ç‰‡****************//
+//****************ÏÔÊ¾BMP¸ñÊ½Í¼Æ¬****************//
 void CImageProcessView::ShowBitmap(CDC *pDC, CString BmpName)
 {
 
 
 
-	//å®šä¹‰bitmapæŒ‡é’ˆ è°ƒç”¨å‡½æ•°LoadImageè£…è½½ä½å›¾
+	//¶¨ÒåbitmapÖ¸Õë µ÷ÓÃº¯ÊıLoadImage×°ÔØÎ»Í¼
 	HBITMAP m_hBitmap = NULL ;
 	m_hBitmap = (HBITMAP)LoadImage(NULL, BmpName, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
 
 	if (m_bitmap.m_hObject)
 	{
-		m_bitmap.Detach();           //åˆ‡æ–­CWndå’Œçª—å£è”ç³»
+		m_bitmap.Detach();           //ÇĞ¶ÏCWndºÍ´°¿ÚÁªÏµ
 	}
-	m_bitmap.Attach(m_hBitmap);      //å°†å¥æŸ„HBITMAP m_hBitmapä¸CBitmap m_bitmapå…³è”
+	m_bitmap.Attach(m_hBitmap);      //½«¾ä±úHBITMAP m_hBitmapÓëCBitmap m_bitmap¹ØÁª
 
-									 //è¾¹ç•Œ
+									 //±ß½ç
 	CRect rect;
 	GetClientRect(&rect);
 
-	//å›¾ç‰‡æ˜¾ç¤º(x,y)èµ·å§‹åæ ‡
+	//Í¼Æ¬ÏÔÊ¾(x,y)ÆğÊ¼×ø±ê
 	int m_showX = 0;
 	int m_showY = 0;
-	int m_nWindowWidth = rect.right - rect.left;   //è®¡ç®—å®¢æˆ·åŒºå®½åº¦
-	int m_nWindowHeight = rect.bottom - rect.top;  //è®¡ç®—å®¢æˆ·åŒºé«˜åº¦
+	int m_nWindowWidth = rect.right - rect.left;   //¼ÆËã¿Í»§Çø¿í¶È
+	int m_nWindowHeight = rect.bottom - rect.top;  //¼ÆËã¿Í»§Çø¸ß¶È
 
-												   //å®šä¹‰å¹¶åˆ›å»ºä¸€ä¸ªå†…å­˜è®¾å¤‡ç¯å¢ƒDC
+												   //¶¨Òå²¢´´½¨Ò»¸öÄÚ´æÉè±¸»·¾³DC
 	CDC dcBmp;
-	if (!dcBmp.CreateCompatibleDC(pDC))   //åˆ›å»ºå…¼å®¹æ€§çš„DC
+	if (!dcBmp.CreateCompatibleDC(pDC))   //´´½¨¼æÈİĞÔµÄDC
 		return;
 
-	BITMAP m_bmp;                          //ä¸´æ—¶bmpå›¾ç‰‡å˜é‡
-	m_bitmap.GetBitmap(&m_bmp);            //å°†å›¾ç‰‡è½½å…¥ä½å›¾ä¸­
+	BITMAP m_bmp;                          //ÁÙÊ±bmpÍ¼Æ¬±äÁ¿
+	m_bitmap.GetBitmap(&m_bmp);            //½«Í¼Æ¬ÔØÈëÎ»Í¼ÖĞ
 
 	CBitmap *pbmpOld = NULL;
-	dcBmp.SelectObject(&m_bitmap);         //å°†ä½å›¾é€‰å…¥ä¸´æ—¶å†…å­˜è®¾å¤‡ç¯å¢ƒ
+	dcBmp.SelectObject(&m_bitmap);         //½«Î»Í¼Ñ¡ÈëÁÙÊ±ÄÚ´æÉè±¸»·¾³
 
-	//å›¾ç‰‡æ˜¾ç¤ºè°ƒç”¨å‡½æ•°stretchBlt
+	//Í¼Æ¬ÏÔÊ¾µ÷ÓÃº¯ÊıstretchBlt
 	pDC->StretchBlt(0, 0, m_bmp.bmWidth, m_bmp.bmHeight, &dcBmp, 0, 0, m_bmp.bmWidth, m_bmp.bmHeight, SRCCOPY);
 
 
-	dcBmp.SelectObject(pbmpOld);           //æ¢å¤ä¸´æ—¶DCçš„ä½å›¾
-	DeleteObject(&m_bitmap);               //åˆ é™¤å†…å­˜ä¸­çš„ä½å›¾
-	dcBmp.DeleteDC();                      //åˆ é™¤CreateCompatibleDCå¾—åˆ°çš„å›¾ç‰‡DC
+	dcBmp.SelectObject(pbmpOld);           //»Ö¸´ÁÙÊ±DCµÄÎ»Í¼
+	DeleteObject(&m_bitmap);               //É¾³ıÄÚ´æÖĞµÄÎ»Í¼
+	dcBmp.DeleteDC();                      //É¾³ıCreateCompatibleDCµÃµ½µÄÍ¼Æ¬DC
 
 
 	/**
-	* æ˜¯å¦æ˜¾ç¤ºæ•ˆæœå›¾ç‰‡
+	* ÊÇ·ñÏÔÊ¾Ğ§¹ûÍ¼Æ¬
 	*/
 	if (numPicture == 2) {
-		//æ˜¾ç¤ºå›¾ç‰‡å‡½æ•°LoadImage  
+		//ÏÔÊ¾Í¼Æ¬º¯ÊıLoadImage  
 		HBITMAP m_hBitmapChange = NULL;
 
-		//LW_LOADMAP3DCOLORS çš„æ·»åŠ å¯¼è‡´äº†æ•ˆæœæ–‡ä»¶å‡ºç°äº†ç™½è‰²äº®ç‚¹/çº¹è·¯  è¯¥é—®é¢˜å›°æƒ‘äº†å¥½å‡ å¤©ã€‚ã€‚
+		//LW_LOADMAP3DCOLORS µÄÌí¼Óµ¼ÖÂÁËĞ§¹ûÎÄ¼ş³öÏÖÁË°×É«ÁÁµã/ÎÆÂ·  ¸ÃÎÊÌâÀ§»óÁËºÃ¼¸Ìì¡£¡£
 		m_hBitmapChange = (HBITMAP)LoadImage(NULL, BmpNameLin, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTCOLOR | LR_CREATEDIBSECTION);
 				 
 
 		if (m_bitmap.m_hObject) {
-			m_bitmap.Detach();            //m_bitmapä¸ºåˆ›å»ºçš„ä½å›¾å¯¹è±¡  
+			m_bitmap.Detach();            //m_bitmapÎª´´½¨µÄÎ»Í¼¶ÔÏó  
 		}
 		m_bitmap.Attach(m_hBitmapChange);
-		//å®šä¹‰å¹¶åˆ›å»ºä¸€ä¸ªå†…å­˜è®¾å¤‡ç¯å¢ƒ  
+		//¶¨Òå²¢´´½¨Ò»¸öÄÚ´æÉè±¸»·¾³  
 		CDC dcBmp;
-		if (!dcBmp.CreateCompatibleDC(pDC))   //åˆ›å»ºå…¼å®¹æ€§çš„DC  
+		if (!dcBmp.CreateCompatibleDC(pDC))   //´´½¨¼æÈİĞÔµÄDC  
 			return;
-		BITMAP m_bmp ;                          //ä¸´æ—¶bmpå›¾ç‰‡å˜é‡  
-		m_bitmap.GetBitmap(&m_bmp);            //å°†å›¾ç‰‡è½½å…¥ä½å›¾ä¸­  
+		BITMAP m_bmp ;                          //ÁÙÊ±bmpÍ¼Æ¬±äÁ¿  
+		m_bitmap.GetBitmap(&m_bmp);            //½«Í¼Æ¬ÔØÈëÎ»Í¼ÖĞ  
 		CBitmap *pbmpOld = NULL;
-		dcBmp.SelectObject(&m_bitmap);         //å°†ä½å›¾é€‰å…¥ä¸´æ—¶å†…å­˜è®¾å¤‡ç¯å¢ƒ  
+		dcBmp.SelectObject(&m_bitmap);         //½«Î»Í¼Ñ¡ÈëÁÙÊ±ÄÚ´æÉè±¸»·¾³  
 
 
-		//å¦‚æœåŸå›¾+æ•ˆæœå›¾çš„ å®½åº¦å’Œ å¤§äºçª—å£å®½åº¦ åˆ™ç”³è¯·æ›´å¤§çš„çª—å£
+		//Èç¹ûÔ­Í¼+Ğ§¹ûÍ¼µÄ ¿í¶ÈºÍ ´óÓÚ´°¿Ú¿í¶È ÔòÉêÇë¸ü´óµÄ´°¿Ú
 		if (m_nDrawWidth + m_bmp.bmWidth < m_nWindowWidth) {
-			SetScrollSizes(MM_TEXT, CSize(m_nWindowWidth , m_bmp.bmHeight + 10)); //çª—å£æ»šè½®é«˜åº¦è‡ªé€‚åº”
+			SetScrollSizes(MM_TEXT, CSize(m_nWindowWidth , m_bmp.bmHeight + 10)); //´°¿Ú¹öÂÖ¸ß¶È×ÔÊÊÓ¦
  
 		}
 		else {
@@ -217,9 +221,9 @@ void CImageProcessView::ShowBitmap(CDC *pDC, CString BmpName)
 		 
 		
 		
-		dcBmp.SelectObject(pbmpOld);	//æ¢å¤ä¸´æ—¶DCçš„ä½å›¾  
-		DeleteObject(&m_bitmap);        //åˆ é™¤å†…å­˜ä¸­çš„ä½å›¾
-		dcBmp.DeleteDC();               //åˆ é™¤CreateCompatibleDCå¾—åˆ°çš„å›¾ç‰‡DC
+		dcBmp.SelectObject(pbmpOld);	//»Ö¸´ÁÙÊ±DCµÄÎ»Í¼  
+		DeleteObject(&m_bitmap);        //É¾³ıÄÚ´æÖĞµÄÎ»Í¼
+		dcBmp.DeleteDC();               //É¾³ıCreateCompatibleDCµÃµ½µÄÍ¼Æ¬DC
 	}
 
 
@@ -230,37 +234,37 @@ void CImageProcessView::ShowBitmap(CDC *pDC, CString BmpName)
 
 
 
-//***************è¯»å–å›¾ç‰‡æ•°æ®*************//
+//***************¶ÁÈ¡Í¼Æ¬Êı¾İ*************//
 bool CImageProcessView::ReadBmp(CString FileName) //FileName
 {
 
 
 	USES_CONVERSION;
-	LPCSTR FileNameChar = (LPCSTR)T2A(FileName); //å°†CStringè½¬æˆconst char*
+	LPCSTR FileNameChar = (LPCSTR)T2A(FileName); //½«CString×ª³Éconst char*
 
 	FILE *fp;
 	errno_t err = fopen_s(&fp, FileNameChar, "rb");
 
 	if (err != 0)
 	{
-		AfxMessageBox(_T("æ— æ³•æ‰“å¼€æ–‡ä»¶!"), MB_OK, 0);
+		AfxMessageBox(_T("ÎŞ·¨´ò¿ªÎÄ¼ş!"), MB_OK, 0);
 		return 0;
 	}
-	//è¯»å–æ–‡ä»¶å¤´ è§£å†³BMPæ ¼å¼å€’ç½®çš„æ–¹æ³•
+	//¶ÁÈ¡ÎÄ¼şÍ· ½â¾öBMP¸ñÊ½µ¹ÖÃµÄ·½·¨
 	fread(&bfh.bfType, sizeof(WORD), 1, fp);
 	fread(&bfh.bfSize, sizeof(DWORD), 1, fp);
 	fread(&bfh.bfReserved1, sizeof(WORD), 1, fp);
 	fread(&bfh.bfReserved2, sizeof(WORD), 1, fp);
 	fread(&bfh.bfOffBits, sizeof(DWORD), 1, fp);
-	//å›¾åƒæ–‡ä»¶çš„æ€»å­—èŠ‚æ•°
+	//Í¼ÏñÎÄ¼şµÄ×Ü×Ö½ÚÊı
 	m_nSize = bfh.bfSize;
-	//åˆ¤æ–­æ˜¯å¦æ˜¯bmpæ ¼å¼å›¾ç‰‡
+	//ÅĞ¶ÏÊÇ·ñÊÇbmp¸ñÊ½Í¼Æ¬
 	if (bfh.bfType != 0x4d42)   //'BM'
 	{
-		AfxMessageBox(_T("ä¸æ˜¯BMPæ ¼å¼å›¾ç‰‡!"), MB_OK, 0);
+		AfxMessageBox(_T("²»ÊÇBMP¸ñÊ½Í¼Æ¬!"), MB_OK, 0);
 		return 0;
 	}
-	//è¯»å–ä¿¡æ¯å¤´
+	//¶ÁÈ¡ĞÅÏ¢Í·
 	fread(&bih.biSize, sizeof(DWORD), 1, fp);
 	fread(&bih.biWidth, sizeof(LONG), 1, fp);
 	fread(&bih.biHeight, sizeof(LONG), 1, fp);
@@ -274,20 +278,20 @@ bool CImageProcessView::ReadBmp(CString FileName) //FileName
 	fread(&bih.biClrImportant, sizeof(DWORD), 1, fp);
 	if (bih.biSize != sizeof(bih))
 	{
-		AfxMessageBox(_T("æœ¬ç»“æ„æ‰€å ç”¨å­—èŠ‚æ•°å‡ºç°é”™è¯¯"));
+		AfxMessageBox(_T("±¾½á¹¹ËùÕ¼ÓÃ×Ö½ÚÊı³öÏÖ´íÎó"));
 		return 0;
 	}
-	//ä½å›¾å‹ç¼©ç±»å‹ï¼Œå¿…é¡»æ˜¯ 0ï¼ˆä¸å‹ç¼©ï¼‰ 1ï¼ˆBI_RLE8å‹ç¼©ç±»å‹ï¼‰æˆ–2ï¼ˆBI_RLEå‹ç¼©ç±»å‹ï¼‰ä¹‹ä¸€
+	//Î»Í¼Ñ¹ËõÀàĞÍ£¬±ØĞëÊÇ 0£¨²»Ñ¹Ëõ£© 1£¨BI_RLE8Ñ¹ËõÀàĞÍ£©»ò2£¨BI_RLEÑ¹ËõÀàĞÍ£©Ö®Ò»
 	if (bih.biCompression == BI_RLE8 || bih.biCompression == BI_RLE4)
 	{
-		AfxMessageBox(_T("ä½å›¾è¢«å‹ç¼©!"));
+		AfxMessageBox(_T("Î»Í¼±»Ñ¹Ëõ!"));
 		return 0;
 	}
 	
-	//è¯»å–é¢œè‰²è¡¨  2 4 8ä½éœ€è¦  24ä½ä¸éœ€è¦  ç›®å‰ä»…æ”¯æŒ24ä½å’Œ8ä½çš„BMPå›¾åƒå¤„ç†
+	//¶ÁÈ¡ÑÕÉ«±í  2 4 8Î»ĞèÒª  24Î»²»ĞèÒª  Ä¿Ç°½öÖ§³Ö24Î»ºÍ8Î»µÄBMPÍ¼Ïñ´¦Àí
 	if (bih.biBitCount == 8)  // 8bit bmp
 	{  
-		if (bih.biClrUsed == 0) //å¦‚æœè¯¥å€¼ä¸ºé›¶,åˆ™æœ‰2çš„biBitCountæ¬¡å¹‚ä¸ªå…ƒç´ 
+		if (bih.biClrUsed == 0) //Èç¹û¸ÃÖµÎªÁã,ÔòÓĞ2µÄbiBitCount´ÎÃİ¸öÔªËØ
 		{
 			memset(m_pPal, 0, sizeof(RGBQUAD) * 256);
 			fseek(fp, bfh.bfOffBits - sizeof(RGBQUAD) * 256, SEEK_SET);
@@ -301,24 +305,24 @@ bool CImageProcessView::ReadBmp(CString FileName) //FileName
 		
 	}
 
-	//è·å–å›¾åƒé«˜å®½å’Œæ¯ä¸ªåƒç´ æ‰€å ä½æ•°
+	//»ñÈ¡Í¼Ïñ¸ß¿íºÍÃ¿¸öÏñËØËùÕ¼Î»Êı
 	m_nHeight = bih.biHeight;
 	m_nWidth = bih.biWidth;
 	m_nDrawHeight = bih.biHeight;
 	m_nDrawWidth = bih.biWidth;
-	m_nBitCount = bih.biBitCount;   //æ¯ä¸ªåƒç´ æ‰€å ä½æ•°
-	//è®¡ç®—å›¾åƒæ¯è¡Œåƒç´ æ‰€å çš„å­—èŠ‚æ•°ï¼ˆå¿…é¡»æ˜¯32çš„å€æ•°ï¼‰
+	m_nBitCount = bih.biBitCount;   //Ã¿¸öÏñËØËùÕ¼Î»Êı
+	//¼ÆËãÍ¼ÏñÃ¿ĞĞÏñËØËùÕ¼µÄ×Ö½ÚÊı£¨±ØĞëÊÇ32µÄ±¶Êı£©
 	m_nLineByte = (m_nWidth*m_nBitCount + 31) / 32 * 4;
 
-	//å›¾ç‰‡å¤§å° è°ƒç”¨ç³»ç»Ÿè‡ªå¸¦çš„æ–‡ä»¶å¤´ BITMAPFILEHEADER bfh; BITMAPINFOHEADER bih; 
-	//å¦åˆ™ç”¨ BITMAPFILEHEADER_ bfh; BITMAPINFOHEADER_ bih;è¦ m_nImage = m_nLineByte * m_nHeight - 2;
+	//Í¼Æ¬´óĞ¡ µ÷ÓÃÏµÍ³×Ô´øµÄÎÄ¼şÍ· BITMAPFILEHEADER bfh; BITMAPINFOHEADER bih; 
+	//·ñÔòÓÃ BITMAPFILEHEADER_ bfh; BITMAPINFOHEADER_ bih;Òª m_nImage = m_nLineByte * m_nHeight - 2;
 	m_nImage = m_nLineByte * m_nHeight;
-	//ä½å›¾å®é™…ä½¿ç”¨çš„é¢œè‰²è¡¨ä¸­çš„é¢œè‰²æ•° biClrUsed
-	m_nPalette = 0;                       //åˆå§‹åŒ–
+	//Î»Í¼Êµ¼ÊÊ¹ÓÃµÄÑÕÉ«±íÖĞµÄÑÕÉ«Êı biClrUsed
+	m_nPalette = 0;                       //³õÊ¼»¯
 
 	if (bih.biClrUsed)
 		m_nPalette = bih.biClrUsed;
-	//ç”³è¯·ä½å›¾ç©ºé—´ å¤§å°ä¸ºä½å›¾å¤§å° m_nImage
+	//ÉêÇëÎ»Í¼¿Õ¼ä ´óĞ¡ÎªÎ»Í¼´óĞ¡ m_nImage
 	m_pImage = (BYTE*)malloc(m_nImage);
 	fread(m_pImage, m_nImage, 1, fp);
 	fclose(fp);
@@ -327,36 +331,36 @@ bool CImageProcessView::ReadBmp(CString FileName) //FileName
 
 
 
-//****************ä¿å­˜æ–‡ä»¶****************//
-bool CImageProcessView::SaveBmp(LPCSTR lpFileName) //lpFileNameä¸ºè¦ä¿å­˜ä¸ºçš„ä½å›¾æ–‡ä»¶å
+//****************±£´æÎÄ¼ş****************//
+bool CImageProcessView::SaveBmp(LPCSTR lpFileName) //lpFileNameÎªÒª±£´æÎªµÄÎ»Í¼ÎÄ¼şÃû
 {
 	
 	USES_CONVERSION;
 
-	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin); //å°†CStringè½¬æˆconst char*
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin); //½«CString×ª³Éconst char*
 
 	FILE *fpo;
-	errno_t err = fopen_s(&fpo, BmpFileNameLin, "rb"); //ä»ä¸´æ—¶æ•ˆæœæ–‡ä»¶ä¸­è¯»å–æ•°æ®
+	errno_t err = fopen_s(&fpo, BmpFileNameLin, "rb"); //´ÓÁÙÊ±Ğ§¹ûÎÄ¼şÖĞ¶ÁÈ¡Êı¾İ
 
 	if (err != 0)
 	{
-		AfxMessageBox(_T("ä¸å­˜åœ¨æ•ˆæœæ–‡ä»¶!"), MB_OK, 0);
+		AfxMessageBox(_T("²»´æÔÚĞ§¹ûÎÄ¼ş!"), MB_OK, 0);
 		return 0;
 	}
 
 
-	//ä¸ä¼šå½±å“å…¨å±€å˜é‡
-	BITMAPFILEHEADER tempBfh ; //ä¸´æ—¶æ–‡ä»¶å¤´
-	BITMAPINFOHEADER tempBih ; //ä¸´æ—¶ä¿¡æ¯å¤´
-	RGBQUAD tempPal[256]; //ä¸´æ—¶é¢œè‰²è¡¨
+	//²»»áÓ°ÏìÈ«¾Ö±äÁ¿
+	BITMAPFILEHEADER tempBfh ; //ÁÙÊ±ÎÄ¼şÍ·
+	BITMAPINFOHEADER tempBih ; //ÁÙÊ±ĞÅÏ¢Í·
+	RGBQUAD tempPal[256]; //ÁÙÊ±ÑÕÉ«±í
 
-	fread(&tempBfh, sizeof(BITMAPFILEHEADER), 1, fpo); //æ–‡ä»¶å¤´
-	fread(&tempBih, sizeof(BITMAPINFOHEADER), 1, fpo); //ä¿¡æ¯å¤´
+	fread(&tempBfh, sizeof(BITMAPFILEHEADER), 1, fpo); //ÎÄ¼şÍ·
+	fread(&tempBih, sizeof(BITMAPINFOHEADER), 1, fpo); //ĞÅÏ¢Í·
 	
-	//è¯»å–é¢œè‰²è¡¨ 
+	//¶ÁÈ¡ÑÕÉ«±í 
 	if (bih.biBitCount == 8)  // 8bit bmp
 	{
-		if (bih.biClrUsed == 0) //å¦‚æœè¯¥å€¼ä¸ºé›¶,åˆ™æœ‰2çš„biBitCountæ¬¡å¹‚ä¸ªå…ƒç´ 
+		if (bih.biClrUsed == 0) //Èç¹û¸ÃÖµÎªÁã,ÔòÓĞ2µÄbiBitCount´ÎÃİ¸öÔªËØ
 		{
 			memset(tempPal, 0, sizeof(RGBQUAD) * 256);
 			fseek(fpo, bfh.bfOffBits - sizeof(RGBQUAD) * 256, SEEK_SET);
@@ -370,13 +374,13 @@ bool CImageProcessView::SaveBmp(LPCSTR lpFileName) //lpFileNameä¸ºè¦ä¿å­˜ä¸ºçš
 
 	}
 
-	int tempSrcImageSize = tempBfh.bfSize - tempBfh.bfOffBits; //å®é™…å¤§å°-å¤´å¤§å°=å®é™…ä½å›¾æ•°æ®å¤§å°
+	int tempSrcImageSize = tempBfh.bfSize - tempBfh.bfOffBits; //Êµ¼Ê´óĞ¡-Í·´óĞ¡=Êµ¼ÊÎ»Í¼Êı¾İ´óĞ¡
 
-	BYTE * tempSrcImage = (BYTE*)malloc(tempSrcImageSize);  //ç”³è¯·å†…å­˜ç©ºé—´  
+	BYTE * tempSrcImage = (BYTE*)malloc(tempSrcImageSize);  //ÉêÇëÄÚ´æ¿Õ¼ä  
 	//BYTE * tempSrcImage = new BYTE[tempSrcImageSize];
-	fread(tempSrcImage, tempSrcImageSize, 1, fpo);  //ä½å›¾æ•°æ®
+	fread(tempSrcImage, tempSrcImageSize, 1, fpo);  //Î»Í¼Êı¾İ
 
-	//å°†BMPå›¾åƒæ•°æ®å†™å…¥æ–‡ä»¶
+	//½«BMPÍ¼ÏñÊı¾İĞ´ÈëÎÄ¼ş
 	BmpCommonOp bmpcommomop;
 	bmpcommomop.WriteBmpDataToFile(lpFileName, tempBfh, tempBih, tempPal, tempSrcImage, tempSrcImageSize);
 
@@ -388,70 +392,70 @@ bool CImageProcessView::SaveBmp(LPCSTR lpFileName) //lpFileNameä¸ºè¦ä¿å­˜ä¸ºçš
 }
 
 
-//****************åœ¨å›¾ç‰‡ä¸­å†™å…¥å­—ç¬¦****************//
+//****************ÔÚÍ¼Æ¬ÖĞĞ´Èë×Ö·û****************//
 void CImageProcessView::WriteCharOnImage(CDC *pDC,CString FileName, LPCTSTR Characters, int m_xPosition, int m_yPosition)
 {
 
-	//å®šä¹‰bitmapæŒ‡é’ˆ è°ƒç”¨å‡½æ•°LoadImageè£…è½½ä½å›¾
+	//¶¨ÒåbitmapÖ¸Õë µ÷ÓÃº¯ÊıLoadImage×°ÔØÎ»Í¼
 	HBITMAP m_hBitmap;
 	m_hBitmap = (HBITMAP)LoadImage(NULL, FileName, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
 
 
 	if (m_bitmap.m_hObject)
 	{
-		m_bitmap.Detach();           //åˆ‡æ–­CWndå’Œçª—å£è”ç³»
+		m_bitmap.Detach();           //ÇĞ¶ÏCWndºÍ´°¿ÚÁªÏµ
 	}
-	m_bitmap.Attach(m_hBitmap);      //å°†å¥æŸ„HBITMAP m_hBitmapä¸CBitmap m_bitmapå…³è”
+	m_bitmap.Attach(m_hBitmap);      //½«¾ä±úHBITMAP m_hBitmapÓëCBitmap m_bitmap¹ØÁª
 
-									 //è¾¹ç•Œ
+									 //±ß½ç
 	CRect rect;
 	GetClientRect(&rect);
 
-	//å›¾ç‰‡æ˜¾ç¤º(x,y)èµ·å§‹åæ ‡
+	//Í¼Æ¬ÏÔÊ¾(x,y)ÆğÊ¼×ø±ê
 	int m_showX = 0;
 	int m_showY = 0;
-	int m_nWindowWidth = rect.right - rect.left;   //è®¡ç®—å®¢æˆ·åŒºå®½åº¦
-	int m_nWindowHeight = rect.bottom - rect.top;  //è®¡ç®—å®¢æˆ·åŒºé«˜åº¦
+	int m_nWindowWidth = rect.right - rect.left;   //¼ÆËã¿Í»§Çø¿í¶È
+	int m_nWindowHeight = rect.bottom - rect.top;  //¼ÆËã¿Í»§Çø¸ß¶È
 
-	//å®šä¹‰å¹¶åˆ›å»ºä¸€ä¸ªå†…å­˜è®¾å¤‡ç¯å¢ƒDC
+	//¶¨Òå²¢´´½¨Ò»¸öÄÚ´æÉè±¸»·¾³DC
 	CDC dcBmp;
-	if (!dcBmp.CreateCompatibleDC(pDC))   //åˆ›å»ºå…¼å®¹æ€§çš„DC
+	if (!dcBmp.CreateCompatibleDC(pDC))   //´´½¨¼æÈİĞÔµÄDC
 		return;
 
-	BITMAP m_bmp;                          //ä¸´æ—¶bmpå›¾ç‰‡å˜é‡
-	m_bitmap.GetBitmap(&m_bmp);            //å°†å›¾ç‰‡è½½å…¥ä½å›¾ä¸­
+	BITMAP m_bmp;                          //ÁÙÊ±bmpÍ¼Æ¬±äÁ¿
+	m_bitmap.GetBitmap(&m_bmp);            //½«Í¼Æ¬ÔØÈëÎ»Í¼ÖĞ
 
 	CBitmap *pbmpOld = NULL;
-	dcBmp.SelectObject(&m_bitmap);         //å°†ä½å›¾é€‰å…¥ä¸´æ—¶å†…å­˜è®¾å¤‡ç¯å¢ƒ
+	dcBmp.SelectObject(&m_bitmap);         //½«Î»Í¼Ñ¡ÈëÁÙÊ±ÄÚ´æÉè±¸»·¾³
 
-	//è®¾ç½®å­—ä½“ä¿¡æ¯
+	//ÉèÖÃ×ÖÌåĞÅÏ¢
 	CFont font;
 	font.CreateFont(20, 20, 0, 0, 200, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_MODERN, _T("Times New Roman"));
 	dcBmp.SetTextColor(RGB(255, 0, 0));
 
-	dcBmp.SelectObject(&font); //å°†å­—ä½“å±æ€§é€‰å…¥DC
+	dcBmp.SelectObject(&font); //½«×ÖÌåÊôĞÔÑ¡ÈëDC
 	
 
-	dcBmp.SetBkMode(TRANSPARENT); //èƒŒæ™¯é€æ˜
+	dcBmp.SetBkMode(TRANSPARENT); //±³¾°Í¸Ã÷
 
-	//ä¸¤ç§æ–¹æ³•ç»˜åˆ¶æ–‡å­—
+	//Á½ÖÖ·½·¨»æÖÆÎÄ×Ö
 	//dcBmp.DrawText(Characters, sizeof(Characters), &CRect(0, 0, 100, 40), DT_CENTER); 
 
 	dcBmp.TextOut(m_xPosition, m_yPosition, Characters, _tcslen(Characters));
 
-	//å°†å¸¦æœ‰æ–‡å­—çš„å›¾ç‰‡å­˜å…¥ä¸´æ—¶æ–‡ä»¶ä¸­
+	//½«´øÓĞÎÄ×ÖµÄÍ¼Æ¬´æÈëÁÙÊ±ÎÄ¼şÖĞ
 
 	unsigned char *pTemp = new unsigned char[m_nLineByte*m_nHeight];
 	GetDIBits(dcBmp, (HBITMAP)m_bitmap.m_hObject, 0, m_nHeight, (LPVOID)pTemp, (BITMAPINFO*)&bih, DIB_RGB_COLORS);
 
 	USES_CONVERSION;
-	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin); //å°†CStringè½¬æˆconst char*
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin); //½«CString×ª³Éconst char*
 
-	//å°†BMPå›¾åƒæ•°æ®å†™å…¥æ–‡ä»¶
+	//½«BMPÍ¼ÏñÊı¾İĞ´ÈëÎÄ¼ş
 	BmpCommonOp bmpcommomop;
 	bmpcommomop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, pTemp, m_nImage);
 
-	dcBmp.SelectObject(pbmpOld);           //æ¢å¤ä¸´æ—¶DCçš„ä½å›¾
+	dcBmp.SelectObject(pbmpOld);           //»Ö¸´ÁÙÊ±DCµÄÎ»Í¼
 
 	numPicture = 2;
 	Invalidate();
@@ -463,23 +467,23 @@ void CImageProcessView::WriteCharOnImage(CDC *pDC,CString FileName, LPCTSTR Char
 
 
 
-//****************åŒçº¿æ€§å†…æ’****************//
-/*ç›®å‰å­˜åœ¨çš„é—®é¢˜ï¼š
-1.8bit bmpå¤„ç†å æ˜¾ç¤ºæ—¶å‡ºç°ç™½è‰²çº¹è·¯2017.10.8   ===å·²è§£å†³2017.10.11 
+//****************Ë«ÏßĞÔÄÚ²å****************//
+/*Ä¿Ç°´æÔÚµÄÎÊÌâ£º
+1.8bit bmp´¦Àíºó ÏÔÊ¾Ê±³öÏÖ°×É«ÎÆÂ·2017.10.8   ===ÒÑ½â¾ö2017.10.11 
 */
 
 void CImageProcessView::BilinearInterpolation(int Width, int Height)
 {
 	
-	//å®½å’Œé«˜çš„æ¯”ä¾‹
+	//¿íºÍ¸ßµÄ±ÈÀı
 	float f_wScale = (float) m_nWidth  / Width;
 	float f_hScale = (float) m_nHeight / Height;
 
 	 
-	int DstLineByte = (Width*m_nBitCount + 31) / 32 * 4; //ç›®æ ‡ä½å›¾æ¯è¡Œå¤§å° å­—èŠ‚
-	int DstImageSize = DstLineByte * Height;			 //ç›®æ ‡ä½å›¾æ•°æ®å¤§å°
+	int DstLineByte = (Width*m_nBitCount + 31) / 32 * 4; //Ä¿±êÎ»Í¼Ã¿ĞĞ´óĞ¡ ×Ö½Ú
+	int DstImageSize = DstLineByte * Height;			 //Ä¿±êÎ»Í¼Êı¾İ´óĞ¡
  
-	//å­—èŠ‚å¯¹é½é—®é¢˜ è§£å†³æ–œçº¿
+	//×Ö½Ú¶ÔÆëÎÊÌâ ½â¾öĞ±Ïß
 	if (Width %4 != 0) {
 		Width = Width + (4 - Width % 4);
 	}
@@ -496,12 +500,12 @@ void CImageProcessView::BilinearInterpolation(int Width, int Height)
 
 	//FILE *fpo;
 
-	////è¯»å–å›¾åƒ  åŸå›¾è¿˜æ˜¯æ•ˆæœå›¾? å¦‚æœæ˜¯è¿ç»­æ“ä½œåˆ™æ˜¯æ•ˆæœå›¾ 
-	//if (fopen_s(&fpo, BmpFileNameLin, "rb") == 0) { //å¦‚æœå­˜åœ¨æ•ˆæœå›¾ åˆ™ä½¿ç”¨æ•ˆæœå›¾
+	////¶ÁÈ¡Í¼Ïñ  Ô­Í¼»¹ÊÇĞ§¹ûÍ¼? Èç¹ûÊÇÁ¬Ğø²Ù×÷ÔòÊÇĞ§¹ûÍ¼ 
+	//if (fopen_s(&fpo, BmpFileNameLin, "rb") == 0) { //Èç¹û´æÔÚĞ§¹ûÍ¼ ÔòÊ¹ÓÃĞ§¹ûÍ¼
 	//	ReadBmp(BmpNameLin);
 	//	 
 	//}
-	//else { //å¦‚æœä¸å­˜åœ¨æ•ˆæœå›¾ åˆ™ç›´æ¥ä½¿ç”¨åŸå›¾æ•°æ®
+	//else { //Èç¹û²»´æÔÚĞ§¹ûÍ¼ ÔòÖ±½ÓÊ¹ÓÃÔ­Í¼Êı¾İ
 	//	ReadBmp(BmpName);
 	//	 
 	//}
@@ -509,13 +513,13 @@ void CImageProcessView::BilinearInterpolation(int Width, int Height)
 	
 	
 
-	//å¤„ç†å¼€å§‹
+	//´¦Àí¿ªÊ¼
 	for (int j = 0; j < Height;j++)  //Y
 	{
 
-		float y = (float)((j + 0.5)*f_hScale - 0.5); //å¯¹åº”æºå›¾åƒçš„Yåæ ‡ ä¸¤ä¸ªå›¾åƒçš„å‡ ä½•ä¸­å¿ƒé‡åˆ
-		int z_y = (int)floor(y); //å‘ä¸‹å–æ•´  æ•´æ•°éƒ¨åˆ†
-		float x_y = y - z_y; //å°æ•°éƒ¨åˆ†
+		float y = (float)((j + 0.5)*f_hScale - 0.5); //¶ÔÓ¦Ô´Í¼ÏñµÄY×ø±ê Á½¸öÍ¼ÏñµÄ¼¸ºÎÖĞĞÄÖØºÏ
+		int z_y = (int)floor(y); //ÏòÏÂÈ¡Õû  ÕûÊı²¿·Ö
+		float x_y = y - z_y; //Ğ¡Êı²¿·Ö
 
 		if (z_y < 0) {
 			x_y = 0; z_y = 0;
@@ -526,9 +530,9 @@ void CImageProcessView::BilinearInterpolation(int Width, int Height)
 
 		for (int i = 0; i < Width;i++) //X
 		{
-			float x = (float)((i + 0.5)*f_wScale - 0.5); //å¯¹åº”æºå›¾åƒçš„Xåæ ‡ ä¸¤ä¸ªå›¾åƒçš„å‡ ä½•ä¸­å¿ƒé‡åˆ 
-			int z_x = (int)floor(x); //å‘ä¸‹å–æ•´  æ•´æ•°éƒ¨åˆ†
-			float x_x = x - z_x; //å°æ•°éƒ¨åˆ†
+			float x = (float)((i + 0.5)*f_wScale - 0.5); //¶ÔÓ¦Ô´Í¼ÏñµÄX×ø±ê Á½¸öÍ¼ÏñµÄ¼¸ºÎÖĞĞÄÖØºÏ 
+			int z_x = (int)floor(x); //ÏòÏÂÈ¡Õû  ÕûÊı²¿·Ö
+			float x_x = x - z_x; //Ğ¡Êı²¿·Ö
 
 			if (z_x < 0) {
 				x_x = 0; z_x = 0;
@@ -550,33 +554,33 @@ void CImageProcessView::BilinearInterpolation(int Width, int Height)
 			//24bit BMP
 			if (bih.biBitCount == 24) {
 
-				//åˆ†åˆ«è®¡ç®—åŸå›¾ä¸­ å››ä¸ªç‚¹çš„åæ ‡
+				//·Ö±ğ¼ÆËãÔ­Í¼ÖĞ ËÄ¸öµãµÄ×ø±ê
 				unsigned int a1 = z_x * 3 + z_y*m_nLineByte;
-				if (a1 > m_nImage) 	a1 = m_nImage - 2;//é˜²æ­¢è¶Šç•Œ
+				if (a1 > m_nImage) 	a1 = m_nImage - 2;//·ÀÖ¹Ô½½ç
 				int q11_r = *(m_pImage + a1);
 				int q11_g = *(m_pImage + a1 + 1);
 				int q11_b = *(m_pImage + a1 + 2);
 
 				unsigned int a2 = (z_x + 1) * 3 + z_y*m_nLineByte;
-				if (a2 > m_nImage) 	a2 = m_nImage - 2;//é˜²æ­¢è¶Šç•Œ
+				if (a2 > m_nImage) 	a2 = m_nImage - 2;//·ÀÖ¹Ô½½ç
 				int q21_r = *(m_pImage + a2);
 				int q21_g = *(m_pImage + a2 + 1);
 				int q21_b = *(m_pImage + a2 + 2);
 
 				unsigned int a3 = z_x * 3 + (z_y + 1)*m_nLineByte;
-				if (a3 > m_nImage) a3 = m_nImage - 2;//é˜²æ­¢è¶Šç•Œ
+				if (a3 > m_nImage) a3 = m_nImage - 2;//·ÀÖ¹Ô½½ç
 				int q12_r = *(m_pImage + a3);
 				int q12_g = *(m_pImage + a3 + 1);
 				int q12_b = *(m_pImage + a3 + 2);
 
 
 				unsigned int a4 = (z_x + 1) * 3 + (z_y + 1)*m_nLineByte;
-				if (a4 > m_nImage) 	a4 = m_nImage - 2;//é˜²æ­¢è¶Šç•Œ
+				if (a4 > m_nImage) 	a4 = m_nImage - 2;//·ÀÖ¹Ô½½ç
 				int q22_r = *(m_pImage + a4);
 				int q22_g = *(m_pImage + a4 + 1);
 				int q22_b = *(m_pImage + a4 + 2);
 
-				//RGB åˆ†é‡
+				//RGB ·ÖÁ¿
 				*(DstImage + j*Width * 3 + i * 3) = q11_r*(1.0 - x_x)*(1.0 - x_y) + q21_r*x_x*(1.0 - x_y) + q12_r*(1.0 - x_x)*x_y + q22_r*x_x*x_y;
 				*(DstImage + j*Width * 3 + i * 3 + 1) = q11_g*(1.0 - x_x)*(1.0 - x_y) + q21_g*x_x*(1.0 - x_y) + q12_g*(1.0 - x_x)*x_y + q22_g*x_x*x_y;
 				*(DstImage + j*Width * 3 + i * 3 + 2) = q11_b*(1.0 - x_x)*(1.0 - x_y) + q21_b*x_x*(1.0 - x_y) + q12_b*(1.0 - x_x)*x_y + q22_b*x_x*x_y;
@@ -590,19 +594,19 @@ void CImageProcessView::BilinearInterpolation(int Width, int Height)
 	}
 
  
-	//å¤„ç†ç»“æŸ
+	//´¦Àí½áÊø
 
 
 
-	//æ–‡ä»¶å¤´å’Œä¿¡æ¯å¤´çš„ä¿®æ”¹ 
-	BITMAPFILEHEADER tempBfh = bfh; //ä¸´æ—¶æ–‡ä»¶å¤´
-	BITMAPINFOHEADER tempBih = bih; //ä¸´æ—¶ä¿¡æ¯å¤´
+	//ÎÄ¼şÍ·ºÍĞÅÏ¢Í·µÄĞŞ¸Ä 
+	BITMAPFILEHEADER tempBfh = bfh; //ÁÙÊ±ÎÄ¼şÍ·
+	BITMAPINFOHEADER tempBih = bih; //ÁÙÊ±ĞÅÏ¢Í·
 
 	tempBfh.bfSize = DstImageSize + tempBfh.bfOffBits;
 	tempBih.biWidth = Width;
 	tempBih.biHeight = Height;
 
-	//å°†BMPå›¾åƒæ•°æ®å†™å…¥æ–‡ä»¶
+	//½«BMPÍ¼ÏñÊı¾İĞ´ÈëÎÄ¼ş
 	BmpCommonOp bmpcommomop;
 	bmpcommomop.WriteBmpDataToFile(BmpFileNameLin, tempBfh, tempBih, m_pPal, DstImage, DstImageSize);
 
@@ -619,11 +623,11 @@ void CImageProcessView::BilinearInterpolation(int Width, int Height)
 
 
 
-//**************å›¾åƒæ—‹è½¬****************//
+//**************Í¼ÏñĞı×ª****************//
 
-/*ç›®å‰å­˜åœ¨çš„é—®é¢˜ï¼š
-1.å›¾åƒæ¸…æ™°åº¦æ•ˆæœä¸ä½³ 2017.10.7      ===å·²ä¼˜åŒ– é‡‡ç”¨åŒçº¿æ€§æ’å€¼ 2017.10.8
-2.è¾¹ç¼˜é”¯é½¿åŒ–åœ¨æŸäº›è§’åº¦ä¸‹æ¯”è¾ƒæ˜æ˜¾ 2017.10.7  
+/*Ä¿Ç°´æÔÚµÄÎÊÌâ£º
+1.Í¼ÏñÇåÎú¶ÈĞ§¹û²»¼Ñ 2017.10.7      ===ÒÑÓÅ»¯ ²ÉÓÃË«ÏßĞÔ²åÖµ 2017.10.8
+2.±ßÔµ¾â³İ»¯ÔÚÄ³Ğ©½Ç¶ÈÏÂ±È½ÏÃ÷ÏÔ 2017.10.7  
 
 
 */
@@ -631,19 +635,19 @@ void CImageProcessView::BilinearInterpolation(int Width, int Height)
 void CImageProcessView::RotateImage(int Angle)
 {
 	//8bit BMP
-	//è¯»å†™æ–‡ä»¶
+	//¶ÁĞ´ÎÄ¼ş
 
 	USES_CONVERSION;
 	 
 	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
 
 	//FILE *fpo;
-	////è¯»å–å›¾åƒ  åŸå›¾è¿˜æ˜¯æ•ˆæœå›¾? å¦‚æœæ˜¯è¿ç»­æ“ä½œåˆ™æ˜¯æ•ˆæœå›¾ 
-	//if (fopen_s(&fpo, BmpFileNameLin, "rb") == 0) { //å¦‚æœå­˜åœ¨æ•ˆæœå›¾ åˆ™ä½¿ç”¨æ•ˆæœå›¾
+	////¶ÁÈ¡Í¼Ïñ  Ô­Í¼»¹ÊÇĞ§¹ûÍ¼? Èç¹ûÊÇÁ¬Ğø²Ù×÷ÔòÊÇĞ§¹ûÍ¼ 
+	//if (fopen_s(&fpo, BmpFileNameLin, "rb") == 0) { //Èç¹û´æÔÚĞ§¹ûÍ¼ ÔòÊ¹ÓÃĞ§¹ûÍ¼
 	//	ReadBmp(BmpNameLin);
 	//	fclose(fpo);
 	//}
-	//else { //å¦‚æœä¸å­˜åœ¨æ•ˆæœå›¾ åˆ™ç›´æ¥ä½¿ç”¨åŸå›¾æ•°æ®
+	//else { //Èç¹û²»´æÔÚĞ§¹ûÍ¼ ÔòÖ±½ÓÊ¹ÓÃÔ­Í¼Êı¾İ
 	//	ReadBmp(BmpName);
 	//	fclose(fpo);
 	//}
@@ -653,32 +657,32 @@ void CImageProcessView::RotateImage(int Angle)
 	
 
 
-	/*å®šä¹‰PA=3.14æ—¶ä½¿ç”¨çš„æ–¹æ³•æ˜¯arcsin(1.0/2)*6å³ä¸ºÏ€*/
+	/*¶¨ÒåPA=3.14Ê±Ê¹ÓÃµÄ·½·¨ÊÇarcsin(1.0/2)*6¼´Îª¦Ğ*/
 	double PA; //3.1415926
 	PA = asin(0.5) * 6;
 
 	double degree;
-	degree = (double) PA*Angle / 180; //å¼§åº¦
+	degree = (double) PA*Angle / 180; //»¡¶È
 
-	int XCenter = (int)bih.biWidth / 2;  //åŸå›¾ä¸­å¿ƒç‚¹Xåæ ‡
-	int YCenter = (int)bih.biHeight / 2; //åŸå›¾ä¸­å¿ƒç‚¹Yåæ ‡
+	int XCenter = (int)bih.biWidth / 2;  //Ô­Í¼ÖĞĞÄµãX×ø±ê
+	int YCenter = (int)bih.biHeight / 2; //Ô­Í¼ÖĞĞÄµãY×ø±ê
 
 
 	
 
-	//å¤„ç†å¼€å§‹
+	//´¦Àí¿ªÊ¼
 
 
-	//æºå›¾åƒåæ ‡
+	//Ô´Í¼Ïñ×ø±ê
 
 	/*int x_pre;
 	int y_pre;*/
-	float x_pre; //åŒçº¿æ€§æ’å€¼ 
+	float x_pre; //Ë«ÏßĞÔ²åÖµ 
 	float y_pre;
 
 
-	//ç›´æ¥è®¾ç½®ç›®æ ‡å›¾åƒå¤§å° ä¹Ÿå¯ä»¥é€šè¿‡æ•°å­¦è®¡ç®— ä»¥å¯¹è§’çº¿é•¿åº¦çš„æœ€ä¸ºæœ€ç»ˆçš„å®½é«˜
-	//int DstImageWidth = 2 * m_nWidth; //æ³¨æ„æ˜¯åƒç´ å•ä½ ä¸æ˜¯å­—èŠ‚å•ä½
+	//Ö±½ÓÉèÖÃÄ¿±êÍ¼Ïñ´óĞ¡ Ò²¿ÉÒÔÍ¨¹ıÊıÑ§¼ÆËã ÒÔ¶Ô½ÇÏß³¤¶ÈµÄ×îÎª×îÖÕµÄ¿í¸ß
+	//int DstImageWidth = 2 * m_nWidth; //×¢ÒâÊÇÏñËØµ¥Î» ²»ÊÇ×Ö½Úµ¥Î»
 	//int DstImageHeight = 2 * m_nHeight;
 
 	int DstImageWidth = (int) sqrt(m_nWidth*m_nWidth + m_nHeight*m_nHeight) + 1;
@@ -691,44 +695,44 @@ void CImageProcessView::RotateImage(int Angle)
 	int DstImageLine = (DstImageWidth * bih.biBitCount + 31) / 32 * 4;
 	int DstImageSize = DstImageLine*DstImageHeight;
 	BYTE * DstImage = new BYTE[DstImageSize];
-	memset(DstImage, 255, DstImageSize); //åˆå§‹åŒ–ä¸º255 ç™½è‰²
+	memset(DstImage, 255, DstImageSize); //³õÊ¼»¯Îª255 °×É«
 
-	//ç”±ç›®æ ‡å›¾åƒåæ ‡ æ‰¾åˆ°å¯¹åº”çš„æºå›¾åƒåæ ‡
+	//ÓÉÄ¿±êÍ¼Ïñ×ø±ê ÕÒµ½¶ÔÓ¦µÄÔ´Í¼Ïñ×ø±ê
 	
 	
 	for (int x = 0; x < DstImageWidth; x++) {
 		for (int y = 0; y < DstImageHeight; y++) {
 
-			//å…³äºä¸åŸå›¾å¯¹åº”ç‚¹çš„é—®é¢˜ æ¶‰åŠæ’å€¼ 
+			//¹ØÓÚÓëÔ­Í¼¶ÔÓ¦µãµÄÎÊÌâ Éæ¼°²åÖµ 
 
-			//ç›´æ¥int åˆ™æ˜¯æœ€è¿‘é‚»æ’å€¼ 
-			//è¿™é‡Œæš‚æ—¶ä½¿ç”¨æœ€è¿‘é‚»æ’å€¼ åæœŸåˆ™ä¼šä½¿ç”¨åŒçº¿æ€§å†…æ’ 2017.10.7
+			//Ö±½Óint ÔòÊÇ×î½üÁÚ²åÖµ 
+			//ÕâÀïÔİÊ±Ê¹ÓÃ×î½üÁÚ²åÖµ ºóÆÚÔò»áÊ¹ÓÃË«ÏßĞÔÄÚ²å 2017.10.7
 			//x_pre = (int)((x - DstImageWidth / 2)*cos(degree) - (y - DstImageWidth / 2)*sin(degree) + XCenter);
 			//y_pre = (int)((x - DstImageHeight / 2)*sin(degree) + (y - DstImageHeight / 2)*cos(degree) + YCenter);
 
 
-			//2017.10.8æ›´æ–° é‡‡ç”¨åŒçº¿æ€§å†…æ’
+			//2017.10.8¸üĞÂ ²ÉÓÃË«ÏßĞÔÄÚ²å
 			x_pre = (float)((x - DstImageWidth / 2)*cos(degree) - (y - DstImageWidth / 2)*sin(degree) + XCenter);
 			y_pre = (float)((x - DstImageHeight / 2)*sin(degree) + (y - DstImageHeight / 2)*cos(degree) + YCenter);
 
-			int z_x = (int)floor(x_pre); //æ•´æ•°éƒ¨åˆ† å‘ä¸‹å–æ•´
-			float x_x = x_pre - z_x;  //å°æ•°éƒ¨åˆ†
-			int z_y = (int)floor(y_pre); //æ•´æ•°éƒ¨åˆ† å‘ä¸‹å–æ•´
-			float x_y = y_pre - z_y; //å°æ•°éƒ¨åˆ†
+			int z_x = (int)floor(x_pre); //ÕûÊı²¿·Ö ÏòÏÂÈ¡Õû
+			float x_x = x_pre - z_x;  //Ğ¡Êı²¿·Ö
+			int z_y = (int)floor(y_pre); //ÕûÊı²¿·Ö ÏòÏÂÈ¡Õû
+			float x_y = y_pre - z_y; //Ğ¡Êı²¿·Ö
 
 
 			//if (x_pre >= 0 && y_pre >= 0 && x_pre < m_nWidth && y_pre < m_nHeight) {
 			if (z_x >= 0 && z_y >= 0 && z_x + 1 < m_nWidth && z_y + 1  < m_nHeight) {
 
 
-				//8bit å’Œ24bitåˆ†å¼€å¤„ç†
+				//8bit ºÍ24bit·Ö¿ª´¦Àí
 
-				//8bit BMPå¤„ç†
+				//8bit BMP´¦Àí
 				if (bih.biBitCount == 8) {
-					//æœ€è¿‘é‚»æ’å€¼2017.10.7
+					//×î½üÁÚ²åÖµ2017.10.7
 					//*(DstImage + x + y * DstImageWidth) = *(m_pImage + x_pre + y_pre *m_nWidth);
 
-					//åŒçº¿æ€§æ’å€¼ 2017.10.8
+					//Ë«ÏßĞÔ²åÖµ 2017.10.8
 					int q11 = *(m_pImage + z_x + z_y*m_nLineByte);
 					int q21 = *(m_pImage + (z_x + 1) + z_y*m_nLineByte);
 					int q12 = *(m_pImage + z_x + (z_y + 1)*m_nLineByte);
@@ -740,41 +744,41 @@ void CImageProcessView::RotateImage(int Angle)
 				}
 
 
-				//24bit BMPå¤„ç†
+				//24bit BMP´¦Àí
 				if (bih.biBitCount == 24) {
 
-					//æœ€è¿‘é‚»æ’å€¼2017.10.7
-					//int position = x_pre * 3 + y_pre *m_nWidth * 3; //åŸå›¾ä¸­çš„ä½ç½®
+					//×î½üÁÚ²åÖµ2017.10.7
+					//int position = x_pre * 3 + y_pre *m_nWidth * 3; //Ô­Í¼ÖĞµÄÎ»ÖÃ
 					//if (position + 2 < m_nImage) {
 					//	*(DstImage + x * 3 + y * DstImageWidth * 3) = *(m_pImage + position);
 					//	*(DstImage + x * 3 + y * DstImageWidth * 3 + 1) = *(m_pImage + position + 1);
 					//	*(DstImage + x * 3 + y * DstImageWidth * 3 + 2) = *(m_pImage + position + 2);
 					//}
 
-					//åŒçº¿æ€§æ’å€¼ 2017.10.8
+					//Ë«ÏßĞÔ²åÖµ 2017.10.8
 
-					//åˆ†åˆ«è®¡ç®—åŸå›¾ä¸­ å››ä¸ªç‚¹çš„åæ ‡
+					//·Ö±ğ¼ÆËãÔ­Í¼ÖĞ ËÄ¸öµãµÄ×ø±ê
 					unsigned int a1 = z_x * 3 + z_y*m_nLineByte;
-					if (a1 > m_nImage) 	a1 = m_nImage - 2; //é˜²æ­¢è¶Šç•Œ
+					if (a1 > m_nImage) 	a1 = m_nImage - 2; //·ÀÖ¹Ô½½ç
 					int q11_r = *(m_pImage + a1);
 					int q11_g = *(m_pImage + a1 + 1);
 					int q11_b = *(m_pImage + a1 + 2);
 
 					unsigned int a2 = (z_x + 1) * 3 + z_y*m_nLineByte;
-					if (a2 > m_nImage) 	a2 = m_nImage - 2;//é˜²æ­¢è¶Šç•Œ
+					if (a2 > m_nImage) 	a2 = m_nImage - 2;//·ÀÖ¹Ô½½ç
 					int q21_r = *(m_pImage + a2);
 					int q21_g = *(m_pImage + a2 + 1);
 					int q21_b = *(m_pImage + a2 + 2);
 
 					unsigned int a3 = z_x * 3 + (z_y + 1)*m_nLineByte;
-					if (a3 > m_nImage) a3 = m_nImage - 2;//é˜²æ­¢è¶Šç•Œ
+					if (a3 > m_nImage) a3 = m_nImage - 2;//·ÀÖ¹Ô½½ç
 					int q12_r = *(m_pImage + a3);
 					int q12_g = *(m_pImage + a3 + 1);
 					int q12_b = *(m_pImage + a3 + 2);
 
 
 					unsigned int a4 = (z_x + 1) * 3 + (z_y + 1)*m_nLineByte;
-					if (a4 > m_nImage) 	a4 = m_nImage - 2;//é˜²æ­¢è¶Šç•Œ
+					if (a4 > m_nImage) 	a4 = m_nImage - 2;//·ÀÖ¹Ô½½ç
 					int q22_r = *(m_pImage + a4);
 					int q22_g = *(m_pImage + a4 + 1);
 					int q22_b = *(m_pImage + a4 + 2);
@@ -795,18 +799,18 @@ void CImageProcessView::RotateImage(int Angle)
 	}
 
 
-	//å¤„ç†ç»“æŸ
+	//´¦Àí½áÊø
 
 
-	//æ–‡ä»¶å¤´å’Œä¿¡æ¯å¤´çš„ä¿®æ”¹ 
-	BITMAPFILEHEADER tempBfh = bfh; //ä¸´æ—¶æ–‡ä»¶å¤´
-	BITMAPINFOHEADER tempBih = bih; //ä¸´æ—¶ä¿¡æ¯å¤´
+	//ÎÄ¼şÍ·ºÍĞÅÏ¢Í·µÄĞŞ¸Ä 
+	BITMAPFILEHEADER tempBfh = bfh; //ÁÙÊ±ÎÄ¼şÍ·
+	BITMAPINFOHEADER tempBih = bih; //ÁÙÊ±ĞÅÏ¢Í·
 
 	tempBfh.bfSize = DstImageSize + tempBfh.bfOffBits;
 	tempBih.biWidth = DstImageWidth;
 	tempBih.biHeight = DstImageHeight;
 
-	//å°†BMPå›¾åƒæ•°æ®å†™å…¥æ–‡ä»¶
+	//½«BMPÍ¼ÏñÊı¾İĞ´ÈëÎÄ¼ş
 	BmpCommonOp bmpcommomop;
 	bmpcommomop.WriteBmpDataToFile(BmpFileNameLin, tempBfh, tempBih, m_pPal, DstImage, DstImageSize);
 
@@ -815,7 +819,7 @@ void CImageProcessView::RotateImage(int Angle)
 	 
 	delete[] DstImage;
 	numPicture = 2;
-	flag = _T("rotate");  //å‡ ä½•å˜æ¢           
+	flag = _T("rotate");  //¼¸ºÎ±ä»»           
 	Invalidate();
 
 	 
@@ -823,7 +827,7 @@ void CImageProcessView::RotateImage(int Angle)
 
 
 
-//****************åŒä¸‰æ¬¡æ’å€¼****************//
+//****************Ë«Èı´Î²åÖµ****************//
 //void CImageProcessView::BicubicInterpolation(int Width, int Height) {
 //
 //
@@ -833,8 +837,20 @@ void CImageProcessView::RotateImage(int Angle)
 //}
 
 
+//****************ÏÔÊ¾Ö±¹ÛÍ¼****************//
+void  CImageProcessView::ShowHistogram() {
 
+	memset(m_nHistogramColor, 0, sizeof(int) *256);
+	for (int i = 0; i < m_nImage; i++) {
+			int currentColor = m_pImage[i];
+			m_nHistogramColor[currentColor]++; //µ±Ç°»Ò¶È¼¶+1
+	}
+}
 
+//****************Ö±·½Í¼¾ùºâ»¯****************//
+void CImageProcessView::HistogramEqualization() {
+
+}
 
 
 
@@ -846,7 +862,7 @@ void CImageProcessView::RotateImage(int Angle)
 
 
  
-//**************ç»˜åˆ¶å›¾åƒ****************//
+//**************»æÖÆÍ¼Ïñ****************//
 void CImageProcessView::OnDraw(CDC* pDC)
 {
 	CImageProcessDoc* pDoc = GetDocument();
@@ -854,7 +870,7 @@ void CImageProcessView::OnDraw(CDC* pDC)
 	if (!pDoc)
 		return;
 
-	// TODO: åœ¨æ­¤å¤„ä¸ºæœ¬æœºæ•°æ®æ·»åŠ ç»˜åˆ¶ä»£ç 
+	// TODO: ÔÚ´Ë´¦Îª±¾»úÊı¾İÌí¼Ó»æÖÆ´úÂë
 	if (EntName.Compare(_T("bmp")) == 0)
 	{
 
@@ -867,28 +883,28 @@ void CImageProcessView::OnDraw(CDC* pDC)
 }
 
 
-//**************æ–‡ä»¶æ‰“å¼€****************//
+//**************ÎÄ¼ş´ò¿ª****************//
 void CImageProcessView::OnFileOpen()
 {
-	// TODO: åœ¨æ­¤æ·»åŠ å‘½ä»¤å¤„ç†ç¨‹åºä»£ç 
+	// TODO: ÔÚ´ËÌí¼ÓÃüÁî´¦Àí³ÌĞò´úÂë
  
 
-	//ç›®å‰ä»…æ”¯æŒBMPæ–‡ä»¶çš„ä¿å­˜
+	//Ä¿Ç°½öÖ§³ÖBMPÎÄ¼şµÄ±£´æ
 	CString bmpfilter = _T("BMP(*.bmp)|*.bmp||");
 	CFileDialog dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY, bmpfilter, this);
 
-	//æŒ‰ä¸‹ç¡®å®šæŒ‰é’® dlg.DoModal() å‡½æ•°æ˜¾ç¤ºå¯¹è¯æ¡†
+	//°´ÏÂÈ·¶¨°´Å¥ dlg.DoModal() º¯ÊıÏÔÊ¾¶Ô»°¿ò
 	if (dlg.DoModal() == IDOK)
 	{
 
-		BmpName = dlg.GetPathName();     //è·å–æ–‡ä»¶è·¯å¾„å   å¦‚D:\pic\abc.bmp
+		BmpName = dlg.GetPathName();     //»ñÈ¡ÎÄ¼şÂ·¾¶Ãû   ÈçD:\pic\abc.bmp
 
-		BmpNameLin = _T("picture.bmp");   //ä¸´æ—¶å˜é‡å  
-		numPicture = 1;                  //æ˜¾ç¤ºä¸€å¼ å›¾ç‰‡ 
-		EntName = dlg.GetFileExt();      //è·å–æ–‡ä»¶æ‰©å±•å
-		EntName.MakeLower();             //å°†æ–‡ä»¶æ‰©å±•åè½¬æ¢ä¸ºä¸€ä¸ªå°å†™å­—ç¬¦
+		BmpNameLin = _T("picture.bmp");   //ÁÙÊ±±äÁ¿Ãû  
+		numPicture = 1;                  //ÏÔÊ¾Ò»ÕÅÍ¼Æ¬ 
+		EntName = dlg.GetFileExt();      //»ñÈ¡ÎÄ¼şÀ©Õ¹Ãû
+		EntName.MakeLower();             //½«ÎÄ¼şÀ©Õ¹Ãû×ª»»ÎªÒ»¸öĞ¡Ğ´×Ö·û
 
-		Invalidate();                    //è°ƒç”¨è¯¥å‡½æ•°å°±ä¼šè°ƒç”¨OnDrawé‡ç»˜ç”»å›¾
+		Invalidate();                    //µ÷ÓÃ¸Ãº¯Êı¾Í»áµ÷ÓÃOnDrawÖØ»æ»­Í¼
 	}
 }
 
@@ -896,32 +912,32 @@ void CImageProcessView::OnFileOpen()
 
 
 
-//******************æ–‡ä»¶ä¿å­˜*****************//
+//******************ÎÄ¼ş±£´æ*****************//
 void CImageProcessView::OnFileSave()
 {
-	// TODO: åœ¨æ­¤æ·»åŠ å‘½ä»¤å¤„ç†ç¨‹åºä»£ç 
+	// TODO: ÔÚ´ËÌí¼ÓÃüÁî´¦Àí³ÌĞò´úÂë
 
-	//ç›®å‰ä»…æ”¯æŒBMPæ–‡ä»¶çš„ä¿å­˜
+	//Ä¿Ç°½öÖ§³ÖBMPÎÄ¼şµÄ±£´æ
 	CString bmpfilter = _T("BMP(*.bmp)|*.bmp||");
-	//1-æ–‡ä»¶æ‰“å¼€ 0-æ–‡ä»¶ä¿å­˜
+	//1-ÎÄ¼ş´ò¿ª 0-ÎÄ¼ş±£´æ
 	CFileDialog dlg(0, NULL, _T("effect"), OFN_HIDEREADONLY, bmpfilter, NULL);
-	//æŒ‰ä¸‹ç¡®å®šæŒ‰é’®
+	//°´ÏÂÈ·¶¨°´Å¥
 	if (dlg.DoModal() == IDOK) {
 
 		CString str;
 		CString strName;
 		CString filename;
-		str = dlg.GetPathName();           //è·å–æ–‡ä»¶çš„è·¯å¾„
-		filename = dlg.GetFileTitle();     //è·å–æ–‡ä»¶å
+		str = dlg.GetPathName();           //»ñÈ¡ÎÄ¼şµÄÂ·¾¶
+		filename = dlg.GetFileTitle();     //»ñÈ¡ÎÄ¼şÃû
 		int nFilterIndex = dlg.m_ofn.nFilterIndex;
-		if (nFilterIndex == 1)            //å½“ç”¨æˆ·é€‰æ‹©æ–‡ä»¶è¿‡æ»¤å™¨ä¸º".BMP"æ—¶
+		if (nFilterIndex == 1)            //µ±ÓÃ»§Ñ¡ÔñÎÄ¼ş¹ıÂËÆ÷Îª".BMP"Ê±
 		{
-			str = str + _T(".bmp");	           //è‡ªåŠ¨åŠ æ‰©å±•å.bmp
+			str = str + _T(".bmp");	           //×Ô¶¯¼ÓÀ©Õ¹Ãû.bmp
 
 			USES_CONVERSION;
 			LPCSTR lpstr = (LPCSTR)T2A(str);
 
-			if ( SaveBmp(lpstr) )  AfxMessageBox(_T("å›¾ç‰‡ä¿å­˜æˆåŠŸ"), MB_OK, 0);  //ä¿å­˜bmpå›¾ç‰‡  
+			if ( SaveBmp(lpstr) )  AfxMessageBox(_T("Í¼Æ¬±£´æ³É¹¦"), MB_OK, 0);  //±£´æbmpÍ¼Æ¬  
 		              
 
 			
@@ -930,39 +946,52 @@ void CImageProcessView::OnFileSave()
 }
 
 
-//******************å†™å…¥å­—ç¬¦U/D*****************//
+//******************Ê¹ÓÃ°ïÖú*****************//
+void CImageProcessView::OnHelp()
+{
+	// TODO: ÔÚ´ËÌí¼ÓÃüÁî´¦Àí³ÌĞò´úÂë
+	CHelpDlg dlg;
+	if (dlg.DoModal() == IDOK)
+	{
+		
+	}
+}
+
+
+
+//******************Ğ´Èë×Ö·û*****************//
 void CImageProcessView::OnWriteCharcter()
 {
-	// TODO: åœ¨æ­¤æ·»åŠ å‘½ä»¤å¤„ç†ç¨‹åºä»£ç 
+	// TODO: ÔÚ´ËÌí¼ÓÃüÁî´¦Àí³ÌĞò´úÂë
 	
-	//å¦‚æœæ²¡æœ‰å¯¼å…¥å›¾ç‰‡ç›´æ¥å†™å…¥å­—ç¬¦ æç¤ºé”™è¯¯
+	//Èç¹ûÃ»ÓĞµ¼ÈëÍ¼Æ¬Ö±½ÓĞ´Èë×Ö·û ÌáÊ¾´íÎó
 	if (numPicture == 0)
 	{
-		AfxMessageBox(_T("è½½å…¥å›¾ç‰‡åæ‰èƒ½å†™å…¥å­—ç¬¦!"));
+		AfxMessageBox(_T("ÔØÈëÍ¼Æ¬ºó²ÅÄÜĞ´Èë×Ö·û!"));
 		return;
 	}
-	//å®šä¹‰å†™å…¥å­—ç¬¦è¾“å…¥å¯¹è¯æ¡†
+	//¶¨ÒåĞ´Èë×Ö·ûÊäÈë¶Ô»°¿ò
 	CWriteCharDlg dlg;
-	//æ˜¾ç¤ºå¯¹è¯æ¡†
+	//ÏÔÊ¾¶Ô»°¿ò
 	if (dlg.DoModal() == IDOK ) 
 	{
 	 
 
 		if (dlg.m_xPosition <= 0 || dlg.m_yPosition <= 0) {
-			AfxMessageBox(_T("è¾“å…¥åæ ‡å¿…é¡»ä¸ºæ­£æ•´æ•°!"), MB_OK, 0);
+			AfxMessageBox(_T("ÊäÈë×ø±ê±ØĞëÎªÕıÕûÊı!"), MB_OK, 0);
 			return;
 		}
 		if (dlg.m_xPosition > m_nWidth || dlg.m_yPosition > m_nHeight) {
-			AfxMessageBox(_T("è¾“å…¥åæ ‡ä¸èƒ½ä¸ºè¶…è¿‡åŸå›¾é•¿å®½!"), MB_OK, 0);
+			AfxMessageBox(_T("ÊäÈë×ø±ê²»ÄÜÎª³¬¹ıÔ­Í¼³¤¿í!"), MB_OK, 0);
 			return;
 		}
 
 		if (dlg.m_wCharacter.GetLength()==0) {
-			AfxMessageBox(_T("å†™å…¥å­—ç¬¦ä¸å¾—ä¸ºç©º!"), MB_OK, 0);
+			AfxMessageBox(_T("Ğ´Èë×Ö·û²»µÃÎª¿Õ!"), MB_OK, 0);
 			return;
 		}
 
-		CDC *pDc = GetDC();	 //è·å–å½“å‰DC
+		CDC *pDc = GetDC();	 //»ñÈ¡µ±Ç°DC
 		WriteCharOnImage(pDc, BmpName, dlg.m_wCharacter, dlg.m_xPosition, dlg.m_yPosition);
 
 	}
@@ -971,25 +1000,25 @@ void CImageProcessView::OnWriteCharcter()
 }
 
 
-//******************åŒçº¿æ€§å†…æ’*****************//
+//******************Ë«ÏßĞÔÄÚ²å*****************//
 void CImageProcessView::OnBilinearInterpolation()
 {
-	// TODO: åœ¨æ­¤æ·»åŠ å‘½ä»¤å¤„ç†ç¨‹åºä»£ç 
+	// TODO: ÔÚ´ËÌí¼ÓÃüÁî´¦Àí³ÌĞò´úÂë
 
-	//å¦‚æœæ²¡æœ‰å¯¼å…¥å›¾ç‰‡ æç¤ºé”™è¯¯
+	//Èç¹ûÃ»ÓĞµ¼ÈëÍ¼Æ¬ ÌáÊ¾´íÎó
 	if (numPicture == 0)
 	{
-		AfxMessageBox(_T("è½½å…¥å›¾ç‰‡åæ‰èƒ½æ‰§è¡ŒåŒçº¿æ€§å†…æ’!"));
+		AfxMessageBox(_T("ÔØÈëÍ¼Æ¬ºó²ÅÄÜÖ´ĞĞË«ÏßĞÔÄÚ²å!"));
 		return;
 	}
 
-	//æ˜¾ç¤ºå¯¹è¯æ¡†
+	//ÏÔÊ¾¶Ô»°¿ò
 	CInterpolationDlg dlg;
 	
 	if (dlg.DoModal() == IDOK) 
 	{
 		if (dlg.m_nWidth <= 0 || dlg.m_nHeight <= 0) {
-			AfxMessageBox(_T("è¾“å…¥å®½å’Œé«˜å¿…é¡»ä¸ºæ­£æ•´æ•°!"), MB_OK, 0);
+			AfxMessageBox(_T("ÊäÈë¿íºÍ¸ß±ØĞëÎªÕıÕûÊı!"), MB_OK, 0);
 			return;
 		}
 
@@ -1001,30 +1030,50 @@ void CImageProcessView::OnBilinearInterpolation()
 
 
 
-//******************å›¾ç‰‡æ—‹è½¬*****************//
+//******************Í¼Æ¬Ğı×ª*****************//
 void CImageProcessView::OnRotate()
 {
-	// TODO: åœ¨æ­¤æ·»åŠ å‘½ä»¤å¤„ç†ç¨‹åºä»£ç 
+	// TODO: ÔÚ´ËÌí¼ÓÃüÁî´¦Àí³ÌĞò´úÂë
 
-	//å¦‚æœæ²¡æœ‰å¯¼å…¥å›¾ç‰‡ æç¤ºé”™è¯¯
+	//Èç¹ûÃ»ÓĞµ¼ÈëÍ¼Æ¬ ÌáÊ¾´íÎó
 	if (numPicture == 0)
 	{
-		AfxMessageBox(_T("è½½å…¥å›¾ç‰‡åæ‰èƒ½æ‰§è¡Œå›¾ç‰‡æ—‹è½¬!"));
+		AfxMessageBox(_T("ÔØÈëÍ¼Æ¬ºó²ÅÄÜÖ´ĞĞÍ¼Æ¬Ğı×ª!"));
 		return;
 	}
 
-
+	//ÏÔÊ¾¶Ô»°¿ò
 	CRotateDlg dlg;
-	//æ˜¾ç¤ºå¯¹è¯æ¡†
 	if (dlg.DoModal() == IDOK)
 	{
-
-		RotateImage(dlg.m_nRotateAngle); //æ—‹è½¬
-
+		RotateImage(dlg.m_nRotateAngle); //Ğı×ª
 	}
 
 
 
+}
+
+//******************ÏÔÊ¾Ö±·½Í¼*****************//
+void CImageProcessView::OnShowHistogram()
+{
+	// TODO: ÔÚ´ËÌí¼ÓÃüÁî´¦Àí³ÌĞò´úÂë
+
+	//Èç¹ûÃ»ÓĞµ¼ÈëÍ¼Æ¬ ÌáÊ¾´íÎó
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("ÔØÈëÍ¼Æ¬ºó²ÅÄÜÏÔÊ¾Ö±·½Í¼!"));
+		return;
+	}
+
+	//ÏÔÊ¾¶Ô»°¿ò
+	CHistogramDlg dlg;
+	ShowHistogram(); //Í³¼Æ»Ò¶È
+	dlg.HistogramColor = m_nHistogramColor;  //½«Í³¼Æ½á¹û´«µİ¸ø¶Ô»°¿ò
+
+	if (dlg.DoModal() == IDOK)
+	{
+		 
+	}
 }
 
 
@@ -1032,15 +1081,22 @@ void CImageProcessView::OnRotate()
 
 
 
-//******************ä½¿ç”¨å¸®åŠ©*****************//
-void CImageProcessView::OnHelp()
+
+
+
+
+
+//******************Ö±·½Í¼¾ùºâ»¯*****************//
+void CImageProcessView::OnHistogramEqualization()
 {
-	// TODO: åœ¨æ­¤æ·»åŠ å‘½ä»¤å¤„ç†ç¨‹åºä»£ç 
-
-	CHelpDlg dlg;
-	//æ˜¾ç¤ºå¯¹è¯æ¡†
-	if (dlg.DoModal() == IDOK)
+	// TODO: ÔÚ´ËÌí¼ÓÃüÁî´¦Àí³ÌĞò´úÂë
+	//Èç¹ûÃ»ÓĞµ¼ÈëÍ¼Æ¬ ÌáÊ¾´íÎó
+	if (numPicture == 0)
 	{
-
+		AfxMessageBox(_T("ÔØÈëÍ¼Æ¬ºó²ÅÄÜ½øĞĞÖ±·½Í¼¾ùºâ»¯´¦Àí!"));
+		return;
 	}
+
+	HistogramEqualization(); 
+
 }

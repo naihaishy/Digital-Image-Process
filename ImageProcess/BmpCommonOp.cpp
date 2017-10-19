@@ -20,11 +20,11 @@ BmpCommonOp::~BmpCommonOp()
 *
 * Function:  WriteBmpDataToFile ()
 *
-* Description:   ½«BMPÎÄ¼şÊı¾İĞ´ÈëÎÄ¼ş
+* Description:   å°†BMPæ–‡ä»¶æ•°æ®å†™å…¥æ–‡ä»¶
 *
-* Input:  FileName ÒªĞ´ÈëÎÄ¼şµÄ¾ø¶ÔÂ·¾¶ºÍÃû³Æ; bfh ÎÄ¼şÍ· bih ĞÅÏ¢Í· colorTableÑÕÉ«±í
+* Input:  FileName è¦å†™å…¥æ–‡ä»¶çš„ç»å¯¹è·¯å¾„å’Œåç§°; bfh æ–‡ä»¶å¤´ bih ä¿¡æ¯å¤´ colorTableé¢œè‰²è¡¨
 *
-* Returns:   ³É¹¦·µ»Ø0 Ê§°Ü·µ»Ø -1 ·Ç0
+* Returns:   æˆåŠŸè¿”å›0 å¤±è´¥è¿”å› -1 é0
 *
 ************************************************************************/
 
@@ -35,15 +35,15 @@ void BmpCommonOp::WriteBmpDataToFile(LPCSTR FileName, BITMAPFILEHEADER BitmapFil
 
 	fopen_s(&fpw, FileName, "wb+");
 
-	//Ğ´ÈëÎÄ¼şÍ·
+	//å†™å…¥æ–‡ä»¶å¤´
 	fwrite(&BitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, fpw);
-	//Ğ´ÈëĞÅÏ¢Í·
+	//å†™å…¥ä¿¡æ¯å¤´
 	fwrite(&BitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, fpw);
 
-	//Ğ´ÈëÑÕÉ«±í
+	//å†™å…¥é¢œè‰²è¡¨
 	if (BitmapInfoHeader.biBitCount == 8)  // 8bit BMP
 	{
-		if (BitmapInfoHeader.biClrUsed == 0) //Èç¹û¸ÃÖµÎªÁã,ÔòÓĞ2µÄbiBitCount´ÎÃİ¸öÔªËØ
+		if (BitmapInfoHeader.biClrUsed == 0) //å¦‚æœè¯¥å€¼ä¸ºé›¶,åˆ™æœ‰2çš„biBitCountæ¬¡å¹‚ä¸ªå…ƒç´ 
 		{
 			fwrite(colorTable, sizeof(RGBQUAD), 256, fpw);
 		}
@@ -53,10 +53,25 @@ void BmpCommonOp::WriteBmpDataToFile(LPCSTR FileName, BITMAPFILEHEADER BitmapFil
 	}
 
 
-	//Ğ´ÈëÎ»Í¼ÏñËØÊı¾İ
+	//å†™å…¥ä½å›¾åƒç´ æ•°æ®
 	fwrite(Image, ImageSize, 1, fpw);
 
-	fclose(fpw); //¹Ø±ÕÎÄ¼şÖ¸Õë
+	fclose(fpw); //å…³é—­æ–‡ä»¶æŒ‡é’ˆ
 
 	return ;
 }
+
+
+
+/*************************************************************************
+*
+* Function:  GetBIRGBPosition ()
+*
+* Description:   24bit BMP åŒçº¿æ€§æ’å€¼å››ä¸ªç‚¹RGBå¯¹åº”åŸå›¾åæ ‡
+*
+* Input:  FileName è¦å†™å…¥æ–‡ä»¶çš„ç»å¯¹è·¯å¾„å’Œåç§°; bfh æ–‡ä»¶å¤´ bih ä¿¡æ¯å¤´ colorTableé¢œè‰²è¡¨
+*
+* Returns:   æˆåŠŸè¿”å›0 å¤±è´¥è¿”å› -1 é0
+*
+************************************************************************/
+ 
