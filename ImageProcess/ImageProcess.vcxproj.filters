@@ -57,6 +57,9 @@
     <ClInclude Include="HistogramDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="FilterDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ImageProcess.cpp">
@@ -90,6 +93,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="HistogramDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FilterDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

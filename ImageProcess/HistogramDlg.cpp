@@ -41,7 +41,7 @@ BOOL CHistogramDlg::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
-	 
+	SetWindowText(m_sWindowTitle);
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
 }
@@ -79,7 +79,7 @@ void CHistogramDlg::OnPaint()
 
 
 
-	int max = 0; //统计中的最大值
+	double max = 0; //统计中的最大值
 	for (int i = 0; i < 256; i++) {
 		if (HistogramColor[i] > max) {
 			max = HistogramColor[i];

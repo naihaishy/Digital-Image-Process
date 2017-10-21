@@ -9,15 +9,17 @@
 #include "ImageProcess.h"
 #endif
 
+
 #include "ImageProcessDoc.h"
 #include "ImageProcessView.h"
 #include "WriteCharDlg.h"
 #include "InterpolationDlg.h"
 #include "RotateDlg.h"
 #include "HelpDlg.h"
+#include "Common.h"
 #include "BmpCommonOp.h"
 #include "HistogramDlg.h"
-
+#include "FilterDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -41,6 +43,10 @@ BEGIN_MESSAGE_MAP(CImageProcessView, CScrollView)
 	ON_COMMAND(ID_HELP, &CImageProcessView::OnHelp)
 	ON_COMMAND(ID_SHOW_HISTOGRAM, &CImageProcessView::OnShowHistogram)
 	ON_COMMAND(ID_HISTOGRAM_EQUALIZATION, &CImageProcessView::OnHistogramEqualization)
+	ON_COMMAND(ID_MEAN_FILTER, &CImageProcessView::OnMeanFilter)
+	ON_COMMAND(ID_MEDIAN_FILTER, &CImageProcessView::OnMedianFilter)
+	ON_COMMAND(ID_GAUSS_FILTER, &CImageProcessView::OnGaussFilter)
+	ON_COMMAND(ID_PEPPER_SALT, &CImageProcessView::OnPepperSalt)
 END_MESSAGE_MAP()
 
 // CImageProcessView 构造/析构
@@ -819,11 +825,14 @@ void CImageProcessView::RotateImage(int Angle)
 void  CImageProcessView::ShowHistogram() {
 
 	memset(m_nHistogramColor, 0, sizeof(int) *256);
+
+	//m_nHistogramColor 统计数值
 	for (int i = 0; i < m_nImage; i++) {
 			int currentColor = m_pImage[i];
 			m_nHistogramColor[currentColor]++; //当前灰度级+1
 	}
 
+	//m_dHistogramColor 概率
 	for (int i = 0; i < 256; i++) {
 		m_dHistogramColor[i] =   (double(m_nHistogramColor[i]) / m_nImage);
 	}
@@ -847,33 +856,234 @@ void CImageProcessView::HistogramEqualization() {
 
 
 	//保存到效果文件中
-	BYTE * outputImage = new BYTE[m_nImage];
+	BYTE * OutputImage = new BYTE[m_nImage];
+	memset(OutputImage, 0 ,  m_nImage); //初始化
+	int resultHistogramColor[256]; //均衡化图像的灰度级统计
+	memset(resultHistogramColor, 0, sizeof(int)*256);
+
 
 	for (int i = 0; i < m_nImage; i++) {
 		int current = m_pImage[i]; //当前点的像素  输入像素
-		outputImage[i] =  resultColor[current]; //均衡化后的像素 输出像素
+		OutputImage[i] =  resultColor[current]; //均衡化后的像素 输出像素
+		resultHistogramColor[resultColor[current]] ++ ; //当前灰度级+1 
 	}
+
+
 
 	//将BMP图像数据写入文件
 	USES_CONVERSION;
 	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
 	BmpCommonOp bmpcommomop;
-	bmpcommomop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, outputImage, m_nImage);
+	bmpcommomop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
 
 	//显示效果图像的直方图
-	CHistogramDlg dlg;	//显示对话框
-	dlg.HistogramColor = resultColor;  //将统计结果传递给对话框
+	CHistogramDlg dlg_effect;	//显示对话框
+	dlg_effect.HistogramColor = resultHistogramColor;  //将统计结果传递给对话框
+	dlg_effect.m_sWindowTitle =  _T("均衡化后直方图") ;
+	dlg_effect.DoModal();
 
-	if (dlg.DoModal() == IDOK)
-	{
+	//显示原图直方图
+	CHistogramDlg dlg_src;
+	ShowHistogram(); //统计灰度
+	dlg_src.HistogramColor = m_nHistogramColor;  //将统计结果传递给对话框
+	dlg_src.m_sWindowTitle = _T("原图直方图");
+	dlg_src.DoModal();
+ 
+	 
 
-	}
 
-
-	delete[] outputImage;
+	delete[] OutputImage;
 	numPicture = 2;   
 	Invalidate();
 }
+
+//******************模板滤波*****************//
+void CImageProcessView::TemplateFilter(int *mask, int m , int n) {
+
+	BYTE * OutputImage = new BYTE[m_nImage];
+	memcpy(OutputImage, m_pImage, m_nImage); //初始化 将原图数据拷贝到目标图像
+	int a = (m - 1) / 2; //m=2a+1
+	int b = (n - 1) / 2;  //n=2b+1
+
+	//获取数组权值总和
+	int weight_count = 0;
+	for (int j = 0; j < n; j++) {
+		for (int i = 0; i < m; i++) {
+			weight_count += *(mask+j*m+i);
+		}
+	}
+
+	for (int y = b; y < m_nHeight - b; y++) { // Y 边缘的不处理
+		for (int x = a; x < m_nWidth - a; x++) {//X
+
+			int sum = 0, sum_r = 0, sum_g = 0, sum_b = 0; //加权和
+			for (int i = -a; i < a + 1; i++) {//m
+				for (int j = -b; j < b + 1; j++) {//n
+
+					if ((y + b)*m_nLineByte + (x + a) < m_nImage) {//防止越界     
+
+						//8bit BMP
+						if (bih.biBitCount == 8) {
+							int currentPosition = y*m_nLineByte + x;//当前处理像素点位置
+							int position = (y + j)*m_nLineByte + x + i; //周围点位置
+							sum += *(m_pImage + position)*( *(mask + (i + a) + (j + b)*m ) );
+							*(OutputImage + currentPosition) = sum / weight_count;
+						}//end 8bit bmp
+
+
+
+						 //24bit BMP
+						if (bih.biBitCount == 24) {
+							if ((y + b)*m_nLineByte + (x + a) * 3 + 2 < m_nImage) {//防止越界  
+								int currentPosition = y*m_nLineByte + x * 3;//当前处理像素点位置 RGB 
+								int position_r = (y + j)*m_nLineByte + (x + i) * 3;
+								int position_g = (y + j)*m_nLineByte + (x + i) * 3 + 1;
+								int position_b = (y + j)*m_nLineByte + (x + i) * 3 + 2;
+
+								sum_r += *(m_pImage + position_r)*(*(mask + (i + a) + (j + b)*m) ); //R
+								sum_g += *(m_pImage + position_g)*(*(mask + (i + a) + (j + b)*m ) ); //G
+								sum_b += *(m_pImage + position_b)*(*(mask + (i + a) +( j + b)*m) ); //B
+								*(OutputImage + currentPosition) = sum_r / weight_count; //R
+								*(OutputImage + currentPosition + 1) = sum_g / weight_count; //G
+								*(OutputImage + currentPosition + 2) = sum_b / weight_count; //B
+							}
+						}//end 24bit bmp
+
+
+					}//endif
+
+
+				}
+			}//end operatiom  for one point
+
+		}
+	}//end the whole image
+
+	 //将BMP图像数据写入文件
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	BmpCommonOp bmpcommomop;
+	bmpcommomop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
+
+
+	delete[] OutputImage;
+	numPicture = 2;
+	Invalidate();
+
+}
+
+
+//******************均值滤波*****************//
+void CImageProcessView::MeanFilter(int m, int n) { 
+
+	//构造均值模板
+	int *meanMask = new int[m*n];
+	for (int i = 0; i < m*n; i++)
+		meanMask[i] = 1;
+
+	TemplateFilter(meanMask, m, n);
+
+	//销毁资源
+	delete[] meanMask;
+
+}
+
+ 
+
+//******************中值滤波*****************//
+void CImageProcessView::MedianFilter(int m,int n) { //m x 宽  n y高
+
+	BYTE * OutputImage = new BYTE[m_nImage];
+	memcpy(OutputImage, m_pImage, m_nImage); //将原图数据拷贝到目标图像 为了解决 [窗口m n变大时边缘图像信息的丢失 导致出现黑框(系统默认初始为0)]这个问题
+	Common common; //实例化common对象 内涵常用操作函数
+
+	int a = (m - 1) / 2; //m=2a+1
+	int b = (n - 1) / 2;  //n=2b+1
+	int median = 0;
+	int *arr, *arr_r, *arr_g, *arr_b; //滤波框中像素点数组 为了选择中值
+	arr = (int *)malloc(sizeof(int)*m*n);//分配内存
+	memset(arr,0, sizeof(int)*m*n);
+	arr_r = (int *)malloc(sizeof(int)*m*n);
+	arr_g = (int *)malloc(sizeof(int)*m*n);
+	arr_b = (int *)malloc(sizeof(int)*m*n);
+
+	for (int y = b; y <= m_nHeight-b; y++) {//Y  边缘的不处理
+		for (int x = a; x <= m_nWidth-a; x++) {//X
+
+			//8bit BMP
+			if (bih.biBitCount==8) {
+				int currentPosition = y*m_nLineByte + x;//当前处理像素点位置
+				int k = 0;
+				if (  (y + b)*m_nLineByte + (x + a) < m_nImage ) {//防止越界    
+					for (int i = -a; i < a + 1; i++) {//m
+						for (int j = -b; j < b + 1; j++) {//n
+							int position = (y + j)*m_nLineByte + x + i; //周围点位置
+							arr[k] = *(m_pImage + position);
+							k++;
+						}
+					}//获取周围点像素数组完毕
+					median = common.GetMedian(arr, m*n); //计算中值
+					*(OutputImage + currentPosition) = median;
+				}//end if
+			}//end 8bit
+
+			//24bit BMP
+			if (bih.biBitCount == 24) {
+				int currentPosition = y*m_nLineByte + x * 3;//当前处理像素点位置 RGB 
+				int k = 0;
+				if (  (y + b)*m_nLineByte + (x + a) * 3 + 2 < m_nImage ) {//防止越界
+					for (int i = -a; i < a + 1; i++) {//m
+						for (int j = -b; j < b + 1; j++) {//n
+							int position_r = (y + j)*m_nLineByte + (x + i) * 3;
+							int position_g = (y + j)*m_nLineByte + (x + i) * 3 + 1;
+							int position_b = (y + j)*m_nLineByte + (x + i) * 3 + 2;
+							arr_r[k] = *(m_pImage + position_r); //R
+							arr_g[k] = *(m_pImage + position_g); //G
+							arr_b[k] = *(m_pImage + position_b); //B
+							k++;
+						}
+					}//获取周围点像素数组完毕
+					int median_r = common.GetMedian(arr_r, m*n); //计算中值
+					int median_g = common.GetMedian(arr_g, m*n);
+					int median_b = common.GetMedian(arr_b, m*n);
+					*(OutputImage + currentPosition) = median_r; //R
+					*(OutputImage + currentPosition + 1) = median_g; //G
+					*(OutputImage + currentPosition + 2) = median_b; //B
+				}//end if
+			}//end 24bit
+
+		}
+	}//end the whole image
+
+
+
+
+	//将BMP图像数据写入文件
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	BmpCommonOp bmpcommomop;
+	bmpcommomop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
+
+
+	delete[] OutputImage;
+	numPicture = 2;
+	Invalidate();
+
+}
+
+
+//******************高斯滤波*****************//
+void CImageProcessView::GaussFilter(int m,int n) { //这里仅使用3x3的模板 高斯核比较麻烦构造
+	m = 3;
+	n = 3;
+
+	//定义mask
+	int gaussMask[] = {  1, 2, 1 ,  2, 4, 2 ,  1, 2, 1  };
+
+	TemplateFilter(gaussMask, 3, 3);
+
+}
+
 
 
 
@@ -1089,22 +1299,15 @@ void CImageProcessView::OnShowHistogram()
 	}
 
 	//显示对话框
-	CHistogramDlg dlg;
+	CHistogramDlg dlg_src;
 	ShowHistogram(); //统计灰度
-	dlg.HistogramColor = m_nHistogramColor;  //将统计结果传递给对话框
-
-	if (dlg.DoModal() == IDOK)
+	dlg_src.HistogramColor = m_nHistogramColor;  //将统计结果传递给对话框
+	dlg_src.m_sWindowTitle = _T("原图直方图");
+	if (dlg_src.DoModal() == IDOK)
 	{
 		 
 	}
 }
-
-
-
-
-
-
-
 
 
 
@@ -1122,4 +1325,101 @@ void CImageProcessView::OnHistogramEqualization()
 
 	HistogramEqualization(); 
 
+}
+
+
+
+//******************均值滤波*****************//
+void CImageProcessView::OnMeanFilter()
+{
+	// TODO: 在此添加命令处理程序代码
+	//如果没有导入图片 提示错误
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行均值滤波!"));
+		return;
+	}
+
+	CFilterDlg dlg;
+	if (dlg.DoModal() ==IDOK) {
+		if (dlg.m_nLinearM <= 0 || dlg.m_nLinearN <= 0  || dlg.m_nLinearM %2==0 || dlg.m_nLinearN%2==0) {
+			AfxMessageBox(_T("输入m和n必须为正奇数!"), MB_OK, 0);
+			return;
+		}
+
+		MeanFilter(dlg.m_nLinearM, dlg.m_nLinearN);
+	}
+	
+}
+
+//******************中值滤波*****************//
+void CImageProcessView::OnMedianFilter()
+{
+	// TODO: 在此添加命令处理程序代码
+	//如果没有导入图片 提示错误
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行中值滤波!"));
+		return;
+	}
+
+	CFilterDlg dlg;
+	if (dlg.DoModal() == IDOK) {
+		if (dlg.m_nLinearM <= 0 || dlg.m_nLinearN <= 0 || dlg.m_nLinearM % 2 == 0 || dlg.m_nLinearN % 2 == 0) {
+			AfxMessageBox(_T("输入m和n必须为正奇数!"), MB_OK, 0);
+			return;
+		}
+ 
+		MedianFilter(dlg.m_nLinearM, dlg.m_nLinearN);
+	}
+
+
+
+}
+
+//******************高斯滤波*****************//
+void CImageProcessView::OnGaussFilter()
+{
+	// TODO: 在此添加命令处理程序代码
+
+	//如果没有导入图片 提示错误
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行高斯滤波!"));
+		return;
+	}
+
+	CFilterDlg dlg;
+	if (dlg.DoModal() == IDOK) {
+		if (dlg.m_nLinearM <= 0 || dlg.m_nLinearN <= 0 || dlg.m_nLinearM % 2 == 0 || dlg.m_nLinearN % 2 == 0) {
+			AfxMessageBox(_T("输入m和n必须为正奇数!"), MB_OK, 0);
+			return;
+		}
+
+		GaussFilter(dlg.m_nLinearM, dlg.m_nLinearN);
+	}
+
+}
+
+
+//******************椒盐噪声*****************//
+void CImageProcessView::OnPepperSalt()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行高斯滤波!"));
+		return;
+	}
+	AfxMessageBox(_T("生成的图像请保存，并用于测试对比中值滤波的效果!"));
+
+	BmpCommonOp bmpcommonop;
+	BYTE * OutputImage =  bmpcommonop.AddPepperSaltNoise(m_pImage, 0.99, m_nImage, m_nWidth, m_nHeight, bih.biBitCount,  m_nLineByte);
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
+
+	delete[] OutputImage;
+	numPicture = 2;
+	Invalidate();
 }

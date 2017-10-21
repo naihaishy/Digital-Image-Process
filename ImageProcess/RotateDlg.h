@@ -1,26 +1,26 @@
 #pragma once
 
 
-// CRotateDlg ¶Ô»°¿ò
+// CRotateDlg å¯¹è¯æ¡†
 
 class CRotateDlg : public CDialog
 {
 	DECLARE_DYNAMIC(CRotateDlg)
 
 public:
-	CRotateDlg(CWnd* pParent = NULL);   // ±ê×¼¹¹Ôìº¯Êı
+	CRotateDlg(CWnd* pParent = NULL);   // æ ‡å‡†æ„é€ å‡½æ•°
 	virtual ~CRotateDlg();
 
-// ¶Ô»°¿òÊı¾İ
+// å¯¹è¯æ¡†æ•°æ®
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_DIALOG_ROTATE };
 #endif
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Ö§³Ö
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV æ”¯æŒ
 
 	DECLARE_MESSAGE_MAP()
 public:
-	// Ğı×ª½Ç¶È
+	// æ—‹è½¬è§’åº¦
 	int m_nRotateAngle;
 };

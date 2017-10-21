@@ -145,6 +145,21 @@ BEGIN
     BEGIN
         MENUITEM "显示直方图",                       ID_SHOW_HISTOGRAM
         MENUITEM "直方图均衡",                       ID_HISTOGRAM_EQUALIZATION
+        POPUP "空间滤波"
+        BEGIN
+            POPUP "平滑"
+            BEGIN
+                MENUITEM "均值滤波",                        ID_MEAN_FILTER
+                MENUITEM "中值滤波",                        ID_MEDIAN_FILTER
+                MENUITEM "高斯滤波",                        ID_GAUSS_FILTER
+            END
+            POPUP "锐化"
+            BEGIN
+                MENUITEM "拉普拉斯算子",                      ID_32795
+                MENUITEM "梯度算子",                        ID_32796
+            END
+        END
+        MENUITEM "椒盐噪声",                        ID_PEPPER_SALT
     END
     POPUP "帮助(&H)"
     BEGIN
@@ -257,6 +272,20 @@ BEGIN
     CONTROL         "",IDC_STATIC_HISTOGRAM,"Static",SS_WHITEFRAME | SS_CENTERIMAGE,35,12,254,161
 END
 
+IDD_DIALOG_FILTER DIALOGEX 0, 0, 309, 176
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "滤波"
+FONT 10, "Microsoft YaHei UI", 400, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "确定",IDOK,198,155,50,14
+    PUSHBUTTON      "取消",IDCANCEL,252,155,50,14
+    LTEXT           "请输入m",IDC_STATIC,57,44,27,8
+    LTEXT           "请输入n",IDC_STATIC,57,64,25,8
+    LTEXT           "输入为奇数",IDC_STATIC,30,111,34,8
+    EDITTEXT        IDC_EDIT_LINEAR_M,116,42,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_LINEAR_N,116,63,40,14,ES_AUTOHSCROLL
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -352,6 +381,14 @@ BEGIN
         TOPMARGIN, 12
         BOTTOMMARGIN, 200
     END
+
+    IDD_DIALOG_FILTER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 169
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -387,6 +424,11 @@ BEGIN
 END
 
 IDD_DIALOG_HISTOGRAM AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG_FILTER AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -562,6 +604,11 @@ END
 STRINGTABLE
 BEGIN
     ID_BILINEAR_INTERPOLATION "对图像进行双线性内插采样"
+END
+
+STRINGTABLE
+BEGIN
+    ID_PEPPER_SALT          "向图像中加入椒盐噪声"
 END
 
 #endif    // 中文(简体，中国) resources

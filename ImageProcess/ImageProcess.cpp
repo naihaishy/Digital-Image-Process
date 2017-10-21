@@ -1,5 +1,5 @@
 
-// ImageProcess.cpp : ¶¨ÒåÓ¦ÓÃ³ÌĞòµÄÀàĞĞÎª¡£
+// ImageProcess.cpp : å®šä¹‰åº”ç”¨ç¨‹åºçš„ç±»è¡Œä¸ºã€‚
 //
 
 #include "stdafx.h"
@@ -20,58 +20,58 @@
 
 BEGIN_MESSAGE_MAP(CImageProcessApp, CWinApp)
 	ON_COMMAND(ID_APP_ABOUT, &CImageProcessApp::OnAppAbout)
-	// »ùÓÚÎÄ¼şµÄ±ê×¼ÎÄµµÃüÁî
+	// åŸºäºæ–‡ä»¶çš„æ ‡å‡†æ–‡æ¡£å‘½ä»¤
 	ON_COMMAND(ID_FILE_NEW, &CWinApp::OnFileNew)
 	ON_COMMAND(ID_FILE_OPEN, &CWinApp::OnFileOpen)
-	// ±ê×¼´òÓ¡ÉèÖÃÃüÁî
+	// æ ‡å‡†æ‰“å°è®¾ç½®å‘½ä»¤
 	ON_COMMAND(ID_FILE_PRINT_SETUP, &CWinApp::OnFilePrintSetup)
 END_MESSAGE_MAP()
 
 
-// CImageProcessApp ¹¹Ôì
+// CImageProcessApp æ„é€ 
 
 CImageProcessApp::CImageProcessApp()
 {
-	// Ö§³ÖÖØĞÂÆô¶¯¹ÜÀíÆ÷
+	// æ”¯æŒé‡æ–°å¯åŠ¨ç®¡ç†å™¨
 	m_dwRestartManagerSupportFlags = AFX_RESTART_MANAGER_SUPPORT_ALL_ASPECTS;
 #ifdef _MANAGED
-	// Èç¹ûÓ¦ÓÃ³ÌĞòÊÇÀûÓÃ¹«¹²ÓïÑÔÔËĞĞÊ±Ö§³Ö(/clr)¹¹½¨µÄ£¬Ôò: 
-	//     1) ±ØĞëÓĞ´Ë¸½¼ÓÉèÖÃ£¬¡°ÖØĞÂÆô¶¯¹ÜÀíÆ÷¡±Ö§³Ö²ÅÄÜÕı³£¹¤×÷¡£
-	//     2) ÔÚÄúµÄÏîÄ¿ÖĞ£¬Äú±ØĞë°´ÕÕÉú³ÉË³ĞòÏò System.Windows.Forms Ìí¼ÓÒıÓÃ¡£
+	// å¦‚æœåº”ç”¨ç¨‹åºæ˜¯åˆ©ç”¨å…¬å…±è¯­è¨€è¿è¡Œæ—¶æ”¯æŒ(/clr)æ„å»ºçš„ï¼Œåˆ™: 
+	//     1) å¿…é¡»æœ‰æ­¤é™„åŠ è®¾ç½®ï¼Œâ€œé‡æ–°å¯åŠ¨ç®¡ç†å™¨â€æ”¯æŒæ‰èƒ½æ­£å¸¸å·¥ä½œã€‚
+	//     2) åœ¨æ‚¨çš„é¡¹ç›®ä¸­ï¼Œæ‚¨å¿…é¡»æŒ‰ç…§ç”Ÿæˆé¡ºåºå‘ System.Windows.Forms æ·»åŠ å¼•ç”¨ã€‚
 	System::Windows::Forms::Application::SetUnhandledExceptionMode(System::Windows::Forms::UnhandledExceptionMode::ThrowException);
 #endif
 
-	// TODO: ½«ÒÔÏÂÓ¦ÓÃ³ÌĞò ID ×Ö·û´®Ìæ»»ÎªÎ¨Ò»µÄ ID ×Ö·û´®£»½¨ÒéµÄ×Ö·û´®¸ñÊ½
-	//Îª CompanyName.ProductName.SubProduct.VersionInformation
+	// TODO: å°†ä»¥ä¸‹åº”ç”¨ç¨‹åº ID å­—ç¬¦ä¸²æ›¿æ¢ä¸ºå”¯ä¸€çš„ ID å­—ç¬¦ä¸²ï¼›å»ºè®®çš„å­—ç¬¦ä¸²æ ¼å¼
+	//ä¸º CompanyName.ProductName.SubProduct.VersionInformation
 	SetAppID(_T("ImageProcess.AppID.NoVersion"));
 
-	// TODO: ÔÚ´Ë´¦Ìí¼Ó¹¹Ôì´úÂë£¬
-	// ½«ËùÓĞÖØÒªµÄ³õÊ¼»¯·ÅÖÃÔÚ InitInstance ÖĞ
+	// TODO: åœ¨æ­¤å¤„æ·»åŠ æ„é€ ä»£ç ï¼Œ
+	// å°†æ‰€æœ‰é‡è¦çš„åˆå§‹åŒ–æ”¾ç½®åœ¨ InitInstance ä¸­
 }
 
-// Î¨Ò»µÄÒ»¸ö CImageProcessApp ¶ÔÏó
+// å”¯ä¸€çš„ä¸€ä¸ª CImageProcessApp å¯¹è±¡
 
 CImageProcessApp theApp;
 
 
-// CImageProcessApp ³õÊ¼»¯
+// CImageProcessApp åˆå§‹åŒ–
 
 BOOL CImageProcessApp::InitInstance()
 {
-	// Èç¹ûÒ»¸öÔËĞĞÔÚ Windows XP ÉÏµÄÓ¦ÓÃ³ÌĞòÇåµ¥Ö¸¶¨Òª
-	// Ê¹ÓÃ ComCtl32.dll °æ±¾ 6 »ò¸ü¸ß°æ±¾À´ÆôÓÃ¿ÉÊÓ»¯·½Ê½£¬
-	//ÔòĞèÒª InitCommonControlsEx()¡£  ·ñÔò£¬½«ÎŞ·¨´´½¨´°¿Ú¡£
+	// å¦‚æœä¸€ä¸ªè¿è¡Œåœ¨ Windows XP ä¸Šçš„åº”ç”¨ç¨‹åºæ¸…å•æŒ‡å®šè¦
+	// ä½¿ç”¨ ComCtl32.dll ç‰ˆæœ¬ 6 æˆ–æ›´é«˜ç‰ˆæœ¬æ¥å¯ç”¨å¯è§†åŒ–æ–¹å¼ï¼Œ
+	//åˆ™éœ€è¦ InitCommonControlsEx()ã€‚  å¦åˆ™ï¼Œå°†æ— æ³•åˆ›å»ºçª—å£ã€‚
 	INITCOMMONCONTROLSEX InitCtrls;
 	InitCtrls.dwSize = sizeof(InitCtrls);
-	// ½«ËüÉèÖÃÎª°üÀ¨ËùÓĞÒªÔÚÓ¦ÓÃ³ÌĞòÖĞÊ¹ÓÃµÄ
-	// ¹«¹²¿Ø¼şÀà¡£
+	// å°†å®ƒè®¾ç½®ä¸ºåŒ…æ‹¬æ‰€æœ‰è¦åœ¨åº”ç”¨ç¨‹åºä¸­ä½¿ç”¨çš„
+	// å…¬å…±æ§ä»¶ç±»ã€‚
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;
 	InitCommonControlsEx(&InitCtrls);
 
 	CWinApp::InitInstance();
 
 
-	// ³õÊ¼»¯ OLE ¿â
+	// åˆå§‹åŒ– OLE åº“
 	if (!AfxOleInit())
 	{
 		AfxMessageBox(IDP_OLE_INIT_FAILED);
@@ -82,77 +82,77 @@ BOOL CImageProcessApp::InitInstance()
 
 	EnableTaskbarInteraction(FALSE);
 
-	// Ê¹ÓÃ RichEdit ¿Ø¼şĞèÒª AfxInitRichEdit2()	
+	// ä½¿ç”¨ RichEdit æ§ä»¶éœ€è¦ AfxInitRichEdit2()	
 	// AfxInitRichEdit2();
 
-	// ±ê×¼³õÊ¼»¯
-	// Èç¹ûÎ´Ê¹ÓÃÕâĞ©¹¦ÄÜ²¢Ï£Íû¼õĞ¡
-	// ×îÖÕ¿ÉÖ´ĞĞÎÄ¼şµÄ´óĞ¡£¬ÔòÓ¦ÒÆ³ıÏÂÁĞ
-	// ²»ĞèÒªµÄÌØ¶¨³õÊ¼»¯Àı³Ì
-	// ¸ü¸ÄÓÃÓÚ´æ´¢ÉèÖÃµÄ×¢²á±íÏî
-	// TODO: Ó¦ÊÊµ±ĞŞ¸Ä¸Ã×Ö·û´®£¬
-	// ÀıÈçĞŞ¸ÄÎª¹«Ë¾»ò×éÖ¯Ãû
-	SetRegistryKey(_T("Ó¦ÓÃ³ÌĞòÏòµ¼Éú³ÉµÄ±¾µØÓ¦ÓÃ³ÌĞò"));
-	LoadStdProfileSettings(4);  // ¼ÓÔØ±ê×¼ INI ÎÄ¼şÑ¡Ïî(°üÀ¨ MRU)
+	// æ ‡å‡†åˆå§‹åŒ–
+	// å¦‚æœæœªä½¿ç”¨è¿™äº›åŠŸèƒ½å¹¶å¸Œæœ›å‡å°
+	// æœ€ç»ˆå¯æ‰§è¡Œæ–‡ä»¶çš„å¤§å°ï¼Œåˆ™åº”ç§»é™¤ä¸‹åˆ—
+	// ä¸éœ€è¦çš„ç‰¹å®šåˆå§‹åŒ–ä¾‹ç¨‹
+	// æ›´æ”¹ç”¨äºå­˜å‚¨è®¾ç½®çš„æ³¨å†Œè¡¨é¡¹
+	// TODO: åº”é€‚å½“ä¿®æ”¹è¯¥å­—ç¬¦ä¸²ï¼Œ
+	// ä¾‹å¦‚ä¿®æ”¹ä¸ºå…¬å¸æˆ–ç»„ç»‡å
+	SetRegistryKey(_T("åº”ç”¨ç¨‹åºå‘å¯¼ç”Ÿæˆçš„æœ¬åœ°åº”ç”¨ç¨‹åº"));
+	LoadStdProfileSettings(4);  // åŠ è½½æ ‡å‡† INI æ–‡ä»¶é€‰é¡¹(åŒ…æ‹¬ MRU)
 
 
-	// ×¢²áÓ¦ÓÃ³ÌĞòµÄÎÄµµÄ£°å¡£  ÎÄµµÄ£°å
-	// ½«ÓÃ×÷ÎÄµµ¡¢¿ò¼Ü´°¿ÚºÍÊÓÍ¼Ö®¼äµÄÁ¬½Ó
+	// æ³¨å†Œåº”ç”¨ç¨‹åºçš„æ–‡æ¡£æ¨¡æ¿ã€‚  æ–‡æ¡£æ¨¡æ¿
+	// å°†ç”¨ä½œæ–‡æ¡£ã€æ¡†æ¶çª—å£å’Œè§†å›¾ä¹‹é—´çš„è¿æ¥
 	CSingleDocTemplate* pDocTemplate;
 	pDocTemplate = new CSingleDocTemplate(
 		IDR_MAINFRAME,
 		RUNTIME_CLASS(CImageProcessDoc),
-		RUNTIME_CLASS(CMainFrame),       // Ö÷ SDI ¿ò¼Ü´°¿Ú
+		RUNTIME_CLASS(CMainFrame),       // ä¸» SDI æ¡†æ¶çª—å£
 		RUNTIME_CLASS(CImageProcessView));
 	if (!pDocTemplate)
 		return FALSE;
 	AddDocTemplate(pDocTemplate);
 
 
-	// ·ÖÎö±ê×¼ shell ÃüÁî¡¢DDE¡¢´ò¿ªÎÄ¼ş²Ù×÷µÄÃüÁîĞĞ
+	// åˆ†ææ ‡å‡† shell å‘½ä»¤ã€DDEã€æ‰“å¼€æ–‡ä»¶æ“ä½œçš„å‘½ä»¤è¡Œ
 	CCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
 
 
 
-	// µ÷¶ÈÔÚÃüÁîĞĞÖĞÖ¸¶¨µÄÃüÁî¡£  Èç¹û
-	// ÓÃ /RegServer¡¢/Register¡¢/Unregserver »ò /Unregister Æô¶¯Ó¦ÓÃ³ÌĞò£¬Ôò·µ»Ø FALSE¡£
+	// è°ƒåº¦åœ¨å‘½ä»¤è¡Œä¸­æŒ‡å®šçš„å‘½ä»¤ã€‚  å¦‚æœ
+	// ç”¨ /RegServerã€/Registerã€/Unregserver æˆ– /Unregister å¯åŠ¨åº”ç”¨ç¨‹åºï¼Œåˆ™è¿”å› FALSEã€‚
 	if (!ProcessShellCommand(cmdInfo))
 		return FALSE;
 
-	// Î¨Ò»µÄÒ»¸ö´°¿ÚÒÑ³õÊ¼»¯£¬Òò´ËÏÔÊ¾Ëü²¢¶ÔÆä½øĞĞ¸üĞÂ
-	m_pMainWnd->ShowWindow(SW_SHOWMAXIMIZED); //SW_SHOWMAXIMIZED ×î´ó»¯
+	// å”¯ä¸€çš„ä¸€ä¸ªçª—å£å·²åˆå§‹åŒ–ï¼Œå› æ­¤æ˜¾ç¤ºå®ƒå¹¶å¯¹å…¶è¿›è¡Œæ›´æ–°
+	m_pMainWnd->ShowWindow(SW_SHOWMAXIMIZED); //SW_SHOWMAXIMIZED æœ€å¤§åŒ–
 	m_pMainWnd->UpdateWindow();
 	return TRUE;
 }
 
 int CImageProcessApp::ExitInstance()
 {
-	//TODO: ´¦Àí¿ÉÄÜÒÑÌí¼ÓµÄ¸½¼Ó×ÊÔ´
+	//TODO: å¤„ç†å¯èƒ½å·²æ·»åŠ çš„é™„åŠ èµ„æº
 	AfxOleTerm(FALSE);
 
 	return CWinApp::ExitInstance();
 }
 
-// CImageProcessApp ÏûÏ¢´¦Àí³ÌĞò
+// CImageProcessApp æ¶ˆæ¯å¤„ç†ç¨‹åº
 
 
-// ÓÃÓÚÓ¦ÓÃ³ÌĞò¡°¹ØÓÚ¡±²Ëµ¥ÏîµÄ CAboutDlg ¶Ô»°¿ò
+// ç”¨äºåº”ç”¨ç¨‹åºâ€œå…³äºâ€èœå•é¡¹çš„ CAboutDlg å¯¹è¯æ¡†
 
 class CAboutDlg : public CDialogEx
 {
 public:
 	CAboutDlg();
 
-// ¶Ô»°¿òÊı¾İ
+// å¯¹è¯æ¡†æ•°æ®
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_ABOUTBOX };
 #endif
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Ö§³Ö
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV æ”¯æŒ
 
-// ÊµÏÖ
+// å®ç°
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
@@ -171,14 +171,14 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
-// ÓÃÓÚÔËĞĞ¶Ô»°¿òµÄÓ¦ÓÃ³ÌĞòÃüÁî
+// ç”¨äºè¿è¡Œå¯¹è¯æ¡†çš„åº”ç”¨ç¨‹åºå‘½ä»¤
 void CImageProcessApp::OnAppAbout()
 {
 	CAboutDlg aboutDlg;
 	aboutDlg.DoModal();
 }
 
-// CImageProcessApp ÏûÏ¢´¦Àí³ÌĞò
+// CImageProcessApp æ¶ˆæ¯å¤„ç†ç¨‹åº
 
 
 
@@ -186,5 +186,5 @@ void CImageProcessApp::OnAppAbout()
 
 void CAboutDlg::OnWriteLetter()
 {
-	// TODO: ÔÚ´ËÌí¼ÓÃüÁî´¦Àí³ÌĞò´úÂë
+	// TODO: åœ¨æ­¤æ·»åŠ å‘½ä»¤å¤„ç†ç¨‹åºä»£ç 
 }

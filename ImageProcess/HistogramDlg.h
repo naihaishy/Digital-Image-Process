@@ -1,30 +1,30 @@
 #pragma once
 
 
-// CHistogramDlg å¯¹è¯æ¡†
+// CHistogramDlg ¶Ô»°¿ò
 
 class CHistogramDlg : public CDialogEx
 {
 	DECLARE_DYNAMIC(CHistogramDlg)
 
 public:
-	CHistogramDlg(CWnd* pParent = NULL);   // æ ‡å‡†æ„é€ å‡½æ•°
+	CHistogramDlg(CWnd* pParent = NULL);   // ±ê×¼¹¹Ôìº¯Êı
 	virtual ~CHistogramDlg();
 
-// å¯¹è¯æ¡†æ•°æ®
+// ¶Ô»°¿òÊı¾İ
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_DIALOG_HISTOGRAM };
 #endif
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV æ”¯æŒ
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Ö§³Ö
 
 	DECLARE_MESSAGE_MAP()
 public:
 
 
 	int * HistogramColor;
-	
+	CString m_sWindowTitle;
 
 	afx_msg void OnPaint();
 	virtual BOOL OnInitDialog();

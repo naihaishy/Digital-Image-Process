@@ -55,7 +55,9 @@ public:
 	RGBQUAD m_pPal[256];         //颜色表指针  
 
 
-	int m_nHistogramColor[256];
+	int m_nHistogramColor[256];  //统计值
+	double m_dHistogramColor[256]; //概率密度 PDF
+
 
 	
 
@@ -71,8 +73,10 @@ public:
 	//void BicubicInterpolation(int Width, int Height);//双三次插值
 	void ShowHistogram();//显示直方图
 	void HistogramEqualization();//直方图均衡化
-	
-
+	void MeanFilter(int m, int n);//均值滤波
+	void MedianFilter(int m, int n);//中值滤波
+	void GaussFilter(int m, int n);//高斯滤波
+	void TemplateFilter(int *mask, int m , int n ); //模板滤波
 
 
 	virtual ~CImageProcessView();
@@ -96,6 +100,10 @@ public:
 	afx_msg void OnHelp();
 	afx_msg void OnShowHistogram();
 	afx_msg void OnHistogramEqualization();
+	afx_msg void OnMeanFilter();
+	afx_msg void OnMedianFilter();
+	afx_msg void OnGaussFilter();
+	afx_msg void OnPepperSalt();
 };
 
 #ifndef _DEBUG  // ImageProcessView.cpp 中的调试版本
