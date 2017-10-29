@@ -185,7 +185,7 @@ void CImageProcessView::ShowBitmap(CDC *pDC, CString BmpName)
 	dcBmp.SelectObject(&m_bitmap);         //将位图选入临时内存设备环境
  
 	pDC->SetTextColor(RGB(255, 0, 0));
-	pDC->TextOut(0, m_bmp.bmHeight + 1, m_pDrawText.GetAt(0), sizeof(m_pDrawText.GetAt(0)) -1 );
+	pDC->TextOut(0, m_bmp.bmHeight + 1, m_pDrawText.GetAt(0), _tcslen(m_pDrawText.GetAt(0))  );
 
 	//图片显示调用函数stretchBlt
 	pDC->StretchBlt(0, 0, m_bmp.bmWidth, m_bmp.bmHeight, &dcBmp, 0, 0, m_bmp.bmWidth, m_bmp.bmHeight, SRCCOPY);
@@ -286,7 +286,7 @@ void CImageProcessView::ShowBitmap(CDC *pDC, CString BmpName)
 			//dcBmpTemp.TextOut(bmpTemp.bmWidth / 2, bmpTemp.bmHeight, m_pDrawText.GetAt(i + 1), sizeof(m_pDrawText.GetAt(i + 1)) + 1);
 			//dcBmpTemp.TextOut(500, 420, _T("Johnny Carson"), 13);
 			pDC->SetTextColor(RGB(255, 0, 0));
-			pDC->TextOut((bmpTemp.bmWidth+1)*i, (bmpTemp.bmHeight+20)*2+3, m_pDrawText.GetAt(i + 1), sizeof(m_pDrawText.GetAt(i + 1)) + 1);
+			pDC->TextOut((bmpTemp.bmWidth+1)*i, (bmpTemp.bmHeight+20)*2+3, m_pDrawText.GetAt(i + 1), _tcslen(m_pDrawText.GetAt(i + 1)) );
 			 //如果原图+效果图的 宽度和 大于窗口宽度 则申请更大的窗口
 			if ( (bmpTemp.bmWidth+1)*numPicture > m_nWindowWidth) {
 				SetScrollSizes(MM_TEXT, CSize((bmpTemp.bmWidth + 1)*(numPicture-1), (bmpTemp.bmHeight+ 20)*2 + 30)); //窗口滚轮高度自适应
@@ -1375,7 +1375,7 @@ void CImageProcessView::OnFileOpen()
 		EntName = dlg.GetFileExt();      //获取文件扩展名
 		EntName.MakeLower();             //将文件扩展名转换为一个小写字符
 		m_pDrawText.RemoveAll();//清除
-		m_pDrawText.Add(_T("原图 "));
+		m_pDrawText.Add(_T("原图"));
 		Invalidate();                    //调用该函数就会调用OnDraw重绘画图
 	}
 }
@@ -1678,9 +1678,9 @@ void CImageProcessView::OnHighboostFilter()
 		float *karr;
 		karr = commonl.SplitString(dlg.m_nHighBoostK, _T(","));
 		//float karr[] = { 1, 2, 3, 4, 4.5, 5, 7, 9 };
-		int karr_size = _msize(karr) / sizeof(float *);
+		int karr_size = _msize(karr) / sizeof(float);
 		m_pDrawText.RemoveAll();//清除
-		m_pDrawText.Add(_T("原图 "));
+		m_pDrawText.Add(_T("原图"));
 		HighboostFilter(karr, karr_size); //k>1
 	}
 
@@ -1697,7 +1697,7 @@ void CImageProcessView::OnUnsharpMasking()
 		return;
 	}
 	m_pDrawText.RemoveAll();//清除
-	m_pDrawText.Add(_T("原图 "));
+	m_pDrawText.Add(_T("原图"));
 	float karr[] = { 1.0 };
 	HighboostFilter(karr, 1);//k=1
 }
