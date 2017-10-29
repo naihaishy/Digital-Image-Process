@@ -1,23 +1,23 @@
 #pragma once
 
 
-// CHelpDlg å¯¹è¯æ¡†
+// CHelpDlg ¶Ô»°¿ò
 
 class CHelpDlg : public CDialog
 {
 	DECLARE_DYNAMIC(CHelpDlg)
 
 public:
-	CHelpDlg(CWnd* pParent = NULL);   // æ ‡å‡†æ„é€ å‡½æ•°
+	CHelpDlg(CWnd* pParent = NULL);   // ±ê×¼¹¹Ôìº¯Êı
 	virtual ~CHelpDlg();
 
-// å¯¹è¯æ¡†æ•°æ®
+// ¶Ô»°¿òÊı¾İ
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_DIALOG_HELP };
 #endif
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV æ”¯æŒ
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Ö§³Ö
 
 	DECLARE_MESSAGE_MAP()
 public:

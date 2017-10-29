@@ -1,23 +1,23 @@
 #pragma once
 
 
-// CFilterDlg å¯¹è¯æ¡†
+// CFilterDlg ¶Ô»°¿ò
 
 class CFilterDlg : public CDialogEx
 {
 	DECLARE_DYNAMIC(CFilterDlg)
 
 public:
-	CFilterDlg(CWnd* pParent = NULL);   // æ ‡å‡†æ„é€ å‡½æ•°
+	CFilterDlg(CWnd* pParent = NULL);   // ±ê×¼¹¹Ôìº¯Êı
 	virtual ~CFilterDlg();
 
-// å¯¹è¯æ¡†æ•°æ®
+// ¶Ô»°¿òÊı¾İ
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_DIALOG_FILTER };
 #endif
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV æ”¯æŒ
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Ö§³Ö
 
 	DECLARE_MESSAGE_MAP()
 public:

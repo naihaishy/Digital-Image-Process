@@ -2,7 +2,7 @@
 Copyright:Naihai
 Author: Naihai
 Date:2017-10-8
-Description:BMPæ–‡ä»¶çš„ä¸»è¦æ“ä½œ
+Description:BMPÎÄ¼şµÄÖ÷Òª²Ù×÷
 **************************************************/
 
 
@@ -15,12 +15,16 @@ public:
 	~BmpCommonOp();
 
 
-	//æˆå‘˜å˜é‡
+	//³ÉÔ±±äÁ¿
 
 
-	//æˆå‘˜å‡½æ•°
+	//³ÉÔ±º¯Êı
 
 	void WriteBmpDataToFile(LPCSTR FileName, BITMAPFILEHEADER BitmapFileHeader, BITMAPINFOHEADER BitmapInfoHeader, RGBQUAD colorTable[256], BYTE * Image, int ImageSize);
 	BYTE* AddPepperSaltNoise(BYTE * Image, double SNR, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte);
+	void RGB2Gray(BYTE*Image);
+	void Normalized(int * Image, BYTE * DstImage, int ImageWidth, int ImageHeight, int BitCount, int LineByte); //Í¼ÏñÊı¾İ¹éÒ»»¯
+	void ShowBmpImage(CDC *cdc,BYTE* Image, int Position_x, int Position_y, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//ÏÔÊ¾BMPÍ¼Ïñ
+	void WriteTextOnScreen(CDC *pDC, int Position_x, int Position_y);
 };
 

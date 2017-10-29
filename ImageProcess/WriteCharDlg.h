@@ -1,27 +1,27 @@
 #pragma once
 
 
-// CWriteCharDlg å¯¹è¯æ¡†
+// CWriteCharDlg ¶Ô»°¿ò
 
 class CWriteCharDlg : public CDialog
 {
 	DECLARE_DYNAMIC(CWriteCharDlg)
 
 public:
-	CWriteCharDlg(CWnd* pParent = NULL);   // æ ‡å‡†æ„é€ å‡½æ•°
+	CWriteCharDlg(CWnd* pParent = NULL);   // ±ê×¼¹¹Ôìº¯Êı
 	virtual ~CWriteCharDlg();
 
-// å¯¹è¯æ¡†æ•°æ®
+// ¶Ô»°¿òÊı¾İ
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_DIALOG_WRITECHAR };
 #endif
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV æ”¯æŒ
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Ö§³Ö
 
 	DECLARE_MESSAGE_MAP()
 public:
-	// å­—ç¬¦
+	// ×Ö·û
 	CString m_wCharacter;
 	int m_xPosition;
 	int m_yPosition;

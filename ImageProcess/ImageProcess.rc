@@ -160,6 +160,8 @@ BEGIN
             END
         END
         MENUITEM "椒盐噪声",                        ID_PEPPER_SALT
+        MENUITEM "高提升滤波",                       ID_HIGHBOOST_FILTER
+        MENUITEM "非锐化掩蔽",                       ID_UNSHARP_MASKING
     END
     POPUP "帮助(&H)"
     BEGIN
@@ -286,6 +288,18 @@ BEGIN
     EDITTEXT        IDC_EDIT_LINEAR_N,116,63,40,14,ES_AUTOHSCROLL
 END
 
+IDD_DIALOG_HIGHBOOST_FILTER DIALOGEX 0, 0, 309, 176
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "高提升滤波"
+FONT 10, "Microsoft YaHei UI", 400, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "确定",IDOK,198,155,50,14
+    PUSHBUTTON      "取消",IDCANCEL,252,155,50,14
+    EDITTEXT        IDC_EDIT_HIGHBOOST_K,74,53,162,14,ES_AUTOHSCROLL
+    LTEXT           "请输入K值",IDC_STATIC,128,35,31,8
+    LTEXT           "多个K值请用英语半角逗号隔开",IDC_STATIC,72,75,90,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -389,6 +403,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 169
     END
+
+    IDD_DIALOG_HIGHBOOST_FILTER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 169
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -429,6 +451,11 @@ BEGIN
 END
 
 IDD_DIALOG_FILTER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG_HIGHBOOST_FILTER AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

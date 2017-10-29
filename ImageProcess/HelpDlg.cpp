@@ -1,4 +1,4 @@
-// HelpDlg.cpp : Е╝·Г▌╟Ф√┤Д╩╤
+// HelpDlg.cpp : й╣ожнд╪Ч
 //
 
 #include "stdafx.h"
@@ -7,7 +7,7 @@
 #include "afxdialogex.h"
 
 
-// CHelpDlg Е╞╧Х╞²Ф║├
+// CHelpDlg ╤т╩╟©Р
 
 IMPLEMENT_DYNAMIC(CHelpDlg, CDialog)
 
@@ -32,7 +32,7 @@ BEGIN_MESSAGE_MAP(CHelpDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-// CHelpDlg Ф╤┬Ф│╞Е╓└Г░├Г╗▀Е╨▐
+// CHelpDlg оШо╒╢╕юМЁлпР
 
 
  

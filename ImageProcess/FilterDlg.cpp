@@ -1,4 +1,4 @@
-// FilterDlg.cpp : å®ç°æ–‡ä»¶
+// FilterDlg.cpp : ÊµÏÖÎÄ¼ş
 //
 
 #include "stdafx.h"
@@ -7,7 +7,7 @@
 #include "afxdialogex.h"
 
 
-// CFilterDlg å¯¹è¯æ¡†
+// CFilterDlg ¶Ô»°¿ò
 
 IMPLEMENT_DYNAMIC(CFilterDlg, CDialogEx)
 
@@ -35,4 +35,4 @@ BEGIN_MESSAGE_MAP(CFilterDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 
-// CFilterDlg æ¶ˆæ¯å¤„ç†ç¨‹åº
+// CFilterDlg ÏûÏ¢´¦Àí³ÌĞò

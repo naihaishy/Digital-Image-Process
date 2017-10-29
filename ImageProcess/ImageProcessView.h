@@ -1,5 +1,5 @@
 
-// ImageProcessView.h : CImageProcessView ç±»çš„æ¥å£
+// ImageProcessView.h : CImageProcessView ÀàµÄ½Ó¿Ú
 //
 
 #pragma once
@@ -7,76 +7,82 @@
 
 class CImageProcessView : public CScrollView
 {
-protected: // ä»…ä»åºåˆ—åŒ–åˆ›å»º
+protected: // ½ö´ÓĞòÁĞ»¯´´½¨
 	CImageProcessView();
 	DECLARE_DYNCREATE(CImageProcessView)
 
-// ç‰¹æ€§
+// ÌØĞÔ
 public:
 	CImageProcessDoc* GetDocument() const;
 
-// æ“ä½œ
+// ²Ù×÷
 public:
 
-// é‡å†™
+// ÖØĞ´
 public:
-	virtual void OnDraw(CDC* pDC);  // é‡å†™ä»¥ç»˜åˆ¶è¯¥è§†å›¾
+	virtual void OnDraw(CDC* pDC);  // ÖØĞ´ÒÔ»æÖÆ¸ÃÊÓÍ¼
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 protected:
 	virtual BOOL OnPreparePrinting(CPrintInfo* pInfo);
 	virtual void OnBeginPrinting(CDC* pDC, CPrintInfo* pInfo);
 	virtual void OnEndPrinting(CDC* pDC, CPrintInfo* pInfo);
 
-// å®ç°
+// ÊµÏÖ
 public:
 
-	//æ·»åŠ æˆå‘˜å˜é‡
-	CString BmpName;	// å›¾åƒæ–‡ä»¶å
-	CString EntName;	// å›¾åƒæ‰©å±•å
-	CBitmap m_bitmap;	//åˆ›å»ºä½å›¾å¯¹è±¡
+	//Ìí¼Ó³ÉÔ±±äÁ¿
+	CString BmpName;	// Í¼ÏñÎÄ¼şÃû
+	CString EntName;	// Í¼ÏñÀ©Õ¹Ãû
+	CBitmap m_bitmap;	//´´½¨Î»Í¼¶ÔÏó
 
-	CBitmap m_bitmaplin;   //åˆ›å»ºä¸´æ—¶ä½å›¾å¯¹è±¡è¿›è¡Œå¤„ç†  
-	CString BmpNameLin;    //ä¿å­˜å›¾åƒå‰¯æœ¬æ–‡ä»¶  
+	CBitmap m_bitmaplin;   //´´½¨ÁÙÊ±Î»Í¼¶ÔÏó½øĞĞ´¦Àí  
+	CString BmpNameLin;    //±£´æÍ¼Ïñ¸±±¾ÎÄ¼ş  
 
-
-	int m_nWidth;       //å›¾åƒå®é™…å®½åº¦  
-	int m_nHeight;      //å›¾åƒå®é™…é«˜åº¦  
-	int m_nDrawWidth;   //å›¾åƒæ˜¾ç¤ºå®½åº¦  
-	int m_nDrawHeight;  //å›¾åƒæ˜¾ç¤ºé«˜åº¦  
-	DWORD m_nImage;     //å›¾åƒæ•°æ®çš„å­—èŠ‚æ•° åªå«ä½å›¾  
-	DWORD m_nSize;      //å›¾åƒæ–‡ä»¶å¤§å°  
-	int m_nLineByte;    //å›¾åƒä¸€è¡Œæ‰€å å­—èŠ‚æ•°  
-	int m_nBitCount;    //å›¾åƒæ¯ä¸ªåƒç´ æ‰€å ä½æ•°  
-	int m_nPalette;     //ä½å›¾å®é™…ä½¿ç”¨çš„é¢œè‰²è¡¨ä¸­çš„é¢œè‰²æ•°  
-
-	BYTE *m_pImage;         //è¯»å…¥å›¾ç‰‡æ•°æ®åçš„æŒ‡é’ˆ  
-	BITMAPFILEHEADER bfh;   //å…¨å±€å˜é‡æ–‡ä»¶å¤´  
-	BITMAPINFOHEADER bih;   //å…¨å±€å˜é‡ä¿¡æ¯å¤´  
-	RGBQUAD m_pPal[256];         //é¢œè‰²è¡¨æŒ‡é’ˆ  
+	CStringArray m_pDrawText; //Í¼ÏñµÄ»æÖÆ±êÌâ
 
 
-	int m_nHistogramColor[256];  //ç»Ÿè®¡å€¼
-	double m_dHistogramColor[256]; //æ¦‚ç‡å¯†åº¦ PDF
+	int m_nWidth;       //Í¼ÏñÊµ¼Ê¿í¶È  
+	int m_nHeight;      //Í¼ÏñÊµ¼Ê¸ß¶È  
+	int m_nDrawWidth;   //Í¼ÏñÏÔÊ¾¿í¶È  
+	int m_nDrawHeight;  //Í¼ÏñÏÔÊ¾¸ß¶È  
+	DWORD m_nImage;     //Í¼ÏñÊı¾İµÄ×Ö½ÚÊı Ö»º¬Î»Í¼  
+	DWORD m_nSize;      //Í¼ÏñÎÄ¼ş´óĞ¡  
+	int m_nLineByte;    //Í¼ÏñÒ»ĞĞËùÕ¼×Ö½ÚÊı  
+	int m_nBitCount;    //Í¼ÏñÃ¿¸öÏñËØËùÕ¼Î»Êı  
+	int m_nPalette;     //Î»Í¼Êµ¼ÊÊ¹ÓÃµÄÑÕÉ«±íÖĞµÄÑÕÉ«Êı  
+	//int m_nWindowWidth; //¿Í»§Çø¿í¶È
+	//int m_nWindowHeight;  //¿Í»§Çø¸ß¶È
+
+	BYTE *m_pImage;         //¶ÁÈëÍ¼Æ¬Êı¾İºóµÄÖ¸Õë  
+	BITMAPFILEHEADER bfh;   //È«¾Ö±äÁ¿ÎÄ¼şÍ·  
+	BITMAPINFOHEADER bih;   //È«¾Ö±äÁ¿ĞÅÏ¢Í·  
+	RGBQUAD m_pPal[256];         //ÑÕÉ«±íÖ¸Õë  
+
+
+	int m_nHistogramColor[256];  //Í³¼ÆÖµ
+	double m_dHistogramColor[256]; //¸ÅÂÊÃÜ¶È PDF
 
 
 	
 
 
 
-	//æ·»åŠ æˆå‘˜å‡½æ•°
-	void ShowBitmap(CDC *pDc, CString BmpName); //æ˜¾ç¤ºä½å›¾å‡½æ•°
-	bool ReadBmp(CString FileName);              //ç”¨æ¥è¯»å–bmpæ ¼å¼å›¾ç‰‡  
-	bool SaveBmp(LPCSTR lpFileName); //ç”¨æ¥ä¿å­˜bmpæ ¼å¼å›¾ç‰‡ 
-	void WriteCharOnImage(CDC *pDc, CString FileName, LPCTSTR Characters, int m_xPosition, int m_yPosition); //åœ¨å›¾ç‰‡ä¸­å†™å…¥å­—ç¬¦
-	void BilinearInterpolation(int Width, int Height);//åŒçº¿æ€§æ’å€¼
-	void RotateImage(int Angle);//æ—‹è½¬
-	//void BicubicInterpolation(int Width, int Height);//åŒä¸‰æ¬¡æ’å€¼
-	void ShowHistogram();//æ˜¾ç¤ºç›´æ–¹å›¾
-	void HistogramEqualization();//ç›´æ–¹å›¾å‡è¡¡åŒ–
-	void MeanFilter(int m, int n);//å‡å€¼æ»¤æ³¢
-	void MedianFilter(int m, int n);//ä¸­å€¼æ»¤æ³¢
-	void GaussFilter(int m, int n);//é«˜æ–¯æ»¤æ³¢
-	void TemplateFilter(int *mask, int m , int n ); //æ¨¡æ¿æ»¤æ³¢
+	//Ìí¼Ó³ÉÔ±º¯Êı
+	void ShowBitmap(CDC *pDc, CString BmpName); //ÏÔÊ¾Î»Í¼º¯Êı
+	bool ReadBmp(CString FileName);              //ÓÃÀ´¶ÁÈ¡bmp¸ñÊ½Í¼Æ¬  
+	bool SaveBmp(LPCSTR lpFileName); //ÓÃÀ´±£´æbmp¸ñÊ½Í¼Æ¬ 
+	void WriteCharOnImage(CDC *pDc, CString FileName, LPCTSTR Characters, int m_xPosition, int m_yPosition); //ÔÚÍ¼Æ¬ÖĞĞ´Èë×Ö·û
+	void BilinearInterpolation(int Width, int Height);//Ë«ÏßĞÔ²åÖµ
+	void RotateImage(int Angle);//Ğı×ª
+	//void BicubicInterpolation(int Width, int Height);//Ë«Èı´Î²åÖµ
+	void ShowHistogram(BYTE* Image);//ÏÔÊ¾Ö±·½Í¼
+	void HistogramEqualization();//Ö±·½Í¼¾ùºâ»¯
+	void MeanFilter(int m, int n);//¾ùÖµÂË²¨
+	void MedianFilter(int m, int n);//ÖĞÖµÂË²¨
+	void GaussFilter(int m);//¸ßË¹ÂË²¨
+	BYTE* TemplateFilter(BYTE* Image, int *mask, int m , int n ); //Ä£°åÂË²¨
+	void HighboostFilter(float karr[], int n);//¸ßÌáÉıÂË²¨
+	BYTE* RGB2Gray();//»Ò¶È±ä»»
 
 
 	virtual ~CImageProcessView();
@@ -87,7 +93,7 @@ public:
 
 protected:
 
-// ç”Ÿæˆçš„æ¶ˆæ¯æ˜ å°„å‡½æ•°
+// Éú³ÉµÄÏûÏ¢Ó³Éäº¯Êı
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
@@ -104,9 +110,11 @@ public:
 	afx_msg void OnMedianFilter();
 	afx_msg void OnGaussFilter();
 	afx_msg void OnPepperSalt();
+	afx_msg void OnHighboostFilter();
+	afx_msg void OnUnsharpMasking();
 };
 
-#ifndef _DEBUG  // ImageProcessView.cpp ä¸­çš„è°ƒè¯•ç‰ˆæœ¬
+#ifndef _DEBUG  // ImageProcessView.cpp ÖĞµÄµ÷ÊÔ°æ±¾
 inline CImageProcessDoc* CImageProcessView::GetDocument() const
    { return reinterpret_cast<CImageProcessDoc*>(m_pDocument); }
 #endif

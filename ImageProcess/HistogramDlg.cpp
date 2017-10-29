@@ -1,4 +1,4 @@
-// HistogramDlg.cpp : 实现文件
+// HistogramDlg.cpp : ʵ���ļ�
 //
 
 #include "stdafx.h"
@@ -7,7 +7,7 @@
 #include "afxdialogex.h"
 
 
-// CHistogramDlg 对话框
+// CHistogramDlg �Ի���
 
 IMPLEMENT_DYNAMIC(CHistogramDlg, CDialogEx)
 
@@ -33,29 +33,29 @@ BEGIN_MESSAGE_MAP(CHistogramDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 
-// CHistogramDlg 消息处理程序
+// CHistogramDlg ��Ϣ��������
 
 
 BOOL CHistogramDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	// TODO:  在此添加额外的初始化
+	// TODO:  �ڴ����Ӷ���ĳ�ʼ��
 	SetWindowText(m_sWindowTitle);
 	return TRUE;  // return TRUE unless you set the focus to a control
-				  // 异常: OCX 属性页应返回 FALSE
+				  // �쳣: OCX ����ҳӦ���� FALSE
 }
 
 void CHistogramDlg::OnPaint()
 {
 	 
 	CPaintDC dc(this); // device context for painting
-	// TODO: 在此处添加消息处理程序代码
-	// 不为绘图消息调用 CDialogEx::OnPaint()
+	// TODO: �ڴ˴�������Ϣ�����������
+	// ��Ϊ��ͼ��Ϣ���� CDialogEx::OnPaint()
 	 
  
  
-	//获取窗口及绘制图形的区域
+	//��ȡ���ڼ�����ͼ�ε�����
 	CWnd *pWnd = GetDlgItem(IDC_STATIC_HISTOGRAM);
 	CDC *pDC = pWnd->GetDC();
 	 
@@ -63,23 +63,23 @@ void CHistogramDlg::OnPaint()
 	pWnd->GetWindowRect(&rectpic);
 
 	int x, y;
-	x = rectpic.Width();//X轴
-	y = rectpic.Height();//Y轴
+	x = rectpic.Width();//X��
+	y = rectpic.Height();//Y��
 
 
-	int x_offset = 10;//设置偏置 偏置保持直方图在坐标系下合理的位置
+	int x_offset = 10;//����ƫ�� ƫ�ñ���ֱ��ͼ������ϵ�º�����λ��
 	int y_offset = 10;
 
-	//画笔设置
+	//��������
 	CPen *RedPen = new CPen();
  
-	RedPen->CreatePen(PS_SOLID, 1, RGB(255, 0, 0)); //创建实心画笔，粗度为1，颜色为红色
+	RedPen->CreatePen(PS_SOLID, 1, RGB(255, 0, 0)); //����ʵ�Ļ��ʣ��ֶ�Ϊ1����ɫΪ��ɫ
 													
-	CGdiObject *RedOlderPen = pDC->SelectObject(RedPen); // 选择新画笔，并将旧画笔的指针保存到RedOlderPen   
+	CGdiObject *RedOlderPen = pDC->SelectObject(RedPen); // ѡ���»��ʣ������ɻ��ʵ�ָ�뱣�浽RedOlderPen   
 
 
 
-	double max = 0; //统计中的最大值
+	double max = 0; //ͳ���е����ֵ
 	for (int i = 0; i < 256; i++) {
 		if (HistogramColor[i] > max) {
 			max = HistogramColor[i];
@@ -87,22 +87,22 @@ void CHistogramDlg::OnPaint()
 	}
 
 
-	//绘制图形
-	/*说明：由于windows在扫描和存储图像是是以4个字节为内存单元 
-		因此图像字节对齐中 默认以0或255填充（主要是在memset的第二个值 ），
-		故0的比例可能是最大的，因此对于图像宽度不是4的倍数的将在像素为0或255处出现统计峰值
+	//����ͼ��
+	/*˵��������windows��ɨ��ʹ洢ͼ��������4���ֽ�Ϊ�ڴ浥Ԫ 
+		���ͼ���ֽڶ����� Ĭ����0��255��䣨��Ҫ����memset�ĵڶ���ֵ ����
+		��0�ı������������ģ���˶���ͼ����Ȳ���4�ı����Ľ�������Ϊ0��255������ͳ�Ʒ�ֵ
 	*/
 	for (int i = 0; i<256; i++)
 	{
-		int y_Position = ((double)HistogramColor[i] / max * (y-y_offset));//按比例缩放到Y轴  y_Position小于Y 因此不必进行越界处理
-		int x_Position = (double (i) /256) *(x- x_offset); //按比例缩放到X轴								 
+		int y_Position = ((double)HistogramColor[i] / max * (y-y_offset));//���������ŵ�Y��  y_PositionС��Y ��˲��ؽ���Խ�紦��
+		int x_Position = (double (i) /256) *(x- x_offset); //���������ŵ�X��								 
 		pDC->MoveTo(x_Position, y-1);
 		pDC->LineTo(x_Position, y - y_Position);
 
 	}
 
 
-	//恢复以前画笔
+	//�ָ���ǰ����
 	pDC->SelectObject(RedOlderPen);
 	delete RedPen;
 	ReleaseDC(pDC);

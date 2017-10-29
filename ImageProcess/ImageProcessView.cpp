@@ -1,4 +1,4 @@
-
+﻿
 // ImageProcessView.cpp : CImageProcessView 类的实现
 //
 
@@ -20,6 +20,8 @@
 #include "BmpCommonOp.h"
 #include "HistogramDlg.h"
 #include "FilterDlg.h"
+#include "HighBoostFilterDlg.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -47,6 +49,8 @@ BEGIN_MESSAGE_MAP(CImageProcessView, CScrollView)
 	ON_COMMAND(ID_MEDIAN_FILTER, &CImageProcessView::OnMedianFilter)
 	ON_COMMAND(ID_GAUSS_FILTER, &CImageProcessView::OnGaussFilter)
 	ON_COMMAND(ID_PEPPER_SALT, &CImageProcessView::OnPepperSalt)
+	ON_COMMAND(ID_HIGHBOOST_FILTER, &CImageProcessView::OnHighboostFilter)
+	ON_COMMAND(ID_UNSHARP_MASKING, &CImageProcessView::OnUnsharpMasking)
 END_MESSAGE_MAP()
 
 // CImageProcessView 构造/析构
@@ -169,7 +173,7 @@ void CImageProcessView::ShowBitmap(CDC *pDC, CString BmpName)
 	int m_nWindowWidth = rect.right - rect.left;   //计算客户区宽度
 	int m_nWindowHeight = rect.bottom - rect.top;  //计算客户区高度
 
-												   //定义并创建一个内存设备环境DC
+	//定义并创建一个内存设备环境DC
 	CDC dcBmp;
 	if (!dcBmp.CreateCompatibleDC(pDC))   //创建兼容性的DC
 		return;
@@ -179,6 +183,9 @@ void CImageProcessView::ShowBitmap(CDC *pDC, CString BmpName)
 
 	CBitmap *pbmpOld = NULL;
 	dcBmp.SelectObject(&m_bitmap);         //将位图选入临时内存设备环境
+ 
+	pDC->SetTextColor(RGB(255, 0, 0));
+	pDC->TextOut(0, m_bmp.bmHeight + 1, m_pDrawText.GetAt(0), sizeof(m_pDrawText.GetAt(0)) -1 );
 
 	//图片显示调用函数stretchBlt
 	pDC->StretchBlt(0, 0, m_bmp.bmWidth, m_bmp.bmHeight, &dcBmp, 0, 0, m_bmp.bmWidth, m_bmp.bmHeight, SRCCOPY);
@@ -193,6 +200,7 @@ void CImageProcessView::ShowBitmap(CDC *pDC, CString BmpName)
 	* 是否显示效果图片
 	*/
 	if (numPicture == 2) {
+
 		//显示图片函数LoadImage  
 		HBITMAP m_hBitmapChange = NULL;
 
@@ -213,24 +221,87 @@ void CImageProcessView::ShowBitmap(CDC *pDC, CString BmpName)
 		CBitmap *pbmpOld = NULL;
 		dcBmp.SelectObject(&m_bitmap);         //将位图选入临时内存设备环境  
 
+		//设置字体信息
+		CFont font;
+		font.CreateFont(20, 20, 0, 0, 200, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_MODERN, _T("Times New Roman"));
+		dcBmp.SetTextColor(RGB(255, 0, 0));
+		dcBmp.SelectObject(&font); //将字体属性选入DC
+		dcBmp.SetBkMode(TRANSPARENT); //背景透明
+		//dcBmp.TextOut(1, 1, _T("效果图"), 3);
 
 		//如果原图+效果图的 宽度和 大于窗口宽度 则申请更大的窗口
 		if (m_nDrawWidth + m_bmp.bmWidth < m_nWindowWidth) {
 			SetScrollSizes(MM_TEXT, CSize(m_nWindowWidth , m_bmp.bmHeight + 10)); //窗口滚轮高度自适应
- 
 		}
 		else {
 			SetScrollSizes(MM_TEXT, CSize(m_nDrawWidth + m_bmp.bmWidth + 12 , m_bmp.bmHeight + 10));
-			
 		}
 		pDC->BitBlt(m_nDrawWidth + 12, 0, m_bmp.bmWidth, m_bmp.bmHeight, &dcBmp, 0, 0, SRCCOPY);
-		 
+		
 		
 		
 		dcBmp.SelectObject(pbmpOld);	//恢复临时DC的位图  
 		DeleteObject(&m_bitmap);        //删除内存中的位图
 		dcBmp.DeleteDC();               //删除CreateCompatibleDC得到的图片DC
+
+		
+
 	}
+
+	if(numPicture>2) { //多个图像显示问题
+		
+		CBitmap bitmapTemp;	//创建位图对象
+		CString TempFileName;//
+		
+		for (int i = 0; i < numPicture-1; i++) {
+ 
+			TempFileName.Format(_T("picture_%d.bmp"), i );
+
+			//显示图片函数LoadImage  
+			HBITMAP BitmapChange = NULL;
+			BitmapChange = (HBITMAP)LoadImage(NULL, TempFileName, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTCOLOR | LR_CREATEDIBSECTION);
+
+			if (bitmapTemp.m_hObject) {
+				bitmapTemp.Detach();            //m_bitmap为创建的位图对象  
+			}
+			bitmapTemp.Attach(BitmapChange);
+			//定义并创建一个内存设备环境  
+			CDC dcBmpTemp;
+			if (!dcBmpTemp.CreateCompatibleDC(pDC))   //创建兼容性的DC  
+				return;
+			BITMAP bmpTemp;                          //临时bmp图片变量  
+			bitmapTemp.GetBitmap(&bmpTemp);            //将图片载入位图中  
+			
+			
+			dcBmpTemp.SelectObject(&bitmapTemp);         //将位图选入临时内存设备环境  
+
+			//设置字体信息
+			CFont font;
+			font.CreateFont(15, 15, 0, 0, 200, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_MODERN, _T("Times New Roman"));
+			dcBmpTemp.SetTextColor(RGB(255, 0, 0));
+			dcBmpTemp.SelectObject(&font); //将字体属性选入DC
+			//dcBmpTemp.SetBkMode(TRANSPARENT); //背景透明
+ 
+
+			//dcBmpTemp.TextOut(bmpTemp.bmWidth / 2, bmpTemp.bmHeight, m_pDrawText.GetAt(i + 1), sizeof(m_pDrawText.GetAt(i + 1)) + 1);
+			//dcBmpTemp.TextOut(500, 420, _T("Johnny Carson"), 13);
+			pDC->SetTextColor(RGB(255, 0, 0));
+			pDC->TextOut((bmpTemp.bmWidth+1)*i, (bmpTemp.bmHeight+20)*2+3, m_pDrawText.GetAt(i + 1), sizeof(m_pDrawText.GetAt(i + 1)) + 1);
+			 //如果原图+效果图的 宽度和 大于窗口宽度 则申请更大的窗口
+			if ( (bmpTemp.bmWidth+1)*numPicture > m_nWindowWidth) {
+				SetScrollSizes(MM_TEXT, CSize((bmpTemp.bmWidth + 1)*(numPicture-1), (bmpTemp.bmHeight+ 20)*2 + 30)); //窗口滚轮高度自适应
+			}
+			 
+			pDC->BitBlt((m_nDrawWidth+1)*i , bmpTemp.bmHeight+ 20, bmpTemp.bmWidth, bmpTemp.bmHeight, &dcBmpTemp, 0, 0, SRCCOPY);
+
+			dcBmpTemp.SelectObject(pbmpOld);	//恢复临时DC的位图  
+			
+			dcBmpTemp.DeleteDC();
+		}
+
+		DeleteObject(&bitmapTemp);        //删除内存中的位图
+	}
+
 
 
 
@@ -469,6 +540,31 @@ void CImageProcessView::WriteCharOnImage(CDC *pDC,CString FileName, LPCTSTR Char
 }
 
 
+//****************灰度变换****************//
+BYTE* CImageProcessView::RGB2Gray() {
+	if (!bih.biBitCount == 24) return 0;
+
+	BYTE*TempImage = new BYTE[m_nImage];
+	memcpy(TempImage, m_pImage, m_nImage);
+
+	for (int j = 0; j < m_nHeight;j++) {
+		for (int i = 0; i < m_nWidth;i++) {
+			int position = j*m_nLineByte + i*3;
+			int value_b = *(m_pImage + position);
+			int value_g = *(m_pImage + position+1);
+			int value_r = *(m_pImage + position+2);
+
+			int value_gray = (int) (value_r * 30 + value_g * 59 + value_b * 11) / 100 + 0.5;
+
+			*(TempImage + position) = value_gray;
+			*(TempImage + position+1) = value_gray;
+			*(TempImage + position+2) = value_gray;
+
+		}
+	}
+
+	return TempImage;
+}
 
 
 
@@ -822,13 +918,13 @@ void CImageProcessView::RotateImage(int Angle)
 
 
 //****************显示直观图****************//
-void  CImageProcessView::ShowHistogram() {
+void  CImageProcessView::ShowHistogram(BYTE* Image) {
 
 	memset(m_nHistogramColor, 0, sizeof(int) *256);
 
 	//m_nHistogramColor 统计数值
 	for (int i = 0; i < m_nImage; i++) {
-			int currentColor = m_pImage[i];
+			int currentColor = Image[i];
 			m_nHistogramColor[currentColor]++; //当前灰度级+1
 	}
 
@@ -841,9 +937,9 @@ void  CImageProcessView::ShowHistogram() {
 //****************直方图均衡化****************//
 void CImageProcessView::HistogramEqualization() {
 
+	BYTE * GraySrcImage = RGB2Gray();  //灰度化 
 
-
-	ShowHistogram(); 
+	ShowHistogram(GraySrcImage);
 	double  accuColor[256]; //CDF
 	int resultColor[256]; //s=T(r)中的s 输出像素
 	memset(accuColor, 0, sizeof(int) * 256); //初始化
@@ -861,9 +957,9 @@ void CImageProcessView::HistogramEqualization() {
 	int resultHistogramColor[256]; //均衡化图像的灰度级统计
 	memset(resultHistogramColor, 0, sizeof(int)*256);
 
-
+	 
 	for (int i = 0; i < m_nImage; i++) {
-		int current = m_pImage[i]; //当前点的像素  输入像素
+		int current = GraySrcImage[i]; //当前点的像素  输入像素
 		OutputImage[i] =  resultColor[current]; //均衡化后的像素 输出像素
 		resultHistogramColor[resultColor[current]] ++ ; //当前灰度级+1 
 	}
@@ -884,7 +980,7 @@ void CImageProcessView::HistogramEqualization() {
 
 	//显示原图直方图
 	CHistogramDlg dlg_src;
-	ShowHistogram(); //统计灰度
+	ShowHistogram(GraySrcImage); //统计灰度
 	dlg_src.HistogramColor = m_nHistogramColor;  //将统计结果传递给对话框
 	dlg_src.m_sWindowTitle = _T("原图直方图");
 	dlg_src.DoModal();
@@ -898,10 +994,10 @@ void CImageProcessView::HistogramEqualization() {
 }
 
 //******************模板滤波*****************//
-void CImageProcessView::TemplateFilter(int *mask, int m , int n) {
+BYTE* CImageProcessView::TemplateFilter(BYTE* Image, int *mask, int m , int n) {
 
 	BYTE * OutputImage = new BYTE[m_nImage];
-	memcpy(OutputImage, m_pImage, m_nImage); //初始化 将原图数据拷贝到目标图像
+	memcpy(OutputImage, Image, m_nImage); //初始化 将原图数据拷贝到目标图像
 	int a = (m - 1) / 2; //m=2a+1
 	int b = (n - 1) / 2;  //n=2b+1
 
@@ -926,7 +1022,7 @@ void CImageProcessView::TemplateFilter(int *mask, int m , int n) {
 						if (bih.biBitCount == 8) {
 							int currentPosition = y*m_nLineByte + x;//当前处理像素点位置
 							int position = (y + j)*m_nLineByte + x + i; //周围点位置
-							sum += *(m_pImage + position)*( *(mask + (i + a) + (j + b)*m ) );
+							sum += *(Image + position)*( *(mask + (i + a) + (j + b)*m ) );
 							*(OutputImage + currentPosition) = sum / weight_count;
 						}//end 8bit bmp
 
@@ -940,9 +1036,9 @@ void CImageProcessView::TemplateFilter(int *mask, int m , int n) {
 								int position_g = (y + j)*m_nLineByte + (x + i) * 3 + 1;
 								int position_b = (y + j)*m_nLineByte + (x + i) * 3 + 2;
 
-								sum_r += *(m_pImage + position_r)*(*(mask + (i + a) + (j + b)*m) ); //R
-								sum_g += *(m_pImage + position_g)*(*(mask + (i + a) + (j + b)*m ) ); //G
-								sum_b += *(m_pImage + position_b)*(*(mask + (i + a) +( j + b)*m) ); //B
+								sum_r += *(Image + position_r)*(*(mask + (i + a) + (j + b)*m) ); //R
+								sum_g += *(Image + position_g)*(*(mask + (i + a) + (j + b)*m ) ); //G
+								sum_b += *(Image + position_b)*(*(mask + (i + a) +( j + b)*m) ); //B
 								*(OutputImage + currentPosition) = sum_r / weight_count; //R
 								*(OutputImage + currentPosition + 1) = sum_g / weight_count; //G
 								*(OutputImage + currentPosition + 2) = sum_b / weight_count; //B
@@ -965,10 +1061,8 @@ void CImageProcessView::TemplateFilter(int *mask, int m , int n) {
 	BmpCommonOp bmpcommomop;
 	bmpcommomop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
 
-
-	delete[] OutputImage;
-	numPicture = 2;
-	Invalidate();
+	return OutputImage; //返回结果图像数据 以便其他函数的后续处理
+	
 
 }
 
@@ -981,11 +1075,13 @@ void CImageProcessView::MeanFilter(int m, int n) {
 	for (int i = 0; i < m*n; i++)
 		meanMask[i] = 1;
 
-	TemplateFilter(meanMask, m, n);
+	BYTE* OutputImage = TemplateFilter(m_pImage,meanMask, m, n);
 
 	//销毁资源
 	delete[] meanMask;
-
+	delete[] OutputImage;
+	numPicture = 2;
+	Invalidate();
 }
 
  
@@ -1073,22 +1169,161 @@ void CImageProcessView::MedianFilter(int m,int n) { //m x 宽  n y高
 
 
 //******************高斯滤波*****************//
-void CImageProcessView::GaussFilter(int m,int n) { //这里仅使用3x3的模板 高斯核比较麻烦构造
-	m = 3;
-	n = 3;
+void CImageProcessView::GaussFilter(int m) { //这里仅使用3x3的模板 高斯核比较麻烦构造
+	
+	if (m == 3) {
+		int gaussMask[] = { 1, 2, 1 ,  2, 4, 2 ,  1, 2, 1 };//定义mask
+		BYTE* OutputImage = TemplateFilter(m_pImage, gaussMask, 3, 3);
+		delete[] OutputImage;
+		numPicture = 2;
+		Invalidate();
 
-	//定义mask
-	int gaussMask[] = {  1, 2, 1 ,  2, 4, 2 ,  1, 2, 1  };
+	}
+	if (m == 5) {
+		int gaussMask[] = { 1, 4,7,4,1,4,16,26,16,4,7,26,41,26,7,4,16,26,16,4,1,4,7,4,1 };
+		BYTE* OutputImage = TemplateFilter(m_pImage, gaussMask, 3, 3);
+		delete[] OutputImage;
+		numPicture = 2;
+		Invalidate();
+	}
 
-	TemplateFilter(gaussMask, 3, 3);
+
+ 
 
 }
 
 
 
+//******************高提升滤波*****************//
+void CImageProcessView::HighboostFilter(float karr[], int n) {
+
+
+	int length = n; //元素的个数
+
+	CDC *cdc = GetDC();
+	USES_CONVERSION;
+   
+	BmpCommonOp bmpcommonop;
+	//BYTE * GraySrcImage = RGB2Gray(); //灰度化  是否需要灰度化应该根据用户操作进行决策
+
+	//1.高斯平滑
+	int gaussMask[] = { 1, 4,7,4,1,4,16,26,16,4,7,26,41,26,7,4,16,26,16,4,1,4,7,4,1 };
+	BYTE* OutputImage = TemplateFilter(m_pImage, gaussMask, 5, 5);
+	//2.生成非锐化模板
+	int *mask = new int[m_nImage]; //mask中会出现负数 注意这一点
+
+	 
 
 
 
+	for (int j = 0; j < m_nHeight;j++) { 
+		for (int i = 0; i < m_nWidth; i++) {
+
+			if (bih.biBitCount==8) {
+				int postion = j*m_nLineByte + i;
+				mask[postion] = m_pImage[postion] - OutputImage[postion];
+			}
+
+			if (bih.biBitCount==24) {
+				int postion = j*m_nLineByte + i * 3;
+				for (int m = 0; m < 3; m++) {
+					mask[postion+m] = m_pImage[postion+m] - OutputImage[postion+m];
+				}
+			}
+
+		}
+	}
+
+	
+	//3.将模板加到原图像中
+	BYTE * DstImage = new BYTE[m_nImage];
+	int *TempImage = new int[m_nImage];
+
+	for (int s = 0; s < length; s++) {
+
+		for (int j = 0; j < m_nHeight; j++) {
+			for (int i = 0; i < m_nWidth; i++) {
+
+				if (bih.biBitCount == 8) {
+					int postion = j*m_nLineByte + i;
+					TempImage[postion] = m_pImage[postion] + mask[postion] * karr[s] + 0.5; //四舍五入
+				}
+
+				if (bih.biBitCount == 24) {
+					int postion = j*m_nLineByte + i * 3;
+					for (int m = 0; m < 3; m++) {
+						TempImage[postion + m] = m_pImage[postion + m] + mask[postion + m] * karr[s] + 0.5; //四舍五入
+					}
+				}
+
+			}
+		}
+
+
+		//4.像素归一化到[0 ,255]   线性拉伸  RGB三个通道
+
+		bmpcommonop.Normalized(TempImage, DstImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+
+		//将BMP图像数据写入文件
+		
+
+		CString TempFileName;
+		
+		TempFileName.Format(_T("picture_%d.bmp"), s);
+		
+
+		 
+		LPCSTR BmpFileNameLin = (LPCSTR)T2A(TempFileName);
+		bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
+
+		CString bmpTitle;
+		bmpTitle.Format(_T("K=%2.2f"), karr[s]);
+		m_pDrawText.Add(bmpTitle);
+		 
+
+		//显示图像
+		//bmpcommonop.ShowBmpImage(cdc, DstImage, m_nWidth *s + s, m_nHeight*3+3, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);//boost filter
+	}
+	 
+ 
+
+	
+
+ 	 
+
+	
+
+	//将mask保存到文件  需要归一化到[0,255] 线性拉伸
+	BYTE* maskImage = new BYTE[m_nImage]; 
+	bmpcommonop.Normalized(mask, maskImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+
+ 
+	CString TempFileName;
+	TempFileName.Format(_T("picture_%d.bmp"), length);
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(TempFileName);
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin,  bfh, bih, m_pPal, maskImage, m_nImage);///mask
+	m_pDrawText.Add(_T("非锐化模板"));
+	TempFileName.Format(_T("picture_%d.bmp"), length+1);
+	BmpFileNameLin = (LPCSTR)T2A(TempFileName);
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);///gaussian blur
+	m_pDrawText.Add(_T("高斯模糊 "));
+
+	
+	//bmpcommonop.ShowBmpImage(cdc, OutputImage, 0, m_nHeight+1, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte); //gaussian blur
+	//bmpcommonop.ShowBmpImage(cdc, maskImage, 0, m_nHeight*2+2, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);//mask
+ 
+	
+
+
+
+	//销毁资源
+	delete[] mask, OutputImage, maskImage, DstImage, TempImage;
+	numPicture = length+3;
+
+	Invalidate();
+	
+
+} 
 
 
 
@@ -1102,8 +1337,11 @@ void CImageProcessView::OnDraw(CDC* pDC)
 	ASSERT_VALID(pDoc);
 	if (!pDoc)
 		return;
-
+	
 	// TODO: 在此处为本机数据添加绘制代码
+
+	
+
 	if (EntName.Compare(_T("bmp")) == 0)
 	{
 
@@ -1136,7 +1374,8 @@ void CImageProcessView::OnFileOpen()
 		numPicture = 1;                  //显示一张图片 
 		EntName = dlg.GetFileExt();      //获取文件扩展名
 		EntName.MakeLower();             //将文件扩展名转换为一个小写字符
-
+		m_pDrawText.RemoveAll();//清除
+		m_pDrawText.Add(_T("原图 "));
 		Invalidate();                    //调用该函数就会调用OnDraw重绘画图
 	}
 }
@@ -1300,7 +1539,7 @@ void CImageProcessView::OnShowHistogram()
 
 	//显示对话框
 	CHistogramDlg dlg_src;
-	ShowHistogram(); //统计灰度
+	ShowHistogram(m_pImage); //统计灰度
 	dlg_src.HistogramColor = m_nHistogramColor;  //将统计结果传递给对话框
 	dlg_src.m_sWindowTitle = _T("原图直方图");
 	if (dlg_src.DoModal() == IDOK)
@@ -1396,7 +1635,7 @@ void CImageProcessView::OnGaussFilter()
 			return;
 		}
 
-		GaussFilter(dlg.m_nLinearM, dlg.m_nLinearN);
+		GaussFilter(dlg.m_nLinearM);
 	}
 
 }
@@ -1414,7 +1653,7 @@ void CImageProcessView::OnPepperSalt()
 	AfxMessageBox(_T("生成的图像请保存，并用于测试对比中值滤波的效果!"));
 
 	BmpCommonOp bmpcommonop;
-	BYTE * OutputImage =  bmpcommonop.AddPepperSaltNoise(m_pImage, 0.99, m_nImage, m_nWidth, m_nHeight, bih.biBitCount,  m_nLineByte);
+	BYTE * OutputImage =  bmpcommonop.AddPepperSaltNoise(m_pImage, 0.995, m_nImage, m_nWidth, m_nHeight, bih.biBitCount,  m_nLineByte);
 	USES_CONVERSION;
 	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
 	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
@@ -1422,4 +1661,43 @@ void CImageProcessView::OnPepperSalt()
 	delete[] OutputImage;
 	numPicture = 2;
 	Invalidate();
+}
+
+//******************高提升滤波*****************//
+void CImageProcessView::OnHighboostFilter()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行高提升滤波!"));
+		return;
+	}
+	CHighBoostFilterDlg dlg;
+	if (dlg.DoModal() == IDOK) {
+		Common commonl;
+		float *karr;
+		karr = commonl.SplitString(dlg.m_nHighBoostK, _T(","));
+		//float karr[] = { 1, 2, 3, 4, 4.5, 5, 7, 9 };
+		int karr_size = _msize(karr) / sizeof(float *);
+		m_pDrawText.RemoveAll();//清除
+		m_pDrawText.Add(_T("原图 "));
+		HighboostFilter(karr, karr_size); //k>1
+	}
+
+	
+}
+
+//******************非锐化掩蔽*****************//
+void CImageProcessView::OnUnsharpMasking()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行非锐化掩蔽!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图 "));
+	float karr[] = { 1.0 };
+	HighboostFilter(karr, 1);//k=1
 }

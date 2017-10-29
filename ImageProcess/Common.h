@@ -5,7 +5,9 @@ public:
 	Common();
 	~Common();
 
-	void InsertSort(int array[], int n);//鎻掑叆鎺掑簭
-	int GetMedian(int array[], int n);// 鑾峰彇鏁版嵁鐨勪腑浣嶆暟
+	void InsertSort(int array[], int n);//插入排序
+	int GetMedian(int array[], int n);// 获取数据的中位数
+	void CStringToArray(CString string, float *arr);//CString转换为数组
+	float * SplitString(CString str, CString split);
 };
 

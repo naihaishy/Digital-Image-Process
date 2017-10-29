@@ -14,23 +14,23 @@ Common::~Common()
 /*************************************************************************
 * Function:   InsertSort()
 *
-* Description:    æ’å…¥æ’åº
+* Description:    ²åÈëÅÅĞò
 *
 * Input: 
 *
-* Returns:  ä»å¤§åˆ°å°æ’åºå¥½çš„æ•°æ®
+* Returns:  ´Ó´óµ½Ğ¡ÅÅĞòºÃµÄÊı¾İ
 ************************************************************************/
 void Common::InsertSort(int a[], int n) {
 	for (int i = 1; i<n; i++) {
-		if (a[i] < a[i - 1]) {               //è‹¥ç¬¬iä¸ªå…ƒç´ å¤§äºi-1å…ƒç´ ï¼Œç›´æ¥æ’å…¥ã€‚å°äºçš„è¯ï¼Œç§»åŠ¨æœ‰åºè¡¨åæ’å…¥  
-			int j = i - 1;   //è¡¨ä¸­æœ€åä¸€ä¸ªæ•°æ®
-			int x = a[i];        //å¤åˆ¶ä¸ºå“¨å…µï¼Œå³å­˜å‚¨å¾…æ’åºå…ƒç´   
-			a[i] = a[i - 1];           //å…ˆåç§»ä¸€ä¸ªå…ƒç´  (å› ä¸ºa[i]å°±æ˜¯Xï¼Œæ‰€ä»¥ä¸æ€•ä¸¢å¤±) 
-			while (j >= 0 && x < a[j]) {  //æŸ¥æ‰¾åœ¨æœ‰åºè¡¨çš„æ’å…¥ä½ç½®  (éå†è¡¨)
+		if (a[i] < a[i - 1]) {               //ÈôµÚi¸öÔªËØ´óÓÚi-1ÔªËØ£¬Ö±½Ó²åÈë¡£Ğ¡ÓÚµÄ»°£¬ÒÆ¶¯ÓĞĞò±íºó²åÈë  
+			int j = i - 1;   //±íÖĞ×îºóÒ»¸öÊı¾İ
+			int x = a[i];        //¸´ÖÆÎªÉÚ±ø£¬¼´´æ´¢´ıÅÅĞòÔªËØ  
+			a[i] = a[i - 1];           //ÏÈºóÒÆÒ»¸öÔªËØ (ÒòÎªa[i]¾ÍÊÇX£¬ËùÒÔ²»ÅÂ¶ªÊ§) 
+			while (j >= 0 && x < a[j]) {  //²éÕÒÔÚÓĞĞò±íµÄ²åÈëÎ»ÖÃ  (±éÀú±í)
 				a[j + 1] = a[j];
-				j--;         //å…ƒç´ åç§»  
+				j--;         //ÔªËØºóÒÆ  
 			}
-			a[j + 1] = x;      //æ’å…¥åˆ°æ­£ç¡®ä½ç½®  
+			a[j + 1] = x;      //²åÈëµ½ÕıÈ·Î»ÖÃ  
 		}
 	}
 }
@@ -41,7 +41,7 @@ void Common::InsertSort(int a[], int n) {
 /*************************************************************************
 * Function:   GetMedian()
 *
-* Description:    è·å–ä¸­ä½æ•°
+* Description:    »ñÈ¡ÖĞÎ»Êı
 *
 * Input:	 
 *
@@ -50,13 +50,103 @@ void Common::InsertSort(int a[], int n) {
 int Common::GetMedian(int arr[], int n) 
 {
 	int median;
-	InsertSort(arr, n);//arrå·²ç»æ’åºå®Œæˆ
-	if (n%2==1) {//å¥‡æ•°ä¸ª
+	InsertSort(arr, n);//arrÒÑ¾­ÅÅĞòÍê³É
+	if (n%2==1) {//ÆæÊı¸ö
 		median = arr[(n+1) / 2];
 	}
-	else {//å¶æ•°ä¸ª
+	else {//Å¼Êı¸ö
 		median = (int) (arr[n / 2] + arr[n/2 -1]) /2;
 	}
 	return median;
 	
+}
+
+
+
+/*************************************************************************
+* Function:   CStringToArray()
+*
+* Description:    CString×ª»»ÎªÊı×é
+*
+* Input:
+*
+* Returns:
+************************************************************************/
+void Common::CStringToArray(CString string, float *arr) {
+	//USES_CONVERSION;
+	 
+
+
+	/*for (int i = 0; i < string.GetLength(); i++) {
+		while (string.GetAt(i) != _T(",") )  {
+
+		}
+	}*/
+	 
+}
+
+/*************************************************************************
+* Function:   SplitString()
+*
+* Description:    ·Ö¸îCStringÎªÊı×é
+*
+* Input:
+*
+* Returns:
+************************************************************************/
+float * Common::SplitString(CString str, CString split)
+{
+	int iSubStrs;
+	int iPos = 0; //·Ö¸î·ûÎ»ÖÃ
+	int iNums = 0; //·Ö¸î·ûµÄ×ÜÊı
+	CString strTemp = str;
+	CString strRight;
+	USES_CONVERSION;
+
+	//ÏÈ¼ÆËã×Ó×Ö·û´®µÄÊıÁ¿
+	while (iPos != -1)
+	{
+		iPos = strTemp.Find(split); //²»Æ¥ÅäµÄ»°·µ»Ø - 1; Ë÷ÒıÒÔ0 ¿ªÊ¼
+		if (iPos == -1)
+		{
+			break;
+		}
+		strRight = strTemp.Mid(iPos + 1);
+		strTemp = strRight;
+		iNums++; //×Ó×Ö·û´®µÄÊıÁ¿
+	}
+
+
+	
+	//×Ó×Ö·û´®Êı×é
+	iSubStrs = iNums + 1; //×Ó´®µÄÊıÁ¿ = ·Ö¸î·ûÊıÁ¿ + 1
+	float* pStrSplit;
+	pStrSplit = new float[iSubStrs];
+	strTemp = str;
+	CString strLeft;
+
+
+	if (iNums == 0) //Ã»ÓĞÕÒµ½·Ö¸î·û
+	{
+		//×Ó×Ö·û´®Êı¾ÍÊÇ×Ö·û´®±¾Éí
+		iSubStrs = 1;
+		LPCSTR tempstrTemp = (LPCSTR)T2A(strTemp);
+		pStrSplit[0] = atof(tempstrTemp);
+		//return NULL;
+	}
+
+	for (int i = 0; i < iNums; i++)
+	{
+		iPos = strTemp.Find(split);
+		//×ó×Ó´®
+		strLeft = strTemp.Left(iPos);
+		//ÓÒ×Ó´®
+		strRight = strTemp.Mid(iPos + 1);
+		strTemp = strRight;
+		LPCSTR tempstrLeft = (LPCSTR)T2A(strLeft);
+		pStrSplit[i] = atof(tempstrLeft);
+	}
+	LPCSTR tempstrTemp = (LPCSTR)T2A(strTemp);
+	pStrSplit[iNums] = atof(tempstrTemp);
+	return pStrSplit;
 }

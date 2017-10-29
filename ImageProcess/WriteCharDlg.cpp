@@ -1,4 +1,4 @@
-// WriteCharDlg.cpp : å®ç°æ–‡ä»¶
+// WriteCharDlg.cpp : ÊµÏÖÎÄ¼ş
 //
 
 #include "stdafx.h"
@@ -7,7 +7,7 @@
 #include "afxdialogex.h"
 
 
-// CWriteCharDlg å¯¹è¯æ¡†
+// CWriteCharDlg ¶Ô»°¿ò
 
 IMPLEMENT_DYNAMIC(CWriteCharDlg, CDialog)
 
@@ -37,6 +37,6 @@ BEGIN_MESSAGE_MAP(CWriteCharDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-// CWriteCharDlg æ¶ˆæ¯å¤„ç†ç¨‹åº
+// CWriteCharDlg ÏûÏ¢´¦Àí³ÌĞò
 
 
