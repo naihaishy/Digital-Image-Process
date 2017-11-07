@@ -601,3 +601,102 @@ void BmpCommonOp::GetAmplitudespectrum(complex<double>  * srcB, complex<double> 
  
 
 }
+
+
+
+
+
+
+
+
+/*************************************************************************
+*
+* Function:   ImgFreTemplateFilter()
+*
+* Description: 频谱模板滤波
+*
+* Input:  filter滤波函数
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::ImgFreTemplateFilter(BYTE* DstImage, double *filter, int ImageWidth, int ImageHeight, int BitCount, int LineByte){
+
+	//8bit
+	if (BitCount==8) {
+		int position;
+		for (int j = 0; j < m_nImageHeight;j++) {
+			for (int i = 0; i < m_nImageWidth;i++) {
+				position = j*m_nImageWidth + i;
+				m_FrequencyDomain[position] = m_FrequencyDomain[position]* filter[position];
+			}
+		}
+		//ImgIFFT
+		ImgIFFT(DstImage, ImageWidth, ImageHeight, BitCount, LineByte);
+
+	}//end 8bit
+
+
+
+	//24bit 
+	if (BitCount==24) {
+		int position;
+		for (int j = 0; j < m_nImageHeight; j++) {
+			for (int i = 0; i < m_nImageWidth; i++) {
+				position = j*m_nImageWidth + i; //各个通道单独处理
+				m_FrequencyDomainB[position] = m_FrequencyDomainB[position] * filter[position];
+				m_FrequencyDomainG[position] = m_FrequencyDomainG[position] * filter[position];
+				m_FrequencyDomainR[position] = m_FrequencyDomainR[position] * filter[position];
+			}
+		}
+
+		//ImgIFFT
+		ImgIFFT(DstImage, ImageWidth, ImageHeight, BitCount, LineByte);
+
+	}//end 24bit
+
+	
+
+
+}
+
+
+
+/*************************************************************************
+*
+* Function:   ImgIdealLowPassFilter()
+*
+* Description: 理想低通滤波
+*
+* Input:
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::ImgIdealLowPassFilter(BYTE* DstImage, int nFreq, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+
+	//生成滤波函数 or 滤波器
+
+	double *Filter = new double[m_nImageWidth*m_nImageHeight];
+	int position;
+	int distance;
+	for (int j = 0; j < m_nImageHeight; j++) {
+		for (int i = 0; i < m_nImageWidth; i++) {
+			position = j*m_nImageWidth + i; 
+			distance = sqrt(  (i- m_nImageWidth/2)*(i - m_nImageWidth / 2) + (j - m_nImageHeight / 2)*(j - m_nImageHeight / 2) ) +0.5;
+
+			if (distance<nFreq) 
+				Filter[position] = 1;
+			else 
+				Filter[position] = 0;
+		}
+	}
+
+
+	ImgFreTemplateFilter(DstImage, Filter, ImageWidth, ImageHeight, BitCount, LineByte);
+
+	int a = 12;
+
+	delete[] Filter;
+
+}

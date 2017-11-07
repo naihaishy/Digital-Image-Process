@@ -1356,6 +1356,25 @@ void CImageProcessView::IFFT() {
 //******************理想低通滤波*****************//
 void CImageProcessView::ILPF() {
 
+
+	BmpCommonOp	bmpcommonop;
+	//FFT
+	bmpcommonop.ImgFFT(m_pImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	BYTE * DstImage = new BYTE[m_nImage]; //恢复图像
+	//滤波
+	bmpcommonop.ImgIdealLowPassFilter(DstImage, 40, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+
+
+	//图像保存
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
+
+	delete[] DstImage;
+	numPicture = 2;
+	Invalidate();
+
+
 }
 
  
@@ -1798,5 +1817,10 @@ void CImageProcessView::OnLpf()
 		return;
 	}
 
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("理想低通滤波效果图"));
+
+	ILPF();
 
 }
