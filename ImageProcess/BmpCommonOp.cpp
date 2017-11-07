@@ -2,8 +2,11 @@
 #include "BmpCommonOp.h"
 
 
+
+
 BmpCommonOp::BmpCommonOp()
 {
+	m_bFourierinit = 0; //是否初始化
 }
 
 
@@ -131,7 +134,27 @@ BYTE* BmpCommonOp::AddPepperSaltNoise(BYTE * Image, double SNR, int ImageSize, i
 * Returns:
 *
 ************************************************************************/
-void BmpCommonOp::RGB2Gray(BYTE*Image) {
+void BmpCommonOp::RGB2Gray(BYTE*Image, BYTE* DstImage, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+
+	if (BitCount != 24) return;
+
+	for (int j = 0; j < ImageHeight; j++) {
+		for (int i = 0; i < ImageWidth; i++) {
+			int position = j*LineByte + i * 3;
+			int value_b = *(Image + position);//B
+			int value_g = *(Image + position + 1);//G
+			int value_r = *(Image + position + 2);//R
+
+			int value_gray = (int)((value_r * 30 + value_g * 59 + value_b * 11) / 100 + 0.5);
+
+			*(DstImage + position) = value_gray;
+			*(DstImage + position + 1) = value_gray;
+			*(DstImage + position + 2) = value_gray;
+
+		}
+	}
+
+
 
 }
 
@@ -264,3 +287,317 @@ void BmpCommonOp::WriteTextOnScreen(CDC *pDC,int Position_x, int Position_y) {
 
 
 
+
+/*************************************************************************
+*
+* Function:  ImgFourierInit ()
+*
+* Description:   图像傅里叶变换的初始化
+*
+* Input: Image 图像数据   ImageSize图像像素大小 ImageWidth ImageHeight 图像宽高 BitCount图像位数 LineByte图像一行所占字节数
+*
+* Returns: 得到FFT变换后的频域数据 作为该类的成员变量
+*
+************************************************************************/
+void BmpCommonOp::ImgFourierInit(int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+
+	m_bFourierinit = 1;
+	//图像宽高非2的整数幂时需要进行补0操作
+	m_nImageWidth = 1, m_nImageHeight = 1;
+	// FFT需要的宽度和高度（2的整数次方）
+	while (m_nImageWidth  < ImageWidth)
+		m_nImageWidth *= 2;
+	while (m_nImageHeight  < ImageHeight)
+		m_nImageHeight *= 2;
+
+	/*
+	* 1.无需考虑字节对齐 因为本身已经对齐 m_nImageWidth是4的倍数
+	* 2. RGB三个分量分开处理
+	*/
+
+	//计算图像每行像素所占的字节数 4字节对齐 
+	m_nLineByte = (m_nImageWidth*BitCount + 31) / 32 * 4;  //8bit: m_nLineByte=m_nImageWidth    24bit: m_nLineByte=m_nImageWidth*3
+	m_nLineBytePer = m_nImageWidth; //扩展后每个通道 图像一行所占字节数  
+
+	m_nImageSize = m_nLineByte*m_nImageHeight;//扩展后整个图像大小
+	m_nImageSizePer = m_nLineBytePer*m_nImageHeight; //扩展后 每个RGB分量的图大小
+	
+
+	//时域 空间域
+	m_TimeDomain = new complex<double>[m_nImageSizePer];
+	m_TimeDomainB = new complex<double>[m_nImageSizePer];
+	m_TimeDomainG = new complex<double>[m_nImageSizePer];
+	m_TimeDomainR = new complex<double>[m_nImageSizePer];
+
+	//频域
+	m_FrequencyDomain = new complex<double>[m_nImageSizePer];
+	m_FrequencyDomainB = new complex<double>[m_nImageSizePer];
+	m_FrequencyDomainG = new complex<double>[m_nImageSizePer];
+	m_FrequencyDomainR = new complex<double>[m_nImageSizePer];
+
+}
+
+
+
+
+
+
+
+
+/*************************************************************************
+*
+* Function:  ImgFFT ()
+*
+* Description:   ImgFFT
+*
+* Input: Image 图像数据   ImageSize图像像素大小 ImageWidth ImageHeight 图像宽高 BitCount图像位数 LineByte图像一行所占字节数
+*
+* Returns: 得到FFT变换后的频域数据 作为该类的成员变量
+*
+************************************************************************/
+void BmpCommonOp::ImgFFT(BYTE* Image, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+
+	Fourier fourier;
+
+	ImgFourierInit(ImageWidth, ImageHeight, BitCount, LineByte);
+
+	//8bit BMP 处理
+	if (BitCount==8) {
+
+		int * newImage = new int[m_nImageSize]; //中心化操作 (-1)^(x+y) 出现负数 不能使用BYTE类型
+		memset(newImage, 0, sizeof(int)*m_nImageSize); //初始化
+		//复制到新图像的左下角即可 剩下为0   
+		for (int j = 0; j < ImageHeight; j++) {
+			for (int i = 0; i <ImageWidth; i++) {
+				*(newImage + j*m_nLineByte + i) = *(Image + j*LineByte + i)*pow(-1, i + j); //中心化
+			}
+		}
+
+		//图像数据变成复数类型 
+		for (int i = 0; i<m_nImageSize; i++) {
+			m_TimeDomain[i] = complex<double>(newImage[i], 0);
+		}
+
+
+		//FFT2 
+		fourier.FFT2(m_TimeDomain, m_FrequencyDomain, m_nImageWidth, m_nImageHeight); 
+
+		//频谱图
+
+
+	}//end 8bit
+
+
+
+
+	//24bit BMP处理
+	if (BitCount == 24) {
+		int * newImageB = new int[m_nImageSizePer];
+		int * newImageG = new int[m_nImageSizePer];
+		int * newImageR = new int[m_nImageSizePer];
+
+		memset(newImageB, 0, sizeof(int)*m_nImageSizePer);//初始化
+		memset(newImageG, 0, sizeof(int)*m_nImageSizePer);
+		memset(newImageR, 0, sizeof(int)*m_nImageSizePer);
+
+		//复制到新图像的左下角即可 剩下为0   
+		for (int j = 0; j < ImageHeight; j++) {
+			for (int i = 0; i <ImageWidth; i++) {
+				*(newImageB + j*m_nImageWidth + i) = *(Image + j*LineByte + i * 3)*pow(-1, i + j); //B  
+				*(newImageG + j*m_nImageWidth + i) = *(Image + j*LineByte + i * 3 + 1)*pow(-1, i + j); //G  
+				*(newImageR + j*m_nImageWidth + i) = *(Image + j*LineByte + i * 3 + 2)*pow(-1, i + j); //R  
+			}
+		}
+
+		//图像数据变成复数类型 
+		for (int i = 0; i<m_nImageSizePer; i++) {
+			//24bit 彩色图像分为RGB三个通道分别处理 最后整合
+			m_TimeDomainB[i] = complex<double>(newImageB[i], 0);
+			m_TimeDomainG[i] = complex<double>(newImageG[i], 0);
+			m_TimeDomainR[i] = complex<double>(newImageR[i], 0);
+		}
+
+		//FFT2
+		fourier.FFT2(m_TimeDomainB, m_FrequencyDomainB, m_nImageWidth, m_nImageHeight);  //FFT2  B
+		fourier.FFT2(m_TimeDomainG, m_FrequencyDomainG, m_nImageWidth, m_nImageHeight);  //FFT2  G
+		fourier.FFT2(m_TimeDomainR, m_FrequencyDomainR, m_nImageWidth, m_nImageHeight);  //FFT2  R
+
+	}//end 24bit
+	
+
+}
+
+/*************************************************************************
+*
+* Function:  ImgIFFT ()
+*
+* Description:   ImgIFFT
+*
+* Input:   DstImage根原图相同大小规格
+*
+* Returns:  
+*
+************************************************************************/
+void BmpCommonOp::ImgIFFT(BYTE* DstImage, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+
+	Fourier fourier;
+	BYTE* Temp = new BYTE[m_nImageSize];
+
+
+
+	//8bit BMP处理
+	if (BitCount == 8) {
+		complex<double> *TimeDomain = new complex<double>[m_nImageWidth*m_nImageHeight]; 
+		fourier.IFFT2(m_FrequencyDomain, TimeDomain, m_nImageWidth, m_nImageHeight);  //IFFT2 
+		GetAmplitudespectrum(TimeDomain, Temp, m_nImageWidth, m_nImageHeight, BitCount, 1);//得到频谱图
+
+
+		//裁剪图片 与原图相同规格
+		for (int j = 0; j < ImageHeight; j++) {
+			for (int i = 0; i < ImageWidth; i++) {
+				DstImage[j*LineByte+i] = Temp[j*m_nLineByte+i];
+			}
+		}
+	}//end 8bit
+
+
+
+	//24bit
+	if (BitCount == 24) {
+		complex<double> *TimeDomainB = new complex<double>[m_nImageWidth*m_nImageHeight];
+		complex<double> *TimeDomainG = new complex<double>[m_nImageWidth*m_nImageHeight];
+		complex<double> *TimeDomainR = new complex<double>[m_nImageWidth*m_nImageHeight];
+
+		fourier.IFFT2(m_FrequencyDomainB, TimeDomainB, m_nImageWidth, m_nImageHeight);  //IFFT2 
+		fourier.IFFT2(m_FrequencyDomainG, TimeDomainG, m_nImageWidth, m_nImageHeight);  //IFFT2 
+		fourier.IFFT2(m_FrequencyDomainR, TimeDomainR, m_nImageWidth, m_nImageHeight);  //IFFT2 
+		GetAmplitudespectrum(TimeDomainB, TimeDomainG, TimeDomainR, Temp, m_nImageWidth, m_nImageHeight, BitCount, 1);//得到频谱图
+		//裁剪图片 与原图相同规格
+		for (int j = 0; j < ImageHeight; j++) {
+			for (int i = 0; i < ImageWidth; i++) {
+				DstImage[j*LineByte + i*3 ] = Temp[j*m_nLineByte + i*3];
+				DstImage[j*LineByte + i * 3+1] = Temp[j*m_nLineByte + i * 3+1];
+				DstImage[j*LineByte + i * 3+2] = Temp[j*m_nLineByte + i * 3+2];
+			}
+		}
+	}//end 24bit
+
+
+}
+
+
+/*************************************************************************
+*
+* Function:  GetAmplitudespectrum ()
+*
+* Description:   获取图像的频谱图 
+*
+* Input:    isReverse 是否是反变换 反变换需要(-1)^(x+y) 以及取实部和取消对数变化
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::GetAmplitudespectrum(complex<double>  * src, BYTE * DstImage, int width, int height, int BitCount, int isReverse) {
+
+	if (BitCount != 8) return;
+	double *dst = new double[m_nImageSize];
+
+	double dmax = 0, dmin = DBL_MAX; //DBL_MAX
+	int position;
+	for (int j = 0; j < height; j++) {
+		for (int i = 0; i<width; i++) {
+			position = j*width + i ;
+			if (isReverse) { //是反变换
+				dst[position] = src[position].real();
+				dst[position] = dst[position] * pow(-1, i + j);
+			}
+			else {
+				dst[position] = sqrt(  src[position].real()* src[position].real()+ src[position].imag()* src[position].imag()  ) + 0.5; //四舍五入
+				dst[position] = 1 + log(abs(dst[position])); //对数变换 正FFT为了观察效果明显 进行了对数变化
+			}
+			
+			dmax = max(dmax, dst[position]);
+			dmin = min(dmin, dst[position]);
+		}
+	}
+
+	//幅度谱归一化0 - 255
+	for (int j = 0; j < height; j++) {
+		for (int i = 0; i<width; i++) {
+			position = j*width + i;
+			DstImage[position] = (dst[position] - dmin) * 255 / (dmax - dmin) + 0.5; //四舍五入
+		}
+	}
+
+}
+
+
+/*************************************************************************
+*
+* Function:  GetAmplitudespectrum ()
+*
+* Description:   获取图像的频谱图
+*
+* Input: LineByte 完整RGB图像的每行像素所占字节数
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::GetAmplitudespectrum(complex<double>  * srcB, complex<double>  * srcG, complex<double>  * srcR, BYTE * DstImage, int width, int height, int BitCount, int isReverse) {
+
+	if (BitCount != 24) return;
+	double *dst = new double[m_nImageSize];
+
+	int positionper; //每个通道中像素点位置
+	int position; //整合图像 像素点的位置
+	double dmax_r = 0, dmax_g = 0, dmax_b = 0, dmin_r = DBL_MAX, dmin_g = DBL_MAX, dmin_b = DBL_MAX; //DBL_MAX
+
+	for (int j = 0; j < height; j++) {
+		for (int i = 0; i<width; i++) {
+			position = j*width*3 + i*3;
+			positionper = j*width + i;
+			if (isReverse) {
+				dst[position] = srcB[positionper].real();//B
+				dst[position+1] = srcG[positionper].real();//G
+				dst[position + 2] = srcR[positionper].real();//R
+
+				dst[position] = dst[position] * pow(-1, i + j);
+				dst[position+1] = dst[position+1] * pow(-1, i + j);
+				dst[position+2] = dst[position+2] * pow(-1, i + j);
+
+			}
+			else {
+				dst[position] = sqrt(srcB[positionper].real()* srcB[positionper].real() + srcB[positionper].imag()* srcB[positionper].imag()) + 0.5; //B
+				dst[position + 1] = sqrt(srcG[positionper].real()* srcG[positionper].real() + srcG[positionper].imag()* srcG[positionper].imag()) + 0.5; //G	
+				dst[position + 2] = sqrt(srcR[positionper].real()* srcR[positionper].real() + srcR[positionper].imag()* srcR[positionper].imag()) + 0.5; //R	
+
+				dst[position] = 1 + log(abs(dst[position])); //对数变换
+				dst[position + 1] = 1 + log(abs(dst[position + 1]));
+				dst[position + 2] = 1 + log(abs(dst[position + 2]));
+			}
+			
+
+			dmax_b = max(dmax_b, dst[position]);
+			dmin_b = min(dmin_b, dst[position]);
+			dmax_g = max(dmax_g, dst[position+1] );
+			dmin_g = min(dmin_g, dst[position+1] );
+			dmax_r = max(dmax_r, dst[position+2] );
+			dmin_r = min(dmin_r, dst[position+2] );
+			
+		}
+	}
+
+	//幅度谱归一化0 - 255
+	for (int j = 0; j < height; j++) {
+		for (int i = 0; i < width; i++) {
+			position = j*width * 3 + i * 3;
+			DstImage[position] = (dst[position] - dmin_b) * 255 / (dmax_b - dmin_b) + 0.5; //四舍五入
+			DstImage[position+1] = (dst[position+1] - dmin_g) * 255 / (dmax_g - dmin_g) + 0.5;
+			DstImage[position+2]= (dst[position + 2] - dmin_r) * 255 / (dmax_r - dmin_r) + 0.5; //四舍五入
+
+		}
+	}
+
+ 
+
+}

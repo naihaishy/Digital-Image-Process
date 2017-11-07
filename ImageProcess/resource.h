@@ -26,7 +26,6 @@
 #define IDC_MFCPROPERTYGRID1            1019
 #define IDC_STATIC_HISTOGRAM            1020
 #define IDC_EDIT_LINEAR_M               1026
-#define IDC_EDIT1                       1028
 #define IDC_EDIT_HIGHBOOST_K            1028
 #define ID_32771                        32771
 #define ID_32772                        32772
@@ -64,13 +63,23 @@
 #define ID_HIGHBOOST_FILTER             32805
 #define ID_32806                        32806
 #define ID_UNSHARP_MASKING              32807
+#define ID_32808                        32808
+#define ID_32809                        32809
+#define ID_DFT                          32810
+#define ID_FFT                          32811
+#define ID_32812                        32812
+#define ID_LPF                          32813
+#define ID_32814                        32814
+#define ID_TEST                         32815
+#define ID_32816                        32816
+#define ID_IFFT                         32817
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        330
-#define _APS_NEXT_COMMAND_VALUE         32808
+#define _APS_NEXT_COMMAND_VALUE         32818
 #define _APS_NEXT_CONTROL_VALUE         1029
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

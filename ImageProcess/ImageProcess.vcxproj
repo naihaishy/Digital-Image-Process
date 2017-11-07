@@ -189,6 +189,7 @@
     <ClInclude Include="BmpCommonOp.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="FilterDlg.h" />
+    <ClInclude Include="Fourier.h" />
     <ClInclude Include="HelpDlg.h" />
     <ClInclude Include="HighBoostFilterDlg.h" />
     <ClInclude Include="HistogramDlg.h" />
@@ -207,6 +208,7 @@
     <ClCompile Include="BmpCommonOp.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="FilterDlg.cpp" />
+    <ClCompile Include="Fourier.cpp" />
     <ClCompile Include="HelpDlg.cpp" />
     <ClCompile Include="HighBoostFilterDlg.cpp" />
     <ClCompile Include="HistogramDlg.cpp" />

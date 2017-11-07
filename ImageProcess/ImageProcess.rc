@@ -163,6 +163,17 @@ BEGIN
         MENUITEM "高提升滤波",                       ID_HIGHBOOST_FILTER
         MENUITEM "非锐化掩蔽",                       ID_UNSHARP_MASKING
     END
+    POPUP "作业3"
+    BEGIN
+        MENUITEM "FFT",                         ID_FFT
+        MENUITEM "IFFT",                        ID_IFFT
+        MENUITEM "LPF",                         ID_LPF
+        MENUITEM "DFT",                         ID_DFT
+    END
+    POPUP "测试"
+    BEGIN
+        MENUITEM "Test",                        ID_TEST
+    END
     POPUP "帮助(&H)"
     BEGIN
         MENUITEM "使用帮助",                        ID_HELP

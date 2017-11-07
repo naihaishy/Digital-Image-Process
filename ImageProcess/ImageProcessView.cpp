@@ -23,6 +23,8 @@
 #include "HighBoostFilterDlg.h"
 
 
+
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -51,6 +53,10 @@ BEGIN_MESSAGE_MAP(CImageProcessView, CScrollView)
 	ON_COMMAND(ID_PEPPER_SALT, &CImageProcessView::OnPepperSalt)
 	ON_COMMAND(ID_HIGHBOOST_FILTER, &CImageProcessView::OnHighboostFilter)
 	ON_COMMAND(ID_UNSHARP_MASKING, &CImageProcessView::OnUnsharpMasking)
+	ON_COMMAND(ID_LPF, &CImageProcessView::OnLpf)
+	ON_COMMAND(ID_FFT, &CImageProcessView::OnFft)
+	ON_COMMAND(ID_TEST, &CImageProcessView::OnTest)
+	ON_COMMAND(ID_IFFT, &CImageProcessView::OnIfft)
 END_MESSAGE_MAP()
 
 // CImageProcessView 构造/析构
@@ -145,6 +151,7 @@ CImageProcessDoc* CImageProcessView::GetDocument() const // 非调试版本是�
 /*************************************************************/
 int numPicture = 0;
 CString flag  = _T("normal"); //标志位
+int boolFourierinit = 0;//傅里叶操作初始化标志
 
 
 //****************显示BMP格式图片****************//
@@ -237,7 +244,7 @@ void CImageProcessView::ShowBitmap(CDC *pDC, CString BmpName)
 			SetScrollSizes(MM_TEXT, CSize(m_nDrawWidth + m_bmp.bmWidth + 12 , m_bmp.bmHeight + 10));
 		}
 		pDC->BitBlt(m_nDrawWidth + 12, 0, m_bmp.bmWidth, m_bmp.bmHeight, &dcBmp, 0, 0, SRCCOPY);
-		
+		pDC->TextOut(m_nDrawWidth + 12, m_bmp.bmHeight + 1, m_pDrawText.GetAt(1), _tcslen(m_pDrawText.GetAt(1)));
 		
 		
 		dcBmp.SelectObject(pbmpOld);	//恢复临时DC的位图  
@@ -540,31 +547,7 @@ void CImageProcessView::WriteCharOnImage(CDC *pDC,CString FileName, LPCTSTR Char
 }
 
 
-//****************灰度变换****************//
-BYTE* CImageProcessView::RGB2Gray() {
-	if (!bih.biBitCount == 24) return 0;
 
-	BYTE*TempImage = new BYTE[m_nImage];
-	memcpy(TempImage, m_pImage, m_nImage);
-
-	for (int j = 0; j < m_nHeight;j++) {
-		for (int i = 0; i < m_nWidth;i++) {
-			int position = j*m_nLineByte + i*3;
-			int value_b = *(m_pImage + position);
-			int value_g = *(m_pImage + position+1);
-			int value_r = *(m_pImage + position+2);
-
-			int value_gray = (int) (value_r * 30 + value_g * 59 + value_b * 11) / 100 + 0.5;
-
-			*(TempImage + position) = value_gray;
-			*(TempImage + position+1) = value_gray;
-			*(TempImage + position+2) = value_gray;
-
-		}
-	}
-
-	return TempImage;
-}
 
 
 
@@ -598,19 +581,6 @@ void CImageProcessView::BilinearInterpolation(int Width, int Height)
 	//LPCSTR BmpFileName = (LPCSTR)T2A(BmpName);
 	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
 
- 
-
-	//FILE *fpo;
-
-	////读取图像  原图还是效果图? 如果是连续操作则是效果图 
-	//if (fopen_s(&fpo, BmpFileNameLin, "rb") == 0) { //如果存在效果图 则使用效果图
-	//	ReadBmp(BmpNameLin);
-	//	 
-	//}
-	//else { //如果不存在效果图 则直接使用原图数据
-	//	ReadBmp(BmpName);
-	//	 
-	//}
 	
 	
 	
@@ -650,7 +620,7 @@ void CImageProcessView::BilinearInterpolation(int Width, int Height)
 				int q12 = *(m_pImage + z_x + (z_y + 1)*m_nLineByte);
 				int q22 = *(m_pImage + (z_x + 1) + (z_y + 1)*m_nLineByte);
 
-				*(DstImage + j*Width + i) =  q11*(1.0 - x_x)*(1.0 - x_y) + q21*x_x*(1.0 - x_y) + q12*(1.0 - x_x)*x_y + q22*x_x*x_y;
+				*(DstImage + j*Width + i) = q11*(1.0 - x_x)*(1.0 - x_y) + q21*x_x*(1.0 - x_y) + q12*(1.0 - x_x)*x_y + q22*x_x*x_y; //必然小于255
 			}
 
 			//24bit BMP
@@ -923,7 +893,7 @@ void  CImageProcessView::ShowHistogram(BYTE* Image) {
 	memset(m_nHistogramColor, 0, sizeof(int) *256);
 
 	//m_nHistogramColor 统计数值
-	for (int i = 0; i < m_nImage; i++) {
+	for (unsigned int i = 0; i < m_nImage; i++) {
 			int currentColor = Image[i];
 			m_nHistogramColor[currentColor]++; //当前灰度级+1
 	}
@@ -937,7 +907,10 @@ void  CImageProcessView::ShowHistogram(BYTE* Image) {
 //****************直方图均衡化****************//
 void CImageProcessView::HistogramEqualization() {
 
-	BYTE * GraySrcImage = RGB2Gray();  //灰度化 
+	BYTE * GraySrcImage = new BYTE[m_nImage];
+	BmpCommonOp bmpcommonop;
+	bmpcommonop.RGB2Gray(m_pImage, GraySrcImage, m_nWidth, m_nHeight,bih.biBitCount, m_nLineByte);
+
 
 	ShowHistogram(GraySrcImage);
 	double  accuColor[256]; //CDF
@@ -945,7 +918,8 @@ void CImageProcessView::HistogramEqualization() {
 	memset(accuColor, 0, sizeof(int) * 256); //初始化
 	accuColor[0] = m_dHistogramColor[0]; 
 	resultColor[0] = (int)((256 - 1)*accuColor[0] + 0.5);  
-	for (int i = 1; i < 256; i++) {
+	//计算累加概率CDF
+	for (unsigned int i = 1; i < 256; i++) {
 		accuColor[i] = accuColor[i - 1] + m_dHistogramColor[i];
 		resultColor[i] = (int)  ( (256 - 1)*accuColor[i] + 0.5) ;  //四舍五入
 	}
@@ -957,7 +931,7 @@ void CImageProcessView::HistogramEqualization() {
 	int resultHistogramColor[256]; //均衡化图像的灰度级统计
 	memset(resultHistogramColor, 0, sizeof(int)*256);
 
-	 
+	 //按照灰度级对应关系计算每个原图像素的目标像素值
 	for (int i = 0; i < m_nImage; i++) {
 		int current = GraySrcImage[i]; //当前点的像素  输入像素
 		OutputImage[i] =  resultColor[current]; //均衡化后的像素 输出像素
@@ -994,10 +968,10 @@ void CImageProcessView::HistogramEqualization() {
 }
 
 //******************模板滤波*****************//
-BYTE* CImageProcessView::TemplateFilter(BYTE* Image, int *mask, int m , int n) {
+void CImageProcessView::TemplateFilter(BYTE* Image, BYTE* DstImage, int *mask, int m , int n) {
 
-	BYTE * OutputImage = new BYTE[m_nImage];
-	memcpy(OutputImage, Image, m_nImage); //初始化 将原图数据拷贝到目标图像
+	//BYTE * OutputImage = new BYTE[m_nImage];
+	memcpy(DstImage, Image, m_nImage); //初始化 将原图数据拷贝到目标图像
 	int a = (m - 1) / 2; //m=2a+1
 	int b = (n - 1) / 2;  //n=2b+1
 
@@ -1023,7 +997,7 @@ BYTE* CImageProcessView::TemplateFilter(BYTE* Image, int *mask, int m , int n) {
 							int currentPosition = y*m_nLineByte + x;//当前处理像素点位置
 							int position = (y + j)*m_nLineByte + x + i; //周围点位置
 							sum += *(Image + position)*( *(mask + (i + a) + (j + b)*m ) );
-							*(OutputImage + currentPosition) = sum / weight_count;
+							*(DstImage + currentPosition) = sum / weight_count;
 						}//end 8bit bmp
 
 
@@ -1039,9 +1013,9 @@ BYTE* CImageProcessView::TemplateFilter(BYTE* Image, int *mask, int m , int n) {
 								sum_r += *(Image + position_r)*(*(mask + (i + a) + (j + b)*m) ); //R
 								sum_g += *(Image + position_g)*(*(mask + (i + a) + (j + b)*m ) ); //G
 								sum_b += *(Image + position_b)*(*(mask + (i + a) +( j + b)*m) ); //B
-								*(OutputImage + currentPosition) = sum_r / weight_count; //R
-								*(OutputImage + currentPosition + 1) = sum_g / weight_count; //G
-								*(OutputImage + currentPosition + 2) = sum_b / weight_count; //B
+								*(DstImage + currentPosition) = sum_r / weight_count; //R
+								*(DstImage + currentPosition + 1) = sum_g / weight_count; //G
+								*(DstImage + currentPosition + 2) = sum_b / weight_count; //B
 							}
 						}//end 24bit bmp
 
@@ -1059,10 +1033,8 @@ BYTE* CImageProcessView::TemplateFilter(BYTE* Image, int *mask, int m , int n) {
 	USES_CONVERSION;
 	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
 	BmpCommonOp bmpcommomop;
-	bmpcommomop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
+	bmpcommomop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
 
-	return OutputImage; //返回结果图像数据 以便其他函数的后续处理
-	
 
 }
 
@@ -1074,8 +1046,9 @@ void CImageProcessView::MeanFilter(int m, int n) {
 	int *meanMask = new int[m*n];
 	for (int i = 0; i < m*n; i++)
 		meanMask[i] = 1;
-
-	BYTE* OutputImage = TemplateFilter(m_pImage,meanMask, m, n);
+	//将模板传递模板滤波函数
+	BYTE * OutputImage = new BYTE[m_nImage];
+	TemplateFilter(m_pImage, OutputImage, meanMask, m, n);
 
 	//销毁资源
 	delete[] meanMask;
@@ -1171,9 +1144,10 @@ void CImageProcessView::MedianFilter(int m,int n) { //m x 宽  n y高
 //******************高斯滤波*****************//
 void CImageProcessView::GaussFilter(int m) { //这里仅使用3x3的模板 高斯核比较麻烦构造
 	
+	BYTE * OutputImage = new BYTE[m_nImage];
 	if (m == 3) {
 		int gaussMask[] = { 1, 2, 1 ,  2, 4, 2 ,  1, 2, 1 };//定义mask
-		BYTE* OutputImage = TemplateFilter(m_pImage, gaussMask, 3, 3);
+		TemplateFilter(m_pImage, OutputImage, gaussMask, 3, 3);
 		delete[] OutputImage;
 		numPicture = 2;
 		Invalidate();
@@ -1181,7 +1155,7 @@ void CImageProcessView::GaussFilter(int m) { //这里仅使用3x3的模板 高�
 	}
 	if (m == 5) {
 		int gaussMask[] = { 1, 4,7,4,1,4,16,26,16,4,7,26,41,26,7,4,16,26,16,4,1,4,7,4,1 };
-		BYTE* OutputImage = TemplateFilter(m_pImage, gaussMask, 3, 3);
+		TemplateFilter(m_pImage, OutputImage, gaussMask, 3, 3);
 		delete[] OutputImage;
 		numPicture = 2;
 		Invalidate();
@@ -1198,9 +1172,8 @@ void CImageProcessView::GaussFilter(int m) { //这里仅使用3x3的模板 高�
 void CImageProcessView::HighboostFilter(float karr[], int n) {
 
 
-	int length = n; //元素的个数
+	int length = n; //k值的个数 即可同时处理一组k值
 
-	CDC *cdc = GetDC();
 	USES_CONVERSION;
    
 	BmpCommonOp bmpcommonop;
@@ -1208,13 +1181,11 @@ void CImageProcessView::HighboostFilter(float karr[], int n) {
 
 	//1.高斯平滑
 	int gaussMask[] = { 1, 4,7,4,1,4,16,26,16,4,7,26,41,26,7,4,16,26,16,4,1,4,7,4,1 };
-	BYTE* OutputImage = TemplateFilter(m_pImage, gaussMask, 5, 5);
+	BYTE * OutputImage = new BYTE[m_nImage];
+	TemplateFilter(m_pImage, OutputImage, gaussMask, 5, 5);
+
 	//2.生成非锐化模板
 	int *mask = new int[m_nImage]; //mask中会出现负数 注意这一点
-
-	 
-
-
 
 	for (int j = 0; j < m_nHeight;j++) { 
 		for (int i = 0; i < m_nWidth; i++) {
@@ -1237,7 +1208,7 @@ void CImageProcessView::HighboostFilter(float karr[], int n) {
 	
 	//3.将模板加到原图像中
 	BYTE * DstImage = new BYTE[m_nImage];
-	int *TempImage = new int[m_nImage];
+	int *TempImage = new int[m_nImage]; //有负数 并且可能高于255
 
 	for (int s = 0; s < length; s++) {
 
@@ -1246,13 +1217,13 @@ void CImageProcessView::HighboostFilter(float karr[], int n) {
 
 				if (bih.biBitCount == 8) {
 					int postion = j*m_nLineByte + i;
-					TempImage[postion] = m_pImage[postion] + mask[postion] * karr[s] + 0.5; //四舍五入
+					TempImage[postion] = (int) (m_pImage[postion] + mask[postion] * karr[s] + 0.5); //四舍五入
 				}
 
 				if (bih.biBitCount == 24) {
 					int postion = j*m_nLineByte + i * 3;
 					for (int m = 0; m < 3; m++) {
-						TempImage[postion + m] = m_pImage[postion + m] + mask[postion + m] * karr[s] + 0.5; //四舍五入
+						TempImage[postion + m] =(int) (m_pImage[postion + m] + mask[postion + m] * karr[s] + 0.5); //四舍五入
 					}
 				}
 
@@ -1326,8 +1297,66 @@ void CImageProcessView::HighboostFilter(float karr[], int n) {
 } 
 
 
+//******************FFT*****************//
+void CImageProcessView::FFT() {
 
+	BmpCommonOp	bmpcommonop;
+	bmpcommonop.ImgFFT(m_pImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
 
+	boolFourierinit = bmpcommonop.m_bFourierinit; 
+	BYTE * FFTSpeImage = new BYTE[bmpcommonop.m_nImageSize]; //频谱图的宽高使用新宽高 2幂
+
+	if (bih.biBitCount == 8) {
+		bmpcommonop.GetAmplitudespectrum(bmpcommonop.m_FrequencyDomain, FFTSpeImage, bmpcommonop.m_nImageWidth, bmpcommonop.m_nImageHeight, bih.biBitCount, 0);
+	}
+
+	if (bih.biBitCount == 24) {
+		bmpcommonop.GetAmplitudespectrum(bmpcommonop.m_FrequencyDomainB, bmpcommonop.m_FrequencyDomainG, bmpcommonop.m_FrequencyDomainR, FFTSpeImage, bmpcommonop.m_nImageWidth, bmpcommonop.m_nImageHeight, bih.biBitCount,0);
+	}
+
+	//文件头和信息头的修改 
+	BITMAPFILEHEADER tempBfh = bfh; //临时文件头
+	BITMAPINFOHEADER tempBih = bih; //临时信息头
+
+	tempBfh.bfSize = bmpcommonop.m_nImageSize + tempBfh.bfOffBits;
+	tempBih.biWidth = bmpcommonop.m_nImageWidth;
+	tempBih.biHeight = bmpcommonop.m_nImageHeight;
+
+	//图像保存
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, tempBfh, tempBih, m_pPal, FFTSpeImage, bmpcommonop.m_nImageSize);
+
+	delete[] FFTSpeImage;
+	numPicture = 2;
+	m_pDrawText.Add(_T("FFT频谱图"));
+	Invalidate();
+}
+
+//******************IFFT*****************//
+void CImageProcessView::IFFT() {
+
+	//根原图相同规格 无需修改bmp头文件信息
+	BYTE * IFFTSpeImage = new BYTE[m_nImage]; //恢复图像 频谱图
+	BmpCommonOp	bmpcommonop;
+	bmpcommonop.ImgFFT(m_pImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	bmpcommonop.ImgIFFT(IFFTSpeImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+
+	//图像保存
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, IFFTSpeImage, m_nImage);
+
+	delete[] IFFTSpeImage;
+	numPicture = 2;
+	Invalidate();
+
+}
+
+//******************理想低通滤波*****************//
+void CImageProcessView::ILPF() {
+
+}
 
  
 //**************绘制图像****************//
@@ -1372,6 +1401,7 @@ void CImageProcessView::OnFileOpen()
 
 		BmpNameLin = _T("picture.bmp");   //临时变量名  
 		numPicture = 1;                  //显示一张图片 
+		boolFourierinit = 0;
 		EntName = dlg.GetFileExt();      //获取文件扩展名
 		EntName.MakeLower();             //将文件扩展名转换为一个小写字符
 		m_pDrawText.RemoveAll();//清除
@@ -1700,4 +1730,73 @@ void CImageProcessView::OnUnsharpMasking()
 	m_pDrawText.Add(_T("原图"));
 	float karr[] = { 1.0 };
 	HighboostFilter(karr, 1);//k=1
+}
+
+
+
+
+
+
+//******************FFT*****************//
+void CImageProcessView::OnFft()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行FFT!"));
+		return;
+	}
+
+
+	FFT();
+	
+
+}
+
+
+void CImageProcessView::OnTest()
+{
+	// TODO: 在此添加命令处理程序代码
+	
+
+	 
+}
+
+//******************IFFT*****************//
+void CImageProcessView::OnIfft()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行IFFT!"));
+		return;
+	}
+	if (!boolFourierinit) {
+		AfxMessageBox(_T("FFT之后才能进行IFFT!"));
+		return;
+	}
+ 
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("IFFT 图"));
+
+	IFFT();
+
+
+
+}
+
+
+//******************理想低通滤波*****************//
+void CImageProcessView::OnLpf()
+{
+	// TODO: 在此添加命令处理程序代码
+
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行理想低通滤波!"));
+		return;
+	}
+
+
 }

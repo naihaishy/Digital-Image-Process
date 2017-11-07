@@ -61,8 +61,7 @@ public:
 
 	int m_nHistogramColor[256];  //统计值
 	double m_dHistogramColor[256]; //概率密度 PDF
-
-
+ 
 	
 
 
@@ -80,9 +79,13 @@ public:
 	void MeanFilter(int m, int n);//均值滤波
 	void MedianFilter(int m, int n);//中值滤波
 	void GaussFilter(int m);//高斯滤波
-	BYTE* TemplateFilter(BYTE* Image, int *mask, int m , int n ); //模板滤波
+	void TemplateFilter(BYTE* Image, BYTE* DstImage, int *mask, int m , int n ); //模板滤波
 	void HighboostFilter(float karr[], int n);//高提升滤波
-	BYTE* RGB2Gray();//灰度变换
+	void FFT();//FFT
+	void IFFT();//IFFT
+	void ILPF();//理想低通滤波
+
+ 
 
 
 	virtual ~CImageProcessView();
@@ -112,6 +115,10 @@ public:
 	afx_msg void OnPepperSalt();
 	afx_msg void OnHighboostFilter();
 	afx_msg void OnUnsharpMasking();
+	afx_msg void OnLpf();
+	afx_msg void OnFft();
+	afx_msg void OnTest();
+	afx_msg void OnIfft();
 };
 
 #ifndef _DEBUG  // ImageProcessView.cpp 中的调试版本
