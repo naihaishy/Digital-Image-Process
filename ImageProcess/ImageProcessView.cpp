@@ -21,7 +21,7 @@
 #include "HistogramDlg.h"
 #include "FilterDlg.h"
 #include "HighBoostFilterDlg.h"
-
+#include "FrequencyDlg.h"
 
 
 
@@ -53,10 +53,12 @@ BEGIN_MESSAGE_MAP(CImageProcessView, CScrollView)
 	ON_COMMAND(ID_PEPPER_SALT, &CImageProcessView::OnPepperSalt)
 	ON_COMMAND(ID_HIGHBOOST_FILTER, &CImageProcessView::OnHighboostFilter)
 	ON_COMMAND(ID_UNSHARP_MASKING, &CImageProcessView::OnUnsharpMasking)
-	ON_COMMAND(ID_LPF, &CImageProcessView::OnLpf)
 	ON_COMMAND(ID_FFT, &CImageProcessView::OnFft)
 	ON_COMMAND(ID_TEST, &CImageProcessView::OnTest)
 	ON_COMMAND(ID_IFFT, &CImageProcessView::OnIfft)
+	ON_COMMAND(ID_ILPF, &CImageProcessView::OnIlpf)
+	ON_COMMAND(ID_BLPF, &CImageProcessView::OnBlpf)
+	ON_COMMAND(ID_GLPF, &CImageProcessView::OnGlpf)
 END_MESSAGE_MAP()
 
 // CImageProcessView 构造/析构
@@ -1297,6 +1299,12 @@ void CImageProcessView::HighboostFilter(float karr[], int n) {
 } 
 
 
+
+
+/*----------------------------------------------------------------------
+							       频域处理
+------------------------------------------------------------------------*/
+
 //******************FFT*****************//
 void CImageProcessView::FFT() {
 
@@ -1354,7 +1362,7 @@ void CImageProcessView::IFFT() {
 }
 
 //******************理想低通滤波*****************//
-void CImageProcessView::ILPF() {
+void CImageProcessView::ILPF(int nFreq) {
 
 
 	BmpCommonOp	bmpcommonop;
@@ -1362,8 +1370,7 @@ void CImageProcessView::ILPF() {
 	bmpcommonop.ImgFFT(m_pImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
 	BYTE * DstImage = new BYTE[m_nImage]; //恢复图像
 	//滤波
-	bmpcommonop.ImgIdealLowPassFilter(DstImage, 40, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
-
+	bmpcommonop.ImgIdealLowPassFilter(DstImage, nFreq, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
 
 	//图像保存
 	USES_CONVERSION;
@@ -1377,7 +1384,64 @@ void CImageProcessView::ILPF() {
 
 }
 
- 
+
+//******************布特沃斯低通滤波*****************//
+void CImageProcessView::BLPF(int nFreq, int nOrder) {
+
+	BmpCommonOp	bmpcommonop;
+	//FFT
+	bmpcommonop.ImgFFT(m_pImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	BYTE * DstImage = new BYTE[m_nImage]; //恢复图像
+	 //滤波
+	bmpcommonop.ImgButterworthLowPassFilter(DstImage, nFreq, nOrder, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+
+	//图像保存
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
+
+	delete[] DstImage;
+	numPicture = 2;
+	Invalidate();
+}
+
+//******************高斯低通滤波*****************//
+void CImageProcessView::GLPF(int nFreq, int a) {
+	BmpCommonOp	bmpcommonop;
+	//FFT
+	bmpcommonop.ImgFFT(m_pImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	BYTE * DstImage = new BYTE[m_nImage]; //恢复图像
+	 //滤波
+	bmpcommonop.ImgGaussianLowPassFilter(DstImage, nFreq, a, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+
+	//图像保存
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
+
+	delete[] DstImage;
+	numPicture = 2;
+	Invalidate();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*----------------------------------------------------------------------
+								消息处理
+------------------------------------------------------------------------*/
 //**************绘制图像****************//
 void CImageProcessView::OnDraw(CDC* pDC)
 {
@@ -1752,10 +1816,6 @@ void CImageProcessView::OnUnsharpMasking()
 }
 
 
-
-
-
-
 //******************FFT*****************//
 void CImageProcessView::OnFft()
 {
@@ -1807,20 +1867,79 @@ void CImageProcessView::OnIfft()
 
 
 //******************理想低通滤波*****************//
-void CImageProcessView::OnLpf()
+void CImageProcessView::OnIlpf()
 {
 	// TODO: 在此添加命令处理程序代码
-
 	if (numPicture == 0)
 	{
 		AfxMessageBox(_T("载入图片后才能进行理想低通滤波!"));
 		return;
 	}
-
 	m_pDrawText.RemoveAll();//清除
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("理想低通滤波效果图"));
+	CFrequencyDlg dlg;
+	dlg.m_sWindowTitle = _T("理想低通滤波器设置");
+	dlg.m_sHelpTitle = _T("请输入截止频率");
+ 
+	if (dlg.DoModal() == IDOK) {
+		if (dlg.m_nCutoffFre<0 ) {
+			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
+			return;
+		}
+		ILPF(dlg.m_nCutoffFre);
+	}
+}
 
-	ILPF();
 
+
+
+//******************布特沃斯低通滤波*****************//
+void CImageProcessView::OnBlpf()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行布特沃斯低通滤波!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("布特沃斯低通滤波效果图"));
+	CFrequencyDlg dlg;
+	dlg.m_sWindowTitle = _T("布特沃斯低通滤波器设置");
+	dlg.m_sHelpTitle = _T("请输入截止频率");
+
+	if (dlg.DoModal() == IDOK) {
+		if (dlg.m_nCutoffFre<0) {
+			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
+			return;
+		}
+		BLPF(dlg.m_nCutoffFre, 2 );
+	}
+}
+
+//******************高斯低通滤波*****************//
+void CImageProcessView::OnGlpf()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行高斯低通滤波!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("高斯低通滤波效果图"));
+	CFrequencyDlg dlg;
+	dlg.m_sWindowTitle = _T("高斯低通滤波器设置");
+	dlg.m_sHelpTitle = _T("请输入截止频率");
+
+	if (dlg.DoModal() == IDOK) {
+		if (dlg.m_nCutoffFre<0) {
+			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
+			return;
+		}
+		GLPF(dlg.m_nCutoffFre, dlg.m_nCutoffFre);
+	}
 }

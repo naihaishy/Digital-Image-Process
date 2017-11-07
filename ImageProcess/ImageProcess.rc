@@ -167,8 +167,13 @@ BEGIN
     BEGIN
         MENUITEM "FFT",                         ID_FFT
         MENUITEM "IFFT",                        ID_IFFT
-        MENUITEM "LPF",                         ID_LPF
         MENUITEM "DFT",                         ID_DFT
+        POPUP "低通滤波器"
+        BEGIN
+            MENUITEM "理想",                          ID_ILPF
+            MENUITEM "布特沃斯",                        ID_BLPF
+            MENUITEM "高斯",                          ID_GLPF
+        END
     END
     POPUP "测试"
     BEGIN
@@ -311,6 +316,17 @@ BEGIN
     LTEXT           "多个K值请用英语半角逗号隔开",IDC_STATIC,72,75,90,8
 END
 
+IDD_DIALOG_FREQUENCY DIALOGEX 0, 0, 309, 176
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "频域滤波"
+FONT 10, "Microsoft YaHei UI", 400, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "确定",IDOK,198,155,50,14
+    PUSHBUTTON      "取消",IDCANCEL,252,155,50,14
+    LTEXT           "滤波器参数设置",IDC_STATIC_FREDLG_TITLE,118,26,68,8
+    EDITTEXT        IDC_EDIT_FREQUENCY_CUT,102,53,77,14,ES_AUTOHSCROLL
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -422,6 +438,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 169
     END
+
+    IDD_DIALOG_FREQUENCY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 169
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -467,6 +491,11 @@ BEGIN
 END
 
 IDD_DIALOG_HIGHBOOST_FILTER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG_FREQUENCY AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

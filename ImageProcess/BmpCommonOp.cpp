@@ -122,7 +122,6 @@ BYTE* BmpCommonOp::AddPepperSaltNoise(BYTE * Image, double SNR, int ImageSize, i
 
 
 
-
 /*************************************************************************
 *
 * Function:  RGB2Gray ()
@@ -157,6 +156,7 @@ void BmpCommonOp::RGB2Gray(BYTE*Image, BYTE* DstImage, int ImageWidth, int Image
 
 
 }
+
 
 
 /*************************************************************************
@@ -251,7 +251,6 @@ void BmpCommonOp::ShowBmpImage(CDC *cdc, BYTE* Image,  int Position_x, int Posit
 
 
 
-
 /*************************************************************************
 *
 * Function:  WriteTextOnScreen ()
@@ -281,10 +280,6 @@ void BmpCommonOp::WriteTextOnScreen(CDC *pDC,int Position_x, int Position_y) {
 	dcBmp.TextOut(Position_x, Position_y, _T("sss"), 3);
 	dcBmp.SelectObject(pbmpOld);           //恢复临时DC的位图
 }
-
-
-
-
 
 
 
@@ -336,11 +331,6 @@ void BmpCommonOp::ImgFourierInit(int ImageWidth, int ImageHeight, int BitCount, 
 	m_FrequencyDomainR = new complex<double>[m_nImageSizePer];
 
 }
-
-
-
-
-
 
 
 
@@ -427,6 +417,8 @@ void BmpCommonOp::ImgFFT(BYTE* Image, int ImageWidth, int ImageHeight, int BitCo
 
 }
 
+
+
 /*************************************************************************
 *
 * Function:  ImgIFFT ()
@@ -486,6 +478,7 @@ void BmpCommonOp::ImgIFFT(BYTE* DstImage, int ImageWidth, int ImageHeight, int B
 }
 
 
+
 /*************************************************************************
 *
 * Function:  GetAmplitudespectrum ()
@@ -530,6 +523,7 @@ void BmpCommonOp::GetAmplitudespectrum(complex<double>  * src, BYTE * DstImage, 
 	}
 
 }
+
 
 
 /*************************************************************************
@@ -604,11 +598,6 @@ void BmpCommonOp::GetAmplitudespectrum(complex<double>  * srcB, complex<double> 
 
 
 
-
-
-
-
-
 /*************************************************************************
 *
 * Function:   ImgFreTemplateFilter()
@@ -675,8 +664,7 @@ void BmpCommonOp::ImgFreTemplateFilter(BYTE* DstImage, double *filter, int Image
 ************************************************************************/
 void BmpCommonOp::ImgIdealLowPassFilter(BYTE* DstImage, int nFreq, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
 
-	//生成滤波函数 or 滤波器
-
+	//生成滤波函数
 	double *Filter = new double[m_nImageWidth*m_nImageHeight];
 	int position;
 	int distance;
@@ -692,11 +680,69 @@ void BmpCommonOp::ImgIdealLowPassFilter(BYTE* DstImage, int nFreq, int ImageWidt
 		}
 	}
 
-
+	//将滤波函数传递给模板滤波器
 	ImgFreTemplateFilter(DstImage, Filter, ImageWidth, ImageHeight, BitCount, LineByte);
-
-	int a = 12;
-
 	delete[] Filter;
+}
 
+
+
+/*************************************************************************
+*
+* Function:   ImgButterworthLowPassFilter()
+*
+* Description: 布特沃斯低通滤波
+*
+* Input: nOrder  n阶
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::ImgButterworthLowPassFilter(BYTE* DstImage, int nFreq,int nOrder, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+	//生成滤波函数
+	double *Filter = new double[m_nImageWidth*m_nImageHeight];
+	int position;
+	double distance;
+	for (int j = 0; j < m_nImageHeight; j++) {
+		for (int i = 0; i < m_nImageWidth; i++) {
+			position = j*m_nImageWidth + i;
+			distance = sqrt((i - m_nImageWidth / 2)*(i - m_nImageWidth / 2) + (j - m_nImageHeight / 2)*(j - m_nImageHeight / 2)) ;
+			Filter[position] = 1/(1+ pow(distance / nFreq, 2* nOrder) );
+		}
+	}
+
+	//将滤波函数传递给模板滤波器
+	ImgFreTemplateFilter(DstImage, Filter, ImageWidth, ImageHeight, BitCount, LineByte);
+	delete[] Filter;
+}
+
+
+
+/*************************************************************************
+*
+* Function:   ImgGaussianLowPassFilter()
+*
+* Description: 高斯低通滤波
+*
+* Input:
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::ImgGaussianLowPassFilter(BYTE* DstImage, int nFreq, int a, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+	//生成滤波函数
+	double *Filter = new double[m_nImageWidth*m_nImageHeight];
+	int position;
+	double distance;
+	for (int j = 0; j < m_nImageHeight; j++) {
+		for (int i = 0; i < m_nImageWidth; i++) {
+			position = j*m_nImageWidth + i;
+			distance = sqrt((i - m_nImageWidth / 2)*(i - m_nImageWidth / 2) + (j - m_nImageHeight / 2)*(j - m_nImageHeight / 2)) + 0.5;
+			Filter[position] = exp(  (-1)*pow(distance,2)  / (2*pow(a,2))   );
+		}
+	}
+
+	//将滤波函数传递给模板滤波器
+	ImgFreTemplateFilter(DstImage, Filter, ImageWidth, ImageHeight, BitCount, LineByte);
+	delete[] Filter;
 }

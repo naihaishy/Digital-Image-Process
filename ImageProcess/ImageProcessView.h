@@ -83,7 +83,9 @@ public:
 	void HighboostFilter(float karr[], int n);//高提升滤波
 	void FFT();//FFT
 	void IFFT();//IFFT
-	void ILPF();//理想低通滤波
+	void ILPF(int nFreq);//理想低通滤波
+	void BLPF(int nFreq, int nOrder);//布特沃斯低通滤波
+	void GLPF(int nFreq, int a);//高斯低通滤波
 
  
 
@@ -115,10 +117,12 @@ public:
 	afx_msg void OnPepperSalt();
 	afx_msg void OnHighboostFilter();
 	afx_msg void OnUnsharpMasking();
-	afx_msg void OnLpf();
+	afx_msg void OnIlpf();
 	afx_msg void OnFft();
 	afx_msg void OnTest();
 	afx_msg void OnIfft();
+	afx_msg void OnBlpf();
+	afx_msg void OnGlpf();
 };
 
 #ifndef _DEBUG  // ImageProcessView.cpp 中的调试版本

@@ -13,6 +13,7 @@
 #define IDD_DIALOG_HISTOGRAM            323
 #define IDD_DIALOG_FILTER               325
 #define IDD_DIALOG_HIGHBOOST_FILTER     328
+#define IDD_DIALOG_FREQUENCY            330
 #define IDC_EDIT_CHARACTER              1000
 #define IDC_EDIT_CHARACTERX             1001
 #define IDC_EDIT_CHARACTERY             1002
@@ -27,6 +28,8 @@
 #define IDC_STATIC_HISTOGRAM            1020
 #define IDC_EDIT_LINEAR_M               1026
 #define IDC_EDIT_HIGHBOOST_K            1028
+#define IDC_EDIT_FREQUENCY_CUT          1029
+#define IDC_STATIC_FREDLG_TITLE         1030
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_32773                        32773
@@ -73,14 +76,22 @@
 #define ID_TEST                         32815
 #define ID_32816                        32816
 #define ID_IFFT                         32817
+#define ID_ILPF                         32818
+#define ID_32819                        32819
+#define ID_32820                        32820
+#define ID_32821                        32821
+#define ID_32822                        32822
+#define ID_BWLPF                        32823
+#define ID_GLPF                         32824
+#define ID_BLPF                         32825
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        330
-#define _APS_NEXT_COMMAND_VALUE         32818
-#define _APS_NEXT_CONTROL_VALUE         1029
+#define _APS_NEXT_RESOURCE_VALUE        332
+#define _APS_NEXT_COMMAND_VALUE         32826
+#define _APS_NEXT_CONTROL_VALUE         1031
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

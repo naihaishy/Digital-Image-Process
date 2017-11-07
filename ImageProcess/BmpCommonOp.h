@@ -6,6 +6,7 @@ Description:BMP文件的主要操作
 **************************************************/
 #include "Fourier.h"
 #include <complex>
+#include <math.h>
 using namespace std;
 
  
@@ -54,6 +55,7 @@ public:
 	void GetAmplitudespectrum(complex<double>  * srcB, complex<double>  * srcG, complex<double>  * srcR, BYTE * DstImage, int width, int height, int BitCount, int isReverse); //24bit
 	void ImgFreTemplateFilter(BYTE* DstImage, double *filter, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//频谱模板滤波
 	void ImgIdealLowPassFilter(BYTE* DstImage, int nFreq, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//理想低通滤波
- 
+	void ImgButterworthLowPassFilter(BYTE* DstImage, int nOrder,  int nFreq, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//布特沃斯低通滤波
+	void ImgGaussianLowPassFilter(BYTE* DstImage, int nFreq, int a, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//高斯低通滤波
 };
 
