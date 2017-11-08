@@ -167,13 +167,22 @@ BEGIN
     BEGIN
         MENUITEM "FFT",                         ID_FFT
         MENUITEM "IFFT",                        ID_IFFT
-        MENUITEM "DFT",                         ID_DFT
         POPUP "低通滤波器"
         BEGIN
             MENUITEM "理想",                          ID_ILPF
-            MENUITEM "布特沃斯",                        ID_BLPF
             MENUITEM "高斯",                          ID_GLPF
+            MENUITEM "布特沃斯",                        ID_BLPF
         END
+        POPUP "高通滤波器"
+        BEGIN
+            MENUITEM "理想",                          ID_IHPF
+            MENUITEM "高斯",                          ID_GHPF
+            MENUITEM "布特沃斯",                        ID_BHPF
+        END
+        MENUITEM "同态滤波",                        ID_HOMOFILTER
+        MENUITEM "拉普拉斯",                        ID_FRQUENCY_LAPLACE
+        MENUITEM "高提升滤波",                       ID_FRQUENCY_HIGHBOOST
+        MENUITEM "高频强调滤波",                      ID_HIGH_FREQUENCY_EMPHASIS
     END
     POPUP "测试"
     BEGIN
@@ -323,8 +332,15 @@ FONT 10, "Microsoft YaHei UI", 400, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "确定",IDOK,198,155,50,14
     PUSHBUTTON      "取消",IDCANCEL,252,155,50,14
-    LTEXT           "滤波器参数设置",IDC_STATIC_FREDLG_TITLE,118,26,68,8
+    CTEXT           "滤波器参数设置",IDC_STATIC_FREDLG_TITLE,85,24,126,8
     EDITTEXT        IDC_EDIT_FREQUENCY_CUT,102,53,77,14,ES_AUTOHSCROLL
+    LTEXT           "截止频率",IDC_STATIC,56,56,27,8
+    LTEXT           "GammaH",IDC_STATIC_GAMMAH,56,83,30,8
+    LTEXT           "GammaL",IDC_STATIC_GAMMAL,56,103,29,8
+    EDITTEXT        IDC_EDIT_GAMMAH,102,81,76,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_GAMMAL,102,101,76,14,ES_AUTOHSCROLL
+    LTEXT           "C",IDC_STATIC_HOMOC,63,123,8,8
+    EDITTEXT        IDC_EDIT_HOMOC,102,120,76,14,ES_AUTOHSCROLL
 END
 
 
@@ -676,6 +692,21 @@ END
 STRINGTABLE
 BEGIN
     ID_PEPPER_SALT          "向图像中加入椒盐噪声"
+END
+
+STRINGTABLE
+BEGIN
+    ID_BHPF                 "布特沃斯高通滤波进行锐化图像"
+    ID_FRQUENCY_LAPLACE     "频率域的拉普拉斯算子进行频域锐化图像"
+    ID_FRQUENCY_HIGHBOOST   "高提升滤波"
+    ID_HIGH_FREQUENCY_EMPHASIS "高频强调滤波"
+    ID_HOMOFILTER           "同态滤波"
+END
+
+STRINGTABLE
+BEGIN
+    ID_IHPF                 "理想高通滤波进行锐化图像"
+    ID_GHPF                 "高斯高通滤波进行锐化图像"
 END
 
 #endif    // 中文(简体，中国) resources

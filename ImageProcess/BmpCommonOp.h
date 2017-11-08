@@ -54,8 +54,9 @@ public:
 	void GetAmplitudespectrum(complex<double>  * src, BYTE * DstImage, int width, int height, int BitCount, int ShitFlag); //获取图像的频谱图 8bit
 	void GetAmplitudespectrum(complex<double>  * srcB, complex<double>  * srcG, complex<double>  * srcR, BYTE * DstImage, int width, int height, int BitCount, int isReverse); //24bit
 	void ImgFreTemplateFilter(BYTE* DstImage, double *filter, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//频谱模板滤波
-	void ImgIdealLowPassFilter(BYTE* DstImage, int nFreq, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//理想低通滤波
-	void ImgButterworthLowPassFilter(BYTE* DstImage, int nOrder,  int nFreq, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//布特沃斯低通滤波
-	void ImgGaussianLowPassFilter(BYTE* DstImage, int nFreq, int a, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//高斯低通滤波
+	void ImgIdealPassFilter(BYTE* DstImage, int nFreq, int HLFlag, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//理想滤波
+	void ImgButterworthPassFilter(BYTE* DstImage, int nOrder,  int nFreq, int HLFlag, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//布特沃斯滤波
+	void ImgGaussianPassFilter(BYTE* DstImage, int Sigma, int HLFlag, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//高斯滤波
+	void ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, double c, double GammaH, double GammaL, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//同态滤波
 };
 

@@ -27,7 +27,15 @@ public:
 	int m_nCutoffFre;// 截止频率
 	CString m_sWindowTitle;
 	CString m_sHelpTitle;
+	double m_dGammaH; //同态滤波GammaH
+	double m_dGammaL; //同态滤波GammaL
+	double m_dHomoC;
+	int showGammaControls; //是否显示同态滤波的Gamma
+
 
 	//成员函数
 	virtual BOOL OnInitDialog();
+	
+
+	
 };

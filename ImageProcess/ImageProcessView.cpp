@@ -59,6 +59,13 @@ BEGIN_MESSAGE_MAP(CImageProcessView, CScrollView)
 	ON_COMMAND(ID_ILPF, &CImageProcessView::OnIlpf)
 	ON_COMMAND(ID_BLPF, &CImageProcessView::OnBlpf)
 	ON_COMMAND(ID_GLPF, &CImageProcessView::OnGlpf)
+	ON_COMMAND(ID_BHPF, &CImageProcessView::OnBhpf)
+	ON_COMMAND(ID_GHPF, &CImageProcessView::OnGhpf)
+	ON_COMMAND(ID_IHPF, &CImageProcessView::OnIhpf)
+	ON_COMMAND(ID_FRQUENCY_LAPLACE, &CImageProcessView::OnFrquencyLaplace)
+	ON_COMMAND(ID_FRQUENCY_HIGHBOOST, &CImageProcessView::OnFrquencyHighboost)
+	ON_COMMAND(ID_HIGH_FREQUENCY_EMPHASIS, &CImageProcessView::OnHighFrequencyEmphasis)
+	ON_COMMAND(ID_HOMOFILTER, &CImageProcessView::OnHomofilter)
 END_MESSAGE_MAP()
 
 // CImageProcessView 构造/析构
@@ -909,12 +916,12 @@ void  CImageProcessView::ShowHistogram(BYTE* Image) {
 //****************直方图均衡化****************//
 void CImageProcessView::HistogramEqualization() {
 
-	BYTE * GraySrcImage = new BYTE[m_nImage];
+	//BYTE * GraySrcImage = new BYTE[m_nImage];
 	BmpCommonOp bmpcommonop;
-	bmpcommonop.RGB2Gray(m_pImage, GraySrcImage, m_nWidth, m_nHeight,bih.biBitCount, m_nLineByte);
+	//bmpcommonop.RGB2Gray(m_pImage, GraySrcImage, m_nWidth, m_nHeight,bih.biBitCount, m_nLineByte);
 
 
-	ShowHistogram(GraySrcImage);
+	ShowHistogram(m_pImage);
 	double  accuColor[256]; //CDF
 	int resultColor[256]; //s=T(r)中的s 输出像素
 	memset(accuColor, 0, sizeof(int) * 256); //初始化
@@ -935,7 +942,7 @@ void CImageProcessView::HistogramEqualization() {
 
 	 //按照灰度级对应关系计算每个原图像素的目标像素值
 	for (int i = 0; i < m_nImage; i++) {
-		int current = GraySrcImage[i]; //当前点的像素  输入像素
+		int current = m_pImage[i]; //当前点的像素  输入像素
 		OutputImage[i] =  resultColor[current]; //均衡化后的像素 输出像素
 		resultHistogramColor[resultColor[current]] ++ ; //当前灰度级+1 
 	}
@@ -956,7 +963,7 @@ void CImageProcessView::HistogramEqualization() {
 
 	//显示原图直方图
 	CHistogramDlg dlg_src;
-	ShowHistogram(GraySrcImage); //统计灰度
+	ShowHistogram(m_pImage); //统计灰度
 	dlg_src.HistogramColor = m_nHistogramColor;  //将统计结果传递给对话框
 	dlg_src.m_sWindowTitle = _T("原图直方图");
 	dlg_src.DoModal();
@@ -1361,16 +1368,35 @@ void CImageProcessView::IFFT() {
 
 }
 
-//******************理想低通滤波*****************//
-void CImageProcessView::ILPF(int nFreq) {
 
+
+//******************频域滤波*****************//
+void CImageProcessView::FrequencyDomainFiltering(CString PFFlag, int nFreq, int nOrder, int Sigma) {
 
 	BmpCommonOp	bmpcommonop;
-	//FFT
-	bmpcommonop.ImgFFT(m_pImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	
+	bmpcommonop.ImgFFT(m_pImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte); //FFT
 	BYTE * DstImage = new BYTE[m_nImage]; //恢复图像
-	//滤波
-	bmpcommonop.ImgIdealLowPassFilter(DstImage, nFreq, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+								 
+	
+	if (PFFlag==_T("ILPF")) {//理想低通滤波
+		bmpcommonop.ImgIdealPassFilter(DstImage, nFreq, 0,m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	}
+	if (PFFlag == _T("BLPF")) {//布特沃斯低通滤波
+		bmpcommonop.ImgButterworthPassFilter(DstImage, nFreq, nOrder, 0, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	}
+	if (PFFlag == _T("GLPF")) {//高斯低通滤波
+		bmpcommonop.ImgGaussianPassFilter(DstImage, Sigma, 0, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	}
+	if (PFFlag == _T("IHPF")) {//理想高通滤波
+		bmpcommonop.ImgIdealPassFilter(DstImage, nFreq, 1, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	}
+	if (PFFlag == _T("BHPF")) {//布特沃斯高通滤波
+		bmpcommonop.ImgButterworthPassFilter(DstImage, nFreq, nOrder, 1, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	}
+	if (PFFlag == _T("GHPF")) {//高斯高通滤波
+		bmpcommonop.ImgGaussianPassFilter(DstImage, Sigma, 1, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	}
 
 	//图像保存
 	USES_CONVERSION;
@@ -1383,17 +1409,17 @@ void CImageProcessView::ILPF(int nFreq) {
 
 
 }
+ 
 
 
-//******************布特沃斯低通滤波*****************//
-void CImageProcessView::BLPF(int nFreq, int nOrder) {
+//******************同态滤波*****************//
+void CImageProcessView::HomomorphicFilter(int Sigma, double c, double GammaH, double GammaL) {
+
+	BYTE * DstImage = new BYTE[m_nImage]; //恢复图像
 
 	BmpCommonOp	bmpcommonop;
-	//FFT
-	bmpcommonop.ImgFFT(m_pImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
-	BYTE * DstImage = new BYTE[m_nImage]; //恢复图像
-	 //滤波
-	bmpcommonop.ImgButterworthLowPassFilter(DstImage, nFreq, nOrder, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+ 
+	bmpcommonop.ImgHomomorphicFilter(m_pImage, DstImage, Sigma, c, GammaH,  GammaL, m_nWidth,  m_nHeight, bih.biBitCount, m_nLineByte);
 
 	//图像保存
 	USES_CONVERSION;
@@ -1404,37 +1430,6 @@ void CImageProcessView::BLPF(int nFreq, int nOrder) {
 	numPicture = 2;
 	Invalidate();
 }
-
-//******************高斯低通滤波*****************//
-void CImageProcessView::GLPF(int nFreq, int a) {
-	BmpCommonOp	bmpcommonop;
-	//FFT
-	bmpcommonop.ImgFFT(m_pImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
-	BYTE * DstImage = new BYTE[m_nImage]; //恢复图像
-	 //滤波
-	bmpcommonop.ImgGaussianLowPassFilter(DstImage, nFreq, a, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
-
-	//图像保存
-	USES_CONVERSION;
-	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
-	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
-
-	delete[] DstImage;
-	numPicture = 2;
-	Invalidate();
-}
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1442,6 +1437,7 @@ void CImageProcessView::GLPF(int nFreq, int a) {
 /*----------------------------------------------------------------------
 								消息处理
 ------------------------------------------------------------------------*/
+
 //**************绘制图像****************//
 void CImageProcessView::OnDraw(CDC* pDC)
 {
@@ -1555,6 +1551,9 @@ void CImageProcessView::OnWriteCharcter()
 		AfxMessageBox(_T("载入图片后才能写入字符!"));
 		return;
 	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("写入字符效果图"));
 	//定义写入字符输入对话框
 	CWriteCharDlg dlg;
 	//显示对话框
@@ -1596,7 +1595,9 @@ void CImageProcessView::OnBilinearInterpolation()
 		AfxMessageBox(_T("载入图片后才能执行双线性内插!"));
 		return;
 	}
-
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("双线性内插效果图"));
 	//显示对话框
 	CInterpolationDlg dlg;
 	
@@ -1626,7 +1627,9 @@ void CImageProcessView::OnRotate()
 		AfxMessageBox(_T("载入图片后才能执行图片旋转!"));
 		return;
 	}
-
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("图片旋转效果图"));
 	//显示对话框
 	CRotateDlg dlg;
 	if (dlg.DoModal() == IDOK)
@@ -1649,7 +1652,9 @@ void CImageProcessView::OnShowHistogram()
 		AfxMessageBox(_T("载入图片后才能显示直方图!"));
 		return;
 	}
-
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+ 
 	//显示对话框
 	CHistogramDlg dlg_src;
 	ShowHistogram(m_pImage); //统计灰度
@@ -1674,7 +1679,9 @@ void CImageProcessView::OnHistogramEqualization()
 		AfxMessageBox(_T("载入图片后才能进行直方图均衡化处理!"));
 		return;
 	}
-
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("直方图均衡化效果图"));
 	HistogramEqualization(); 
 
 }
@@ -1691,7 +1698,9 @@ void CImageProcessView::OnMeanFilter()
 		AfxMessageBox(_T("载入图片后才能进行均值滤波!"));
 		return;
 	}
-
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("均值滤波效果图"));
 	CFilterDlg dlg;
 	if (dlg.DoModal() ==IDOK) {
 		if (dlg.m_nLinearM <= 0 || dlg.m_nLinearN <= 0  || dlg.m_nLinearM %2==0 || dlg.m_nLinearN%2==0) {
@@ -1714,7 +1723,9 @@ void CImageProcessView::OnMedianFilter()
 		AfxMessageBox(_T("载入图片后才能进行中值滤波!"));
 		return;
 	}
-
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("中值滤波效果图"));
 	CFilterDlg dlg;
 	if (dlg.DoModal() == IDOK) {
 		if (dlg.m_nLinearM <= 0 || dlg.m_nLinearN <= 0 || dlg.m_nLinearM % 2 == 0 || dlg.m_nLinearN % 2 == 0) {
@@ -1740,7 +1751,9 @@ void CImageProcessView::OnGaussFilter()
 		AfxMessageBox(_T("载入图片后才能进行高斯滤波!"));
 		return;
 	}
-
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("高斯滤波效果图"));
 	CFilterDlg dlg;
 	if (dlg.DoModal() == IDOK) {
 		if (dlg.m_nLinearM <= 0 || dlg.m_nLinearN <= 0 || dlg.m_nLinearM % 2 == 0 || dlg.m_nLinearN % 2 == 0) {
@@ -1764,7 +1777,9 @@ void CImageProcessView::OnPepperSalt()
 		return;
 	}
 	AfxMessageBox(_T("生成的图像请保存，并用于测试对比中值滤波的效果!"));
-
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("椒盐噪声效果图"));
 	BmpCommonOp bmpcommonop;
 	BYTE * OutputImage =  bmpcommonop.AddPepperSaltNoise(m_pImage, 0.995, m_nImage, m_nWidth, m_nHeight, bih.biBitCount,  m_nLineByte);
 	USES_CONVERSION;
@@ -1826,7 +1841,9 @@ void CImageProcessView::OnFft()
 		return;
 	}
 
-
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("FFT频谱图"));
 	FFT();
 	
 
@@ -1881,17 +1898,15 @@ void CImageProcessView::OnIlpf()
 	CFrequencyDlg dlg;
 	dlg.m_sWindowTitle = _T("理想低通滤波器设置");
 	dlg.m_sHelpTitle = _T("请输入截止频率");
- 
+	
 	if (dlg.DoModal() == IDOK) {
 		if (dlg.m_nCutoffFre<0 ) {
 			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
 			return;
 		}
-		ILPF(dlg.m_nCutoffFre);
+		FrequencyDomainFiltering(_T("ILPF"), dlg.m_nCutoffFre, 0, 0);
 	}
 }
-
-
 
 
 //******************布特沃斯低通滤波*****************//
@@ -1915,9 +1930,11 @@ void CImageProcessView::OnBlpf()
 			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
 			return;
 		}
-		BLPF(dlg.m_nCutoffFre, 2 );
+		FrequencyDomainFiltering(_T("BLPF"), dlg.m_nCutoffFre, 2, 0); //默认2阶
+ 
 	}
 }
+
 
 //******************高斯低通滤波*****************//
 void CImageProcessView::OnGlpf()
@@ -1940,6 +1957,134 @@ void CImageProcessView::OnGlpf()
 			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
 			return;
 		}
-		GLPF(dlg.m_nCutoffFre, dlg.m_nCutoffFre);
+		FrequencyDomainFiltering(_T("GLPF"), dlg.m_nCutoffFre, 0, dlg.m_nCutoffFre); // a=D0
+		 
 	}
+}
+
+
+//******************理想高通滤波*****************//
+void CImageProcessView::OnIhpf()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行理想高通滤波!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("理想高通滤波效果图"));
+	CFrequencyDlg dlg;
+	dlg.m_sWindowTitle = _T("理想高通滤波器设置");
+	dlg.m_sHelpTitle = _T("请输入截止频率");
+
+	if (dlg.DoModal() == IDOK) {
+		if (dlg.m_nCutoffFre<0) {
+			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
+			return;
+		}
+		FrequencyDomainFiltering(_T("IHPF"), dlg.m_nCutoffFre, 0, 0);
+	 
+	}
+}
+
+
+//******************高斯高通滤波*****************//
+void CImageProcessView::OnGhpf()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行高斯高通滤波!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("高斯高通滤波效果图"));
+	CFrequencyDlg dlg;
+	dlg.m_sWindowTitle = _T("高斯高通滤波器设置");
+	dlg.m_sHelpTitle = _T("请输入截止频率");
+
+	if (dlg.DoModal() == IDOK) {
+		if (dlg.m_nCutoffFre<0) {
+			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
+			return;
+		}
+		FrequencyDomainFiltering(_T("GHPF"), dlg.m_nCutoffFre, 0, dlg.m_nCutoffFre); // a=D0
+	}
+}
+
+
+//******************布特沃斯高通滤波*****************//
+void CImageProcessView::OnBhpf()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行布特沃斯高通滤波!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("布特沃斯高通滤波效果图"));
+	CFrequencyDlg dlg;
+	dlg.m_sWindowTitle = _T("布特沃斯高通滤波器设置");
+	dlg.m_sHelpTitle = _T("请输入截止频率");
+
+	if (dlg.DoModal() == IDOK) {
+		if (dlg.m_nCutoffFre<0) {
+			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
+			return;
+		}
+		FrequencyDomainFiltering(_T("BHPF"), dlg.m_nCutoffFre, 2, 0); //2阶
+	}
+}
+
+
+
+
+void CImageProcessView::OnFrquencyLaplace()
+{
+	// TODO: 在此添加命令处理程序代码
+}
+
+
+void CImageProcessView::OnFrquencyHighboost()
+{
+	// TODO: 在此添加命令处理程序代码
+}
+
+
+void CImageProcessView::OnHighFrequencyEmphasis()
+{
+	// TODO: 在此添加命令处理程序代码
+}
+
+
+//******************同态滤波*****************//
+void CImageProcessView::OnHomofilter()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行同态滤波!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("同态滤波效果图"));
+	CFrequencyDlg dlg;
+	dlg.m_sWindowTitle = _T("同态滤波中高通滤波器设置");
+	dlg.m_sHelpTitle = _T("请输入截止频率和GammaH GammaL");
+	dlg.showGammaControls = 1;
+	if (dlg.DoModal() == IDOK) {
+		if (dlg.m_nCutoffFre<0 || dlg.m_dGammaH <0 || dlg.m_dGammaL <0 || dlg.m_dHomoC<0) {
+			AfxMessageBox(_T("参数不得为负"), MB_OK, 0);
+			return;
+		}
+		HomomorphicFilter(dlg.m_nCutoffFre, dlg.m_dHomoC, dlg.m_dGammaH, dlg.m_dGammaL); // 一般取Sigma=nFreq  默认给定  GammaH 2与 GammaL 0.25 c=1
+	} 
+
+	
 }

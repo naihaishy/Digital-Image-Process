@@ -21,7 +21,9 @@
 #define IDC_EDIT2                       1004
 #define IDC_EDIT_CHH                    1004
 #define IDC_EDIT_LINEAR_N               1004
+#define IDC_EDIT_GAMMAL                 1004
 #define IDC_EDIT_ROTATEANGLE            1005
+#define IDC_EDIT_HOMOC                  1005
 #define IDC_MFCLINK_GITHUB              1015
 #define IDC_MFCLINK_EMAIL               1016
 #define IDC_MFCPROPERTYGRID1            1019
@@ -30,6 +32,10 @@
 #define IDC_EDIT_HIGHBOOST_K            1028
 #define IDC_EDIT_FREQUENCY_CUT          1029
 #define IDC_STATIC_FREDLG_TITLE         1030
+#define IDC_EDIT_GAMMAH                 1032
+#define IDC_STATIC_GAMMAH               1033
+#define IDC_STATIC_GAMMAL               1034
+#define IDC_STATIC_HOMOC                1035
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_32773                        32773
@@ -37,17 +43,13 @@
 #define ID_32775                        32775
 #define ID_WRITE_LETTER                 32776
 #define ID_                             32777
-#define ID_B                            32778
-#define ID_BIP                          32779
 #define ID_ROTATE                       32780
 #define ID_WRITE_LE                     32781
 #define ID_WRITE_CHARCTER               32782
-#define ID_BILINEAR_                    32783
 #define ID_BILINEAR_INTERPOLATION       32784
 #define ID_32785                        32785
 #define ID_32786                        32786
 #define ID_SHOW_HISTOGRAM               32787
-#define ID_HISTOGRAM_                   32788
 #define ID_HISTOGRAM_EQUALIZATION       32789
 #define ID_32790                        32790
 #define ID_32791                        32791
@@ -84,14 +86,31 @@
 #define ID_BWLPF                        32823
 #define ID_GLPF                         32824
 #define ID_BLPF                         32825
+#define ID_32826                        32826
+#define ID_32827                        32827
+#define ID_32828                        32828
+#define ID_32829                        32829
+#define ID_IHPF                         32830
+#define ID_GHPF                         32831
+#define ID_BHPF                         32832
+#define ID_32833                        32833
+#define ID_32834                        32834
+#define ID_32835                        32835
+#define ID_FRQUENCY_LAPLACE             32836
+#define ID_FRQUENCY_HIGHBOOST           32837
+#define ID_HIGH_FREQUENCY_              32838
+#define ID_HIGH_FREQUENCY_EMPHASI       32839
+#define ID_HIGH_FREQUENCY_EMPHASIS      32840
+#define ID_32841                        32841
+#define ID_HOMOFILTER                   32842
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        332
-#define _APS_NEXT_COMMAND_VALUE         32826
-#define _APS_NEXT_CONTROL_VALUE         1031
+#define _APS_NEXT_COMMAND_VALUE         32843
+#define _APS_NEXT_CONTROL_VALUE         1036
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

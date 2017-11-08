@@ -375,6 +375,9 @@ void BmpCommonOp::ImgFFT(BYTE* Image, int ImageWidth, int ImageHeight, int BitCo
 		//频谱图
 
 
+		//内存释放
+		delete[] newImage;
+
 	}//end 8bit
 
 
@@ -411,6 +414,10 @@ void BmpCommonOp::ImgFFT(BYTE* Image, int ImageWidth, int ImageHeight, int BitCo
 		fourier.FFT2(m_TimeDomainB, m_FrequencyDomainB, m_nImageWidth, m_nImageHeight);  //FFT2  B
 		fourier.FFT2(m_TimeDomainG, m_FrequencyDomainG, m_nImageWidth, m_nImageHeight);  //FFT2  G
 		fourier.FFT2(m_TimeDomainR, m_FrequencyDomainR, m_nImageWidth, m_nImageHeight);  //FFT2  R
+
+		//内存释放
+		delete[] newImageB, newImageG, newImageR;
+
 
 	}//end 24bit
 	
@@ -450,6 +457,10 @@ void BmpCommonOp::ImgIFFT(BYTE* DstImage, int ImageWidth, int ImageHeight, int B
 				DstImage[j*LineByte+i] = Temp[j*m_nLineByte+i];
 			}
 		}
+
+		//内存释放
+		delete[] Temp, TimeDomain;
+
 	}//end 8bit
 
 
@@ -472,6 +483,10 @@ void BmpCommonOp::ImgIFFT(BYTE* DstImage, int ImageWidth, int ImageHeight, int B
 				DstImage[j*LineByte + i * 3+2] = Temp[j*m_nLineByte + i * 3+2];
 			}
 		}
+
+		//内存释放
+		delete[] Temp, TimeDomainB, TimeDomainG, TimeDomainR;
+
 	}//end 24bit
 
 
@@ -505,7 +520,7 @@ void BmpCommonOp::GetAmplitudespectrum(complex<double>  * src, BYTE * DstImage, 
 				dst[position] = dst[position] * pow(-1, i + j);
 			}
 			else {
-				dst[position] = sqrt(  src[position].real()* src[position].real()+ src[position].imag()* src[position].imag()  ) + 0.5; //四舍五入
+				dst[position] = sqrt(  src[position].real()* src[position].real()+ src[position].imag()* src[position].imag()  ) ; 
 				dst[position] = 1 + log(abs(dst[position])); //对数变换 正FFT为了观察效果明显 进行了对数变化
 			}
 			
@@ -521,6 +536,9 @@ void BmpCommonOp::GetAmplitudespectrum(complex<double>  * src, BYTE * DstImage, 
 			DstImage[position] = (dst[position] - dmin) * 255 / (dmax - dmin) + 0.5; //四舍五入
 		}
 	}
+
+	//
+	delete[] dst;
 
 }
 
@@ -592,7 +610,7 @@ void BmpCommonOp::GetAmplitudespectrum(complex<double>  * srcB, complex<double> 
 		}
 	}
 
- 
+	delete[] dst;
 
 }
 
@@ -653,16 +671,16 @@ void BmpCommonOp::ImgFreTemplateFilter(BYTE* DstImage, double *filter, int Image
 
 /*************************************************************************
 *
-* Function:   ImgIdealLowPassFilter()
+* Function:   ImgIdealPassFilter()
 *
-* Description: 理想低通滤波
+* Description: 理想滤波 低通 高通
 *
-* Input:
+* Input: HLFlag 高通 低通标记 1为H 0为L
 *
 * Returns:
 *
 ************************************************************************/
-void BmpCommonOp::ImgIdealLowPassFilter(BYTE* DstImage, int nFreq, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+void BmpCommonOp::ImgIdealPassFilter(BYTE* DstImage, int nFreq, int HLFlag,int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
 
 	//生成滤波函数
 	double *Filter = new double[m_nImageWidth*m_nImageHeight];
@@ -672,11 +690,13 @@ void BmpCommonOp::ImgIdealLowPassFilter(BYTE* DstImage, int nFreq, int ImageWidt
 		for (int i = 0; i < m_nImageWidth; i++) {
 			position = j*m_nImageWidth + i; 
 			distance = sqrt(  (i- m_nImageWidth/2)*(i - m_nImageWidth / 2) + (j - m_nImageHeight / 2)*(j - m_nImageHeight / 2) ) +0.5;
-
-			if (distance<nFreq) 
+			//默认生成低通滤波函数
+			if (distance<nFreq)
 				Filter[position] = 1;
-			else 
+			else
 				Filter[position] = 0;
+
+			if (HLFlag)    Filter[position] = 1 - Filter[position]; //若是高通滤波 H=1-L
 		}
 	}
 
@@ -691,14 +711,14 @@ void BmpCommonOp::ImgIdealLowPassFilter(BYTE* DstImage, int nFreq, int ImageWidt
 *
 * Function:   ImgButterworthLowPassFilter()
 *
-* Description: 布特沃斯低通滤波
+* Description: 布特沃斯滤波 低通 高通 
 *
-* Input: nOrder  n阶
+* Input: nOrder  n阶  HLFlag 高通 低通标记 1为H 0为L
 *
 * Returns:
 *
 ************************************************************************/
-void BmpCommonOp::ImgButterworthLowPassFilter(BYTE* DstImage, int nFreq,int nOrder, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+void BmpCommonOp::ImgButterworthPassFilter(BYTE* DstImage, int nFreq,int nOrder, int HLFlag, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
 	//生成滤波函数
 	double *Filter = new double[m_nImageWidth*m_nImageHeight];
 	int position;
@@ -707,7 +727,10 @@ void BmpCommonOp::ImgButterworthLowPassFilter(BYTE* DstImage, int nFreq,int nOrd
 		for (int i = 0; i < m_nImageWidth; i++) {
 			position = j*m_nImageWidth + i;
 			distance = sqrt((i - m_nImageWidth / 2)*(i - m_nImageWidth / 2) + (j - m_nImageHeight / 2)*(j - m_nImageHeight / 2)) ;
-			Filter[position] = 1/(1+ pow(distance / nFreq, 2* nOrder) );
+			//默认生成低通滤波函数
+			Filter[position] = 1 / (1 + pow(distance / nFreq, 2 * nOrder));
+
+			if (HLFlag)    Filter[position] = 1 - Filter[position]; //若是高通滤波 H=1-L
 		}
 	}
 
@@ -720,16 +743,16 @@ void BmpCommonOp::ImgButterworthLowPassFilter(BYTE* DstImage, int nFreq,int nOrd
 
 /*************************************************************************
 *
-* Function:   ImgGaussianLowPassFilter()
+* Function:   ImgGaussianPassFilter()
 *
-* Description: 高斯低通滤波
+* Description: 高斯滤波 低通 高通
 *
-* Input:
+* Input:  HLFlag 高通 低通标记 1为H 0为L
 *
 * Returns:
 *
 ************************************************************************/
-void BmpCommonOp::ImgGaussianLowPassFilter(BYTE* DstImage, int nFreq, int a, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+void BmpCommonOp::ImgGaussianPassFilter(BYTE* DstImage, int Sigma, int HLFlag, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
 	//生成滤波函数
 	double *Filter = new double[m_nImageWidth*m_nImageHeight];
 	int position;
@@ -738,11 +761,208 @@ void BmpCommonOp::ImgGaussianLowPassFilter(BYTE* DstImage, int nFreq, int a, int
 		for (int i = 0; i < m_nImageWidth; i++) {
 			position = j*m_nImageWidth + i;
 			distance = sqrt((i - m_nImageWidth / 2)*(i - m_nImageWidth / 2) + (j - m_nImageHeight / 2)*(j - m_nImageHeight / 2)) + 0.5;
-			Filter[position] = exp(  (-1)*pow(distance,2)  / (2*pow(a,2))   );
+			//默认生成低通滤波函数
+			Filter[position] = exp(  (-1)*pow(distance,2)  / (2*pow(Sigma,2))   );
+
+			if (HLFlag)    Filter[position] = 1 - Filter[position]; //若是高通滤波 H=1-L
 		}
 	}
 
 	//将滤波函数传递给模板滤波器
 	ImgFreTemplateFilter(DstImage, Filter, ImageWidth, ImageHeight, BitCount, LineByte);
 	delete[] Filter;
+}
+
+
+
+/*************************************************************************
+*
+* Function:   ImgHomomorphicFilter()
+*
+* Description: 同态滤波  
+*
+* Input:  HLFlag 高通 低通标记 1为H 0为L
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, double c, double GammaH, double GammaL, int ImageWidth, int ImageHeight, int BitCount, int LineByte)
+{
+
+	Fourier fourier;
+
+	ImgFourierInit(ImageWidth, ImageHeight, BitCount, LineByte);
+
+	//滤波处理 采用改进的高斯高通滤波器
+	//生成滤波函数
+	double *Filter = new double[m_nImageWidth*m_nImageHeight];
+	int position;
+	double distance;
+	for (int j = 0; j < m_nImageHeight; j++) {
+		for (int i = 0; i < m_nImageWidth; i++) {
+			position = j*m_nImageWidth + i;
+			distance = sqrt((i - m_nImageWidth / 2)*(i - m_nImageWidth / 2) + (j - m_nImageHeight / 2)*(j - m_nImageHeight / 2));
+			Filter[position] = 1 - exp((-c)*pow(distance, 2) / (2 * pow(Sigma, 2)));
+			Filter[position] = (GammaH - GammaL)*Filter[position] + GammaL;
+		}
+	}
+
+
+	
+	//8bit BMP 处理
+	if (BitCount == 8) {
+		/*---------------FFT---------------*/
+		double * newImage = new double[m_nImageSize]; //中心化操作 (-1)^(x+y) 出现负数 不能使用BYTE类型
+		memset(newImage, 0, sizeof(double)*m_nImageSize); //初始化
+		//复制到新图像的左下角即可 剩下为0   
+		for (int j = 0; j < ImageHeight; j++) {
+			for (int i = 0; i <ImageWidth; i++) {
+				//首先ln对数处理
+				*(newImage + j*m_nLineByte + i) = log( *(Image + j*LineByte + i) +1 );
+				*(newImage + j*m_nLineByte + i)  *= pow(-1, i + j); //中心化
+			}
+		}
+
+		//图像数据变成复数类型 
+		for (int i = 0; i<m_nImageSize; i++) {
+			m_TimeDomain[i] = complex<double>(newImage[i], 0);
+		}
+		fourier.FFT2(m_TimeDomain, m_FrequencyDomain, m_nImageWidth, m_nImageHeight);	//FFT2 
+	 /*---------------End FFT---------------*/
+
+	 /*--------------滤波 IFFT 指数变换 获得频谱----------------*/
+		int position;
+		for (int j = 0; j < m_nImageHeight; j++) {
+			for (int i = 0; i < m_nImageWidth; i++) {
+				position = j*m_nImageWidth + i;
+				m_FrequencyDomain[position] = m_FrequencyDomain[position] * Filter[position]; //滤波
+			}
+		}
+
+		//ImgIFFT
+		complex<double> *TimeDomain = new complex<double>[m_nImageWidth*m_nImageHeight]; //空间域
+		fourier.IFFT2(m_FrequencyDomain, TimeDomain, m_nImageWidth, m_nImageHeight);  //IFFT2 
+
+		//EXP
+		for (int j = 0; j < m_nImageHeight; j++) {
+			for (int i = 0; i < m_nImageWidth; i++) {
+				position = j*m_nImageWidth + i;
+
+				TimeDomain[position] = complex<double>(exp(TimeDomain[position].real()) - 1, 0); //exp指数变换 exp(TimeDomain[position].imag()) +
+			}
+		}
+
+		BYTE* Temp = new BYTE[m_nImageSize];
+		GetAmplitudespectrum(TimeDomain, Temp, m_nImageWidth, m_nImageHeight, BitCount, 1);//得到频谱图 
+
+		//裁剪图片 与原图相同规格
+		for (int j = 0; j < ImageHeight; j++) {
+			for (int i = 0; i < ImageWidth; i++) {
+				DstImage[j*LineByte + i] = Temp[j*m_nLineByte + i];
+			}
+		}
+
+		delete[] Filter, newImage, TimeDomain, Temp;
+
+	}//end 8bit
+
+
+
+
+	 //24bit BMP处理
+	if (BitCount == 24) {
+		/*---------------FFT---------------*/
+		double * newImageB = new double[m_nImageSizePer];
+		double * newImageG = new double[m_nImageSizePer];
+		double * newImageR = new double[m_nImageSizePer];
+
+		memset(newImageB, 0, sizeof(double)*m_nImageSizePer);//初始化
+		memset(newImageG, 0, sizeof(double)*m_nImageSizePer);
+		memset(newImageR, 0, sizeof(double)*m_nImageSizePer);
+
+		//复制到新图像的左下角即可 剩下为0   
+		for (int j = 0; j < ImageHeight; j++) {
+			for (int i = 0; i <ImageWidth; i++) {
+				//对数处理
+				*(newImageB + j*m_nImageWidth + i) = log(*(Image + j*LineByte + i * 3) +1 ); //B  
+				*(newImageG + j*m_nImageWidth + i) = log( *(Image + j*LineByte + i * 3 + 1) +1); //G  
+				*(newImageR + j*m_nImageWidth + i) = log(*(Image + j*LineByte + i * 3 + 2) +1); //R  
+
+				//中心化
+				*(newImageB + j*m_nImageWidth + i) *=pow(-1, i + j); //B  
+				*(newImageG + j*m_nImageWidth + i)*=pow(-1, i + j); //G  
+				*(newImageR + j*m_nImageWidth + i) *=pow(-1, i + j); //R  
+			}
+		}
+
+		//图像数据变成复数类型 
+		for (int i = 0; i<m_nImageSizePer; i++) {
+			//24bit 彩色图像分为RGB三个通道分别处理 最后整合
+			m_TimeDomainB[i] = complex<double>(newImageB[i], 0);
+			m_TimeDomainG[i] = complex<double>(newImageG[i], 0);
+			m_TimeDomainR[i] = complex<double>(newImageR[i], 0);
+		}
+		//FFT2
+		fourier.FFT2(m_TimeDomainB, m_FrequencyDomainB, m_nImageWidth, m_nImageHeight);  //FFT2  B
+		fourier.FFT2(m_TimeDomainG, m_FrequencyDomainG, m_nImageWidth, m_nImageHeight);  //FFT2  G
+		fourier.FFT2(m_TimeDomainR, m_FrequencyDomainR, m_nImageWidth, m_nImageHeight);  //FFT2  R
+	    /*---------------End FFT---------------*/
+
+		/*--------------滤波 IFFT 指数变换 获得频谱----------------*/
+		int position;
+		for (int j = 0; j < m_nImageHeight; j++) {
+			for (int i = 0; i < m_nImageWidth; i++) {
+				position = j*m_nImageWidth + i; //各个通道单独处理
+				m_FrequencyDomainB[position] = m_FrequencyDomainB[position] * Filter[position];
+				m_FrequencyDomainG[position] = m_FrequencyDomainG[position] * Filter[position];
+				m_FrequencyDomainR[position] = m_FrequencyDomainR[position] * Filter[position];
+				 
+			}
+		}
+
+		//ImgIFFT
+		//ImgIFFT(DstImage, ImageWidth, ImageHeight, BitCount, LineByte);
+		complex<double> *TimeDomainB = new complex<double>[m_nImageWidth*m_nImageHeight];
+		complex<double> *TimeDomainG = new complex<double>[m_nImageWidth*m_nImageHeight];
+		complex<double> *TimeDomainR = new complex<double>[m_nImageWidth*m_nImageHeight];
+		//IFFT
+		fourier.IFFT2(m_FrequencyDomainB, TimeDomainB, m_nImageWidth, m_nImageHeight);  //IFFT2 
+		fourier.IFFT2(m_FrequencyDomainG, TimeDomainG, m_nImageWidth, m_nImageHeight);  //IFFT2 
+		fourier.IFFT2(m_FrequencyDomainR, TimeDomainR, m_nImageWidth, m_nImageHeight);  //IFFT2 
+																						//EXP
+		for (int j = 0; j < m_nImageHeight; j++) {
+			for (int i = 0; i < m_nImageWidth; i++) {
+				position = j*m_nImageWidth + i;
+				TimeDomainB[position] = complex<double>(exp(TimeDomainB[position].real()) - 1, 0); //exp指数变换 exp(TimeDomainB[position].imag()) +
+				TimeDomainG[position] = complex<double>(exp(TimeDomainG[position].real()) - 1, 0); //exp(TimeDomainG[position].imag()) +
+				TimeDomainR[position] = complex<double>(exp(TimeDomainR[position].real()) - 1, 0); //exp(TimeDomainR[position].imag()) +
+			}
+		}
+		//频谱图
+		BYTE* Temp = new BYTE[m_nImageSize];
+		GetAmplitudespectrum(TimeDomainB, TimeDomainG, TimeDomainR, Temp, m_nImageWidth, m_nImageHeight, BitCount, 1);//得到频谱图
+		//裁剪图片 与原图相同规格
+		for (int j = 0; j < ImageHeight; j++) {
+			for (int i = 0; i < ImageWidth; i++) {
+				DstImage[j*LineByte + i * 3] = Temp[j*m_nLineByte + i * 3];
+				DstImage[j*LineByte + i * 3 + 1] = Temp[j*m_nLineByte + i * 3 + 1];
+				DstImage[j*LineByte + i * 3 + 2] = Temp[j*m_nLineByte + i * 3 + 2];
+			}
+		}
+
+		//内存释放
+		delete[] Filter,newImageB, newImageG, newImageR, TimeDomainB, TimeDomainG, TimeDomainR, Temp ;
+
+	}//end 24bit
+
+
+
+ 
+ 
+		
+	 
+	 
+
+
+
 }
