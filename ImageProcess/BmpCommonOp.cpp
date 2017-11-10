@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 #include "BmpCommonOp.h"
-
+ 
 
 
 
@@ -12,6 +12,14 @@ BmpCommonOp::BmpCommonOp()
 
 BmpCommonOp::~BmpCommonOp()
 {
+	delete [] m_TimeDomain;
+	delete[] m_TimeDomainB;
+	delete[] m_TimeDomainG;
+	delete[] m_TimeDomainR;
+	delete[] m_FrequencyDomain;
+	delete[] m_FrequencyDomainB;
+	delete[] m_FrequencyDomainG;
+	delete[] m_FrequencyDomainR;
 }
 
 
@@ -294,15 +302,15 @@ void BmpCommonOp::WriteTextOnScreen(CDC *pDC,int Position_x, int Position_y) {
 * Returns: 得到FFT变换后的频域数据 作为该类的成员变量
 *
 ************************************************************************/
-void BmpCommonOp::ImgFourierInit(int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+void BmpCommonOp::ImgFourierInit(int ImageWidth, int ImageHeight, int BitCount) {
 
 	m_bFourierinit = 1;
 	//图像宽高非2的整数幂时需要进行补0操作
 	m_nImageWidth = 1, m_nImageHeight = 1;
 	// FFT需要的宽度和高度（2的整数次方）
-	while (m_nImageWidth  < ImageWidth)
+	while (m_nImageWidth  < 2*ImageWidth )
 		m_nImageWidth *= 2;
-	while (m_nImageHeight  < ImageHeight)
+	while (m_nImageHeight  < 2*ImageHeight)
 		m_nImageHeight *= 2;
 
 	/*
@@ -349,7 +357,7 @@ void BmpCommonOp::ImgFFT(BYTE* Image, int ImageWidth, int ImageHeight, int BitCo
 
 	Fourier fourier;
 
-	ImgFourierInit(ImageWidth, ImageHeight, BitCount, LineByte);
+	ImgFourierInit(ImageWidth, ImageHeight, BitCount);
 
 	//8bit BMP 处理
 	if (BitCount==8) {
@@ -416,7 +424,9 @@ void BmpCommonOp::ImgFFT(BYTE* Image, int ImageWidth, int ImageHeight, int BitCo
 		fourier.FFT2(m_TimeDomainR, m_FrequencyDomainR, m_nImageWidth, m_nImageHeight);  //FFT2  R
 
 		//内存释放
-		delete[] newImageB, newImageG, newImageR;
+		delete[] newImageB;
+		delete[] newImageG;
+		delete[] newImageR;
 
 
 	}//end 24bit
@@ -459,7 +469,8 @@ void BmpCommonOp::ImgIFFT(BYTE* DstImage, int ImageWidth, int ImageHeight, int B
 		}
 
 		//内存释放
-		delete[] Temp, TimeDomain;
+		delete[] Temp;
+		delete[] TimeDomain;
 
 	}//end 8bit
 
@@ -485,7 +496,10 @@ void BmpCommonOp::ImgIFFT(BYTE* DstImage, int ImageWidth, int ImageHeight, int B
 		}
 
 		//内存释放
-		delete[] Temp, TimeDomainB, TimeDomainG, TimeDomainR;
+		delete[] Temp;
+		delete[] TimeDomainB;
+		delete[] TimeDomainG;
+		delete[] TimeDomainR;
 
 	}//end 24bit
 
@@ -539,6 +553,7 @@ void BmpCommonOp::GetAmplitudespectrum(complex<double>  * src, BYTE * DstImage, 
 
 	//
 	delete[] dst;
+	 
 
 }
 
@@ -789,13 +804,16 @@ void BmpCommonOp::ImgGaussianPassFilter(BYTE* DstImage, int Sigma, int HLFlag, i
 void BmpCommonOp::ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, double c, double GammaH, double GammaL, int ImageWidth, int ImageHeight, int BitCount, int LineByte)
 {
 
-	Fourier fourier;
-
-	ImgFourierInit(ImageWidth, ImageHeight, BitCount, LineByte);
+	//Fourier fourier;
+	Fourier *fourier = new Fourier();
+	if (!m_bFourierinit) {//尚未img宽高初始化
+		ImgFourierInit(ImageWidth, ImageHeight, BitCount);
+	}
+	
 
 	//滤波处理 采用改进的高斯高通滤波器
 	//生成滤波函数
-	double *Filter = new double[m_nImageWidth*m_nImageHeight];
+	/*double *Filter = new double[m_nImageWidth*m_nImageHeight];
 	int position;
 	double distance;
 	for (int j = 0; j < m_nImageHeight; j++) {
@@ -805,7 +823,7 @@ void BmpCommonOp::ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, d
 			Filter[position] = 1 - exp((-c)*pow(distance, 2) / (2 * pow(Sigma, 2)));
 			Filter[position] = (GammaH - GammaL)*Filter[position] + GammaL;
 		}
-	}
+	}*/
 
 
 	
@@ -827,22 +845,27 @@ void BmpCommonOp::ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, d
 		for (int i = 0; i<m_nImageSize; i++) {
 			m_TimeDomain[i] = complex<double>(newImage[i], 0);
 		}
-		fourier.FFT2(m_TimeDomain, m_FrequencyDomain, m_nImageWidth, m_nImageHeight);	//FFT2 
+		fourier->FFT2(m_TimeDomain, m_FrequencyDomain, m_nImageWidth, m_nImageHeight);	//FFT2 
 	 /*---------------End FFT---------------*/
 
 	 /*--------------滤波 IFFT 指数变换 获得频谱----------------*/
 		int position;
+		double distance, filter;
 		for (int j = 0; j < m_nImageHeight; j++) {
 			for (int i = 0; i < m_nImageWidth; i++) {
 				position = j*m_nImageWidth + i;
-				m_FrequencyDomain[position] = m_FrequencyDomain[position] * Filter[position]; //滤波
+				distance = sqrt((i - m_nImageWidth / 2)*(i - m_nImageWidth / 2) + (j - m_nImageHeight / 2)*(j - m_nImageHeight / 2));
+				filter = 1 - exp((-c)*pow(distance, 2) / (2 * pow(Sigma, 2)));
+				filter = (GammaH - GammaL)*filter + GammaL;
+
+				m_FrequencyDomain[position] = m_FrequencyDomain[position] * filter; //滤波
 			}
 		}
 
 		//ImgIFFT
 		complex<double> *TimeDomain = new complex<double>[m_nImageWidth*m_nImageHeight]; //空间域
-		fourier.IFFT2(m_FrequencyDomain, TimeDomain, m_nImageWidth, m_nImageHeight);  //IFFT2 
-
+		fourier->IFFT2(m_FrequencyDomain, TimeDomain, m_nImageWidth, m_nImageHeight);  //IFFT2 
+		delete fourier;
 		//EXP
 		for (int j = 0; j < m_nImageHeight; j++) {
 			for (int i = 0; i < m_nImageWidth; i++) {
@@ -862,7 +885,10 @@ void BmpCommonOp::ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, d
 			}
 		}
 
-		delete[] Filter, newImage, TimeDomain, Temp;
+		//delete[] Filter;
+		delete[] newImage;
+		delete[] TimeDomain;
+		delete[] Temp;
 
 	}//end 8bit
 
@@ -903,33 +929,40 @@ void BmpCommonOp::ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, d
 			m_TimeDomainR[i] = complex<double>(newImageR[i], 0);
 		}
 		//FFT2
-		fourier.FFT2(m_TimeDomainB, m_FrequencyDomainB, m_nImageWidth, m_nImageHeight);  //FFT2  B
-		fourier.FFT2(m_TimeDomainG, m_FrequencyDomainG, m_nImageWidth, m_nImageHeight);  //FFT2  G
-		fourier.FFT2(m_TimeDomainR, m_FrequencyDomainR, m_nImageWidth, m_nImageHeight);  //FFT2  R
+		fourier->FFT2(m_TimeDomainB, m_FrequencyDomainB, m_nImageWidth, m_nImageHeight);  //FFT2  B
+		fourier->FFT2(m_TimeDomainG, m_FrequencyDomainG, m_nImageWidth, m_nImageHeight);  //FFT2  G
+		fourier->FFT2(m_TimeDomainR, m_FrequencyDomainR, m_nImageWidth, m_nImageHeight);  //FFT2  R
 	    /*---------------End FFT---------------*/
-
+		
 		/*--------------滤波 IFFT 指数变换 获得频谱----------------*/
 		int position;
+		double distance, filter;
 		for (int j = 0; j < m_nImageHeight; j++) {
 			for (int i = 0; i < m_nImageWidth; i++) {
 				position = j*m_nImageWidth + i; //各个通道单独处理
-				m_FrequencyDomainB[position] = m_FrequencyDomainB[position] * Filter[position];
-				m_FrequencyDomainG[position] = m_FrequencyDomainG[position] * Filter[position];
-				m_FrequencyDomainR[position] = m_FrequencyDomainR[position] * Filter[position];
+				//滤波函数
+				distance = sqrt((i - m_nImageWidth / 2)*(i - m_nImageWidth / 2) + (j - m_nImageHeight / 2)*(j - m_nImageHeight / 2));
+				filter = 1 - exp((-c)*distance*distance / (2 * Sigma*Sigma ));
+				filter = (GammaH - GammaL)*filter + GammaL;
+
+				m_FrequencyDomainB[position] = m_FrequencyDomainB[position] * filter ;
+				m_FrequencyDomainG[position] = m_FrequencyDomainG[position] * filter ;
+				m_FrequencyDomainR[position] = m_FrequencyDomainR[position] * filter;
 				 
 			}
 		}
 
 		//ImgIFFT
 		//ImgIFFT(DstImage, ImageWidth, ImageHeight, BitCount, LineByte);
-		complex<double> *TimeDomainB = new complex<double>[m_nImageWidth*m_nImageHeight];
-		complex<double> *TimeDomainG = new complex<double>[m_nImageWidth*m_nImageHeight];
-		complex<double> *TimeDomainR = new complex<double>[m_nImageWidth*m_nImageHeight];
+		complex<double> *TimeDomainB = new complex<double>[m_nImageSizePer];
+		complex<double> *TimeDomainG = new complex<double>[m_nImageSizePer];
+		complex<double> *TimeDomainR = new complex<double>[m_nImageSizePer];
 		//IFFT
-		fourier.IFFT2(m_FrequencyDomainB, TimeDomainB, m_nImageWidth, m_nImageHeight);  //IFFT2 
-		fourier.IFFT2(m_FrequencyDomainG, TimeDomainG, m_nImageWidth, m_nImageHeight);  //IFFT2 
-		fourier.IFFT2(m_FrequencyDomainR, TimeDomainR, m_nImageWidth, m_nImageHeight);  //IFFT2 
-																						//EXP
+		fourier->IFFT2(m_FrequencyDomainB, TimeDomainB, m_nImageWidth, m_nImageHeight);  //IFFT2 
+		fourier->IFFT2(m_FrequencyDomainG, TimeDomainG, m_nImageWidth, m_nImageHeight);  //IFFT2 
+		fourier->IFFT2(m_FrequencyDomainR, TimeDomainR, m_nImageWidth, m_nImageHeight);  //IFFT2 
+		delete fourier;
+		//EXP
 		for (int j = 0; j < m_nImageHeight; j++) {
 			for (int i = 0; i < m_nImageWidth; i++) {
 				position = j*m_nImageWidth + i;
@@ -951,18 +984,19 @@ void BmpCommonOp::ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, d
 		}
 
 		//内存释放
-		delete[] Filter,newImageB, newImageG, newImageR, TimeDomainB, TimeDomainG, TimeDomainR, Temp ;
+		//delete[] Filter;
+		delete[] newImageB;
+		delete[] newImageG;
+		delete[] newImageR;
+		delete[] TimeDomainB;
+		delete[] TimeDomainG;
+		delete[] TimeDomainR;
+		delete[] Temp;
 
 	}//end 24bit
 
 
 
- 
- 
-		
-	 
-	 
-
-
+  
 
 }

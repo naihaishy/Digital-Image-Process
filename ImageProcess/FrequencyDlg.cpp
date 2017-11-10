@@ -63,6 +63,12 @@ BOOL CFrequencyDlg::OnInitDialog()
 		GetDlgItem(IDC_EDIT_GAMMAL)->ShowWindow(SW_SHOW);
 		GetDlgItem(IDC_EDIT_HOMOC)->ShowWindow(SW_SHOW);
 		GetDlgItem(IDC_STATIC_HOMOC)->ShowWindow(SW_SHOW);
+
+		GetDlgItem(IDC_EDIT_GAMMAH)->SetWindowText(_T("2.5"));
+		GetDlgItem(IDC_EDIT_GAMMAL)->SetWindowText(_T("0.2"));
+		GetDlgItem(IDC_EDIT_HOMOC)->SetWindowText(_T("0.2"));
+		GetDlgItem(IDC_EDIT_FREQUENCY_CUT)->SetWindowText(_T("600"));
+
 	}
 	 
 	return TRUE;  

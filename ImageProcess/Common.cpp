@@ -150,3 +150,18 @@ float * Common::SplitString(CString str, CString split)
 	pStrSplit[iNums] = atof(tempstrTemp);
 	return pStrSplit;
 }
+
+
+
+/*************************************************************************
+* Function:   GetConfig()
+*
+* Description:    获取软件配置信息
+*
+* Input:
+*
+* Returns:   
+************************************************************************/
+void Common::GetConfig() {
+
+}

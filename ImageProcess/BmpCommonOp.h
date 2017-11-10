@@ -48,7 +48,7 @@ public:
 	void ShowBmpImage(CDC *cdc,BYTE* Image, int Position_x, int Position_y, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//ÏÔÊ¾BMPÍ¼Ïñ
 	void WriteTextOnScreen(CDC *pDC, int Position_x, int Position_y);
 	
-	void ImgFourierInit(int ImageWidth, int ImageHeight, int BitCount, int LineByte);
+	void ImgFourierInit(int ImageWidth, int ImageHeight, int BitCount);
 	void ImgFFT(BYTE* Image, int ImageWidth, int ImageHeight, int BitCount, int LineByte);
 	void ImgIFFT( BYTE* DstImage, int ImageWidth, int ImageHeight, int BitCount, int LineByte);
 	void GetAmplitudespectrum(complex<double>  * src, BYTE * DstImage, int width, int height, int BitCount, int ShitFlag); //»ñÈ¡Í¼ÏñµÄÆµÆ×Í¼ 8bit

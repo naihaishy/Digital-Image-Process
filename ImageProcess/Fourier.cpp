@@ -9,6 +9,7 @@ Fourier::Fourier()
 
 Fourier::~Fourier()
 {
+	 
 }
 
 
@@ -48,7 +49,9 @@ void Fourier::FFT2(complex<double> * TimeDomain, complex<double> * FrequencyDoma
 
 	memcpy(FrequencyDomain, Input, sizeof(complex<double>)*width*height);  
 
-	delete[]Input, Temp;
+	delete[]Input;
+	delete[]Temp;
+	delete[]Temp2;
 }
 
 
@@ -87,7 +90,8 @@ void Fourier::IFFT2(complex<double> * FrequencyDomain, complex<double> * TimeDom
 	}
 
 	memcpy(TimeDomain, Input, sizeof(complex<double>)*width*height);
-	delete[]Input, Temp;
+	delete[]Input;
+	delete[]Temp;
 }
 
 
@@ -151,7 +155,8 @@ void Fourier::FFT(complex<double> * TimeDomain, complex<double> * FrequencyDomai
 	// ÊÍ·ÅÄÚ´æ
 	delete[] Wn;
 	delete[] Temp1;
-	delete[] Temp2;
+	delete[]Temp2;
+	 
 
 	 
 }
@@ -188,6 +193,8 @@ void Fourier::IFFT(complex<double> * FrequencyDomain, complex<double> * TimeDoma
 		TimeDomain[i] = complex<double>(Output[i].real() / n, -Output[i].imag() / n);
 	}
 
+	delete[] Input;
+	delete[]Output;
 }
 
 

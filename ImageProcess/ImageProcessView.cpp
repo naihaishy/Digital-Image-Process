@@ -692,7 +692,7 @@ void CImageProcessView::BilinearInterpolation(int Width, int Height)
 	bmpcommomop.WriteBmpDataToFile(BmpFileNameLin, tempBfh, tempBih, m_pPal, DstImage, DstImageSize);
 
 	///fclose(fpo);
-	//delete[] DstImage;
+	delete[] DstImage;
 	//delete[] SrcImage;
 	numPicture = 2;
 	Invalidate();
@@ -1297,7 +1297,11 @@ void CImageProcessView::HighboostFilter(float karr[], int n) {
 
 
 	//销毁资源
-	delete[] mask, OutputImage, maskImage, DstImage, TempImage;
+	delete[] mask;
+	delete[] OutputImage;
+	delete[] maskImage;
+	delete[] DstImage;
+	delete[] TempImage;
 	numPicture = length+3;
 
 	Invalidate();
@@ -1404,6 +1408,7 @@ void CImageProcessView::FrequencyDomainFiltering(CString PFFlag, int nFreq, int 
 	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
 
 	delete[] DstImage;
+ 
 	numPicture = 2;
 	Invalidate();
 
@@ -1416,17 +1421,29 @@ void CImageProcessView::FrequencyDomainFiltering(CString PFFlag, int nFreq, int 
 void CImageProcessView::HomomorphicFilter(int Sigma, double c, double GammaH, double GammaL) {
 
 	BYTE * DstImage = new BYTE[m_nImage]; //恢复图像
-
-	BmpCommonOp	bmpcommonop;
- 
-	bmpcommonop.ImgHomomorphicFilter(m_pImage, DstImage, Sigma, c, GammaH,  GammaL, m_nWidth,  m_nHeight, bih.biBitCount, m_nLineByte);
-
-	//图像保存
 	USES_CONVERSION;
+	BmpCommonOp	*bmpcommonop = new BmpCommonOp();
+
+	/*CString TempFileName;
+
+	for (int i = 1; i < 30;i++) {
+		
+		TempFileName.Format(_T("picture_%d.bmp"), i);
+		LPCSTR BmpFileNameLin = (LPCSTR)T2A(TempFileName);
+		bmpcommonop->ImgHomomorphicFilter(m_pImage, DstImage, 3000+30*i, 1, 2.5, 0.2, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+		bmpcommonop->WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
+	}*/
+
+
+	bmpcommonop->ImgHomomorphicFilter(m_pImage, DstImage, Sigma, c, GammaH,  GammaL, m_nWidth,  m_nHeight, bih.biBitCount, m_nLineByte);
+	//图像保存
+	 
 	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
-	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
+	bmpcommonop->WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
 
 	delete[] DstImage;
+	delete bmpcommonop;
+ 
 	numPicture = 2;
 	Invalidate();
 }
@@ -2086,5 +2103,5 @@ void CImageProcessView::OnHomofilter()
 		HomomorphicFilter(dlg.m_nCutoffFre, dlg.m_dHomoC, dlg.m_dGammaH, dlg.m_dGammaL); // 一般取Sigma=nFreq  默认给定  GammaH 2与 GammaL 0.25 c=1
 	} 
 
-	
+	 
 }
