@@ -1430,7 +1430,7 @@ void CImageProcessView::HomomorphicFilter(int Sigma, double c, double GammaH, do
 		
 		TempFileName.Format(_T("picture_%d.bmp"), i);
 		LPCSTR BmpFileNameLin = (LPCSTR)T2A(TempFileName);
-		bmpcommonop->ImgHomomorphicFilter(m_pImage, DstImage, 3000+30*i, 1, 2.5, 0.2, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+		bmpcommonop->ImgHomomorphicFilter(m_pImage, DstImage, 3000, 1, 3, 1.5, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
 		bmpcommonop->WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
 	}*/
 

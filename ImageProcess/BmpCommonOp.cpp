@@ -303,11 +303,11 @@ void BmpCommonOp::WriteTextOnScreen(CDC *pDC,int Position_x, int Position_y) {
 *
 ************************************************************************/
 void BmpCommonOp::ImgFourierInit(int ImageWidth, int ImageHeight, int BitCount) {
-
+	 
 	m_bFourierinit = 1;
 	//图像宽高非2的整数幂时需要进行补0操作
 	m_nImageWidth = 1, m_nImageHeight = 1;
-	// FFT需要的宽度和高度（2的整数次方）
+	// FFT需要的宽度和高度（2的整数次方） 并且需要满足书上所说的p>2m q>2n的条件
 	while (m_nImageWidth  < 2*ImageWidth )
 		m_nImageWidth *= 2;
 	while (m_nImageHeight  < 2*ImageHeight)
@@ -325,18 +325,28 @@ void BmpCommonOp::ImgFourierInit(int ImageWidth, int ImageHeight, int BitCount) 
 	m_nImageSize = m_nLineByte*m_nImageHeight;//扩展后整个图像大小
 	m_nImageSizePer = m_nLineBytePer*m_nImageHeight; //扩展后 每个RGB分量的图大小
 	
+	
 
 	//时域 空间域
-	m_TimeDomain = new complex<double>[m_nImageSizePer];
-	m_TimeDomainB = new complex<double>[m_nImageSizePer];
-	m_TimeDomainG = new complex<double>[m_nImageSizePer];
-	m_TimeDomainR = new complex<double>[m_nImageSizePer];
+	if (BitCount==8) {
+		m_TimeDomain = new complex<double>[m_nImageSizePer];
+		m_FrequencyDomain = new complex<double>[m_nImageSizePer];
+	}
 
-	//频域
-	m_FrequencyDomain = new complex<double>[m_nImageSizePer];
-	m_FrequencyDomainB = new complex<double>[m_nImageSizePer];
-	m_FrequencyDomainG = new complex<double>[m_nImageSizePer];
-	m_FrequencyDomainR = new complex<double>[m_nImageSizePer];
+
+	if (BitCount==24) {
+		m_TimeDomainB = new complex<double>[m_nImageSizePer];
+		m_TimeDomainG = new complex<double>[m_nImageSizePer];
+		m_TimeDomainR = new complex<double>[m_nImageSizePer];
+
+		//频域
+
+		m_FrequencyDomainB = new complex<double>[m_nImageSizePer];
+		m_FrequencyDomainG = new complex<double>[m_nImageSizePer];
+		m_FrequencyDomainR = new complex<double>[m_nImageSizePer];
+	}
+	
+	
 
 }
 
@@ -806,45 +816,25 @@ void BmpCommonOp::ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, d
 
 	//Fourier fourier;
 	Fourier *fourier = new Fourier();
+
 	if (!m_bFourierinit) {//尚未img宽高初始化
 		ImgFourierInit(ImageWidth, ImageHeight, BitCount);
 	}
 	
-
-	//滤波处理 采用改进的高斯高通滤波器
-	//生成滤波函数
-	/*double *Filter = new double[m_nImageWidth*m_nImageHeight];
-	int position;
-	double distance;
-	for (int j = 0; j < m_nImageHeight; j++) {
-		for (int i = 0; i < m_nImageWidth; i++) {
-			position = j*m_nImageWidth + i;
-			distance = sqrt((i - m_nImageWidth / 2)*(i - m_nImageWidth / 2) + (j - m_nImageHeight / 2)*(j - m_nImageHeight / 2));
-			Filter[position] = 1 - exp((-c)*pow(distance, 2) / (2 * pow(Sigma, 2)));
-			Filter[position] = (GammaH - GammaL)*Filter[position] + GammaL;
-		}
-	}*/
-
-
-	
 	//8bit BMP 处理
 	if (BitCount == 8) {
-		/*---------------FFT---------------*/
-		double * newImage = new double[m_nImageSize]; //中心化操作 (-1)^(x+y) 出现负数 不能使用BYTE类型
-		memset(newImage, 0, sizeof(double)*m_nImageSize); //初始化
+		/*---------------FFT 扩展图像 对数处理 中心化 复数化---------------*/
+		double newImageTemp = 0;
 		//复制到新图像的左下角即可 剩下为0   
 		for (int j = 0; j < ImageHeight; j++) {
 			for (int i = 0; i <ImageWidth; i++) {
-				//首先ln对数处理
-				*(newImage + j*m_nLineByte + i) = log( *(Image + j*LineByte + i) +1 );
-				*(newImage + j*m_nLineByte + i)  *= pow(-1, i + j); //中心化
+				newImageTemp = log(*(Image + j*LineByte + i) + 1);//首先ln对数处理
+				newImageTemp *= pow(-1, i + j); //中心化
+				m_TimeDomain[j*m_nLineByte + i] = complex<double>(newImageTemp, 0);//图像数据变成复数类型 
 			}
 		}
 
-		//图像数据变成复数类型 
-		for (int i = 0; i<m_nImageSize; i++) {
-			m_TimeDomain[i] = complex<double>(newImage[i], 0);
-		}
+		//FFT2
 		fourier->FFT2(m_TimeDomain, m_FrequencyDomain, m_nImageWidth, m_nImageHeight);	//FFT2 
 	 /*---------------End FFT---------------*/
 
@@ -858,7 +848,7 @@ void BmpCommonOp::ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, d
 				filter = 1 - exp((-c)*pow(distance, 2) / (2 * pow(Sigma, 2)));
 				filter = (GammaH - GammaL)*filter + GammaL;
 
-				m_FrequencyDomain[position] = m_FrequencyDomain[position] * filter; //滤波
+				m_FrequencyDomain[position] *= filter; //滤波
 			}
 		}
 
@@ -885,8 +875,6 @@ void BmpCommonOp::ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, d
 			}
 		}
 
-		//delete[] Filter;
-		delete[] newImage;
 		delete[] TimeDomain;
 		delete[] Temp;
 
@@ -898,36 +886,28 @@ void BmpCommonOp::ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, d
 	 //24bit BMP处理
 	if (BitCount == 24) {
 		/*---------------FFT---------------*/
-		double * newImageB = new double[m_nImageSizePer];
-		double * newImageG = new double[m_nImageSizePer];
-		double * newImageR = new double[m_nImageSizePer];
 
-		memset(newImageB, 0, sizeof(double)*m_nImageSizePer);//初始化
-		memset(newImageG, 0, sizeof(double)*m_nImageSizePer);
-		memset(newImageR, 0, sizeof(double)*m_nImageSizePer);
-
+		double newImageBTemp=0, newImageGTemp=0, newImageRTemp=0;
 		//复制到新图像的左下角即可 剩下为0   
 		for (int j = 0; j < ImageHeight; j++) {
 			for (int i = 0; i <ImageWidth; i++) {
 				//对数处理
-				*(newImageB + j*m_nImageWidth + i) = log(*(Image + j*LineByte + i * 3) +1 ); //B  
-				*(newImageG + j*m_nImageWidth + i) = log( *(Image + j*LineByte + i * 3 + 1) +1); //G  
-				*(newImageR + j*m_nImageWidth + i) = log(*(Image + j*LineByte + i * 3 + 2) +1); //R  
+				newImageBTemp = log(*(Image + j*LineByte + i * 3) +1 ); //B  
+				newImageGTemp = log( *(Image + j*LineByte + i * 3 + 1) +1); //G  
+				newImageRTemp = log(*(Image + j*LineByte + i * 3 + 2) +1); //R  
 
 				//中心化
-				*(newImageB + j*m_nImageWidth + i) *=pow(-1, i + j); //B  
-				*(newImageG + j*m_nImageWidth + i)*=pow(-1, i + j); //G  
-				*(newImageR + j*m_nImageWidth + i) *=pow(-1, i + j); //R  
+				newImageBTemp *= pow(-1, i + j); //B  
+				newImageGTemp *= pow(-1, i + j); //G  
+				newImageRTemp *= pow(-1, i + j); //R  
+				//图像数据变成复数类型 
+				m_TimeDomainB[j*m_nImageWidth + i] = complex<double>(newImageBTemp, 0);
+				m_TimeDomainG[j*m_nImageWidth + i] = complex<double>(newImageGTemp, 0);
+				m_TimeDomainR[j*m_nImageWidth + i] = complex<double>(newImageRTemp, 0);
+
 			}
 		}
 
-		//图像数据变成复数类型 
-		for (int i = 0; i<m_nImageSizePer; i++) {
-			//24bit 彩色图像分为RGB三个通道分别处理 最后整合
-			m_TimeDomainB[i] = complex<double>(newImageB[i], 0);
-			m_TimeDomainG[i] = complex<double>(newImageG[i], 0);
-			m_TimeDomainR[i] = complex<double>(newImageR[i], 0);
-		}
 		//FFT2
 		fourier->FFT2(m_TimeDomainB, m_FrequencyDomainB, m_nImageWidth, m_nImageHeight);  //FFT2  B
 		fourier->FFT2(m_TimeDomainG, m_FrequencyDomainG, m_nImageWidth, m_nImageHeight);  //FFT2  G
@@ -945,9 +925,9 @@ void BmpCommonOp::ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, d
 				filter = 1 - exp((-c)*distance*distance / (2 * Sigma*Sigma ));
 				filter = (GammaH - GammaL)*filter + GammaL;
 
-				m_FrequencyDomainB[position] = m_FrequencyDomainB[position] * filter ;
-				m_FrequencyDomainG[position] = m_FrequencyDomainG[position] * filter ;
-				m_FrequencyDomainR[position] = m_FrequencyDomainR[position] * filter;
+				m_FrequencyDomainB[position]  *= filter ;
+				m_FrequencyDomainG[position]  *= filter ;
+				m_FrequencyDomainR[position]  *= filter;
 				 
 			}
 		}
@@ -984,10 +964,6 @@ void BmpCommonOp::ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, d
 		}
 
 		//内存释放
-		//delete[] Filter;
-		delete[] newImageB;
-		delete[] newImageG;
-		delete[] newImageR;
 		delete[] TimeDomainB;
 		delete[] TimeDomainG;
 		delete[] TimeDomainR;
