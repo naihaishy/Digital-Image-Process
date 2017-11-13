@@ -72,6 +72,9 @@
     <ClInclude Include="FrequencyDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CommonDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ImageProcess.cpp">
@@ -120,6 +123,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="FrequencyDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CommonDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

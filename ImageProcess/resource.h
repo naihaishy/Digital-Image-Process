@@ -14,6 +14,7 @@
 #define IDD_DIALOG_FILTER               325
 #define IDD_DIALOG_HIGHBOOST_FILTER     328
 #define IDD_DIALOG_FREQUENCY            330
+#define IDD_DIALOG_COMMON_PARA          332
 #define IDC_EDIT_CHARACTER              1000
 #define IDC_EDIT_CHARACTERX             1001
 #define IDC_EDIT_CHARACTERY             1002
@@ -36,6 +37,13 @@
 #define IDC_STATIC_GAMMAH               1033
 #define IDC_STATIC_GAMMAL               1034
 #define IDC_STATIC_HOMOC                1035
+#define IDC_EDIT_COMMON_P2              1036
+#define IDC_EDIT_COMMON_P1              1037
+#define IDC_STATIC_COMMON_P1_TEXT       1038
+#define IDC_STATIC_COMMON_P2_TEXT       1039
+#define IDC_STATIC_COMMON_HELPTEXT      1040
+#define IDC_STATIC_COMMON_P3_TEXT       1041
+#define IDC_EDIT_COMMON_P3              1042
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_32773                        32773
@@ -103,14 +111,26 @@
 #define ID_HIGH_FREQUENCY_EMPHASIS      32840
 #define ID_32841                        32841
 #define ID_HOMOFILTER                   32842
+#define ID_32843                        32843
+#define ID_32844                        32844
+#define ID_32845                        32845
+#define ID_32846                        32846
+#define ID_SALT_NOISE                   32847
+#define ID_PEPPER_NOISE                 32848
+#define ID_PEPPERSALT_NOISE             32849
+#define ID_GAUSSIAN_NOISE               32850
+#define ID_32851                        32851
+#define ID_MEDIAN_FILTER2               32852
+#define ID_32853                        32853
+#define ID_CONTRAHARMONIC_MEAN_FILTER   32854
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        332
-#define _APS_NEXT_COMMAND_VALUE         32843
-#define _APS_NEXT_CONTROL_VALUE         1036
+#define _APS_NEXT_RESOURCE_VALUE        334
+#define _APS_NEXT_COMMAND_VALUE         32855
+#define _APS_NEXT_CONTROL_VALUE         1041
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

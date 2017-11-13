@@ -12,14 +12,17 @@ BmpCommonOp::BmpCommonOp()
 
 BmpCommonOp::~BmpCommonOp()
 {
-	delete [] m_TimeDomain;
-	delete[] m_TimeDomainB;
-	delete[] m_TimeDomainG;
-	delete[] m_TimeDomainR;
-	delete[] m_FrequencyDomain;
-	delete[] m_FrequencyDomainB;
-	delete[] m_FrequencyDomainG;
-	delete[] m_FrequencyDomainR;
+	if (m_bFourierinit) {//曾经初始化过 即使用了频域处理
+		delete[] m_TimeDomain;
+		delete[] m_TimeDomainB;
+		delete[] m_TimeDomainG;
+		delete[] m_TimeDomainR;
+		delete[] m_FrequencyDomain;
+		delete[] m_FrequencyDomainB;
+		delete[] m_FrequencyDomainG;
+		delete[] m_FrequencyDomainR;
+	}
+	
 }
 
 
@@ -80,46 +83,44 @@ void BmpCommonOp::WriteBmpDataToFile(LPCSTR FileName, BITMAPFILEHEADER BitmapFil
 *
 * Description:   增加椒盐噪声
 *
-* Input: Image 图像数据 SNR信噪比 ImageSize图像像素大小 ImageWidth ImageHeight 图像宽高 BitCount图像位数 LineByte图像一行所占字节数 
+* Input: Image 图像数据 Rate 噪声比例 noiseChose 0 椒盐噪声 1盐噪声 0 椒噪声
+*		ImageSize图像像素大小 ImageWidth ImageHeight 图像宽高 BitCount图像位数 LineByte图像一行所占字节数 
 *
 * Returns:    
 *
 ************************************************************************/
-BYTE* BmpCommonOp::AddPepperSaltNoise(BYTE * Image, double SNR, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
-
-	int noiseCount = ImageSize*(1 - SNR); //噪声总数
+BYTE* BmpCommonOp::AddPepperSaltNoise(BYTE * Image, double Rate, int noiseChose, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+ 
+	int noiseCount = ImageSize * 8 * Rate / BitCount + 0.5; //噪声总数
+ 
 	BYTE *OutputImage = new BYTE[ImageSize];
 	memcpy(OutputImage, Image, ImageSize);
 	int x = 0, y=0;
 	for (int i = 0; i < noiseCount; i++) {
-		x =  rand() % ImageWidth; //X
+		x = rand() % ImageWidth; //X
 		y = rand() % ImageHeight;//Y
 
 		
-		if (BitCount==8) {//8bit BMP
+		//统一处理 8bit 24bit
+
+		if (noiseChose == 1) {//盐噪声
+			for (int i = 0;i < BitCount / 8;i++)
+				*(OutputImage + y*LineByte + x*BitCount/8 +i ) = 255;
+		}
+		else if (noiseChose == 2) {//椒噪声
+			for (int i = 0;i < BitCount / 8;i++)
+				*(OutputImage + y*LineByte + x*BitCount / 8+i) = 0;
+		}
+		else {//椒盐噪声
 			if (rand() % 2 == 0) { //各有0.5的概率生成 椒(0)或者盐(255)
-				*(OutputImage + y*LineByte + x) = 0;
+				for (int i = 0;i < BitCount / 8;i++) 
+					*(OutputImage + y*LineByte + x*BitCount / 8 + i) = 0;
 			}
 			else {
-				*(OutputImage + y*LineByte + x) = 255;
+				for (int i = 0;i < BitCount / 8;i++) 
+					*(OutputImage + y*LineByte + x*BitCount / 8 + i) = 255;
 			}
-			
-		}//end 8bit BMP
-
-		if (BitCount == 24) {//8bit BMP
-			if (rand() % 2 == 0) { //各有0.5的概率生成 椒(0)或者盐(255)
-				*(OutputImage + y*LineByte + x*3) = 0;
-				*(OutputImage + y*LineByte + x*3+1) = 0;
-				*(OutputImage + y*LineByte + x*3+2) = 0;
-			}
-			else {
-				*(OutputImage + y*LineByte + x * 3) = 255;
-				*(OutputImage + y*LineByte + x * 3 + 1) = 255;
-				*(OutputImage + y*LineByte + x * 3 + 2) = 255;
-			}
-
-		}//end 24bit BMP
-
+		}
 
 	}
 
@@ -974,5 +975,132 @@ void BmpCommonOp::ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, d
 
 
   
+
+}
+
+
+
+/*************************************************************************
+*
+* Function:   GaussianNoise()
+*
+* Description: 高斯噪声
+*
+* Input:  Image 图像数据 Rate 噪声比例 mean 均值 viarance方差 ImageSize图像像素大小 ImageWidth ImageHeight 图像宽高 BitCount图像位数 LineByte图像一行所占字节数 
+*
+* Returns:
+*
+************************************************************************/
+BYTE* BmpCommonOp::GaussianNoise(BYTE * Image, double Rate,double mean, double viarance, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+
+	//生成高斯分布序列
+	int seed = time(0);
+	int stddev = sqrt(viarance);//标准差
+	default_random_engine generator(seed); //引擎
+	normal_distribution<double> gaussiandistribution(mean, stddev); //均值, 标准差 
+ 
+	int noiseCount = ImageSize*8* Rate/ BitCount + 0.5; //噪声总数
+	
+	BYTE *OutputImage = new BYTE[ImageSize];
+	memcpy(OutputImage, Image, ImageSize);
+
+	int temp=0;
+	int x, y;
+	int noise;
+	for (int i = 0; i < noiseCount; i++) {
+		x = rand() % ImageWidth; //X
+		y = rand() % ImageHeight;//Y
+
+		noise = gaussiandistribution(generator) + 0.5; 
+
+		for (int k = 0;k < BitCount / 8;k++) {
+			temp = Image[y*LineByte + x*BitCount / 8 + k] + noise; //RGB三个通道加上相同的噪声
+			temp = min(255, temp);
+			temp = max(0, temp);
+
+			OutputImage[y*LineByte + x*BitCount / 8 + k] = temp;
+		}
+	}
+
+	return OutputImage;
+
+}
+
+
+
+/*************************************************************************
+*
+* Function:   ContraharmonicMeanFilter()
+*
+* Description: 逆谐波均值滤波器
+*
+* Input:  Image 图像数据 m n窗口大小 Q 阶数 ImageSize图像像素大小 ImageWidth ImageHeight 图像宽高 BitCount图像位数 LineByte图像一行所占字节数
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::ContraharmonicMeanFilter(BYTE* Image, BYTE* DstImage, int m , int n, int Q, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+
+	int a = (m - 1) / 2; //m=2a+1
+	int b = (n - 1) / 2;  //n=2b+1
+
+ 
+	memcpy(DstImage, Image, ImageSize); //初始化 将原图数据拷贝到目标图像
+
+ 
+ 
+	for (int y = b; y < ImageHeight - b; y++) { // Y     边缘的不处理
+		for (int x = a; x < ImageWidth - a; x++) {//X   
+
+			//8bit BMP
+			if (BitCount==8) {
+				int currentPosition = y*LineByte + x;//当前处理像素点位置
+				double temp1 = 0, temp2 = 0;
+				//beginsurroudings
+				for (int i = -a; i < a + 1; i++) {//m
+					for (int j = -b; j < b + 1; j++) {//n
+						if ((y + b)*LineByte + (x + a) < ImageSize) { //防止越界  
+							int position = (y + j)*LineByte + x + i; //周围点位置
+							temp1 += pow(Image[position], Q + 1);//分子
+							temp2 += pow(Image[position], Q);//分母
+						}
+					}
+				}//end surroundings
+
+				*(DstImage + currentPosition) = temp1 / temp2;
+			}
+
+
+			//24bit BMP
+			if (BitCount==24) {
+				int currentPosition = y*LineByte + x * 3;//当前处理像素点位置 RGB 
+				double tempr1 = 0, tempr2 = 0, tempg1 = 0, tempg2 = 0, tempb1 = 0, tempb2 = 0;
+				//beginsurroudings
+				for (int i = -a; i < a + 1; i++) {//m
+					for (int j = -b; j < b + 1; j++) {//n
+						if ((y + b)*LineByte + (x + a) * 3 + 2 < ImageSize) {//防止越界  
+							int position_r = (y + j)*LineByte + (x + i) * 3; //周围点RGB
+							int position_g = (y + j)*LineByte + (x + i) * 3 + 1;
+							int position_b = (y + j)*LineByte + (x + i) * 3 + 2;
+							tempr1 += pow(Image[position_r], Q + 1);//R 分子 
+							tempr2 += pow(Image[position_r], Q );//R 分母
+							tempg1 += pow(Image[position_g], Q + 1);//R 分子 
+							tempg2 += pow(Image[position_g], Q );//R 分母
+							tempb1 += pow(Image[position_b], Q + 1);//R 分子 
+							tempb2 += pow(Image[position_b], Q );//R 分母
+
+						}
+
+					}
+				}//end surroundings
+				*(DstImage + currentPosition) = tempr1 /tempr2; //R
+				*(DstImage + currentPosition + 1) = tempg1 / tempg2; //G
+				*(DstImage + currentPosition + 2) = tempb1 / tempb2; //B
+
+			}
+
+
+		}
+	}//end the whole image
 
 }

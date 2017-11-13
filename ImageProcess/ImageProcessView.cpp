@@ -22,7 +22,7 @@
 #include "FilterDlg.h"
 #include "HighBoostFilterDlg.h"
 #include "FrequencyDlg.h"
-
+#include "CommonDlg.h"
 
 
 #ifdef _DEBUG
@@ -66,6 +66,11 @@ BEGIN_MESSAGE_MAP(CImageProcessView, CScrollView)
 	ON_COMMAND(ID_FRQUENCY_HIGHBOOST, &CImageProcessView::OnFrquencyHighboost)
 	ON_COMMAND(ID_HIGH_FREQUENCY_EMPHASIS, &CImageProcessView::OnHighFrequencyEmphasis)
 	ON_COMMAND(ID_HOMOFILTER, &CImageProcessView::OnHomofilter)
+	ON_COMMAND(ID_GAUSSIAN_NOISE, &CImageProcessView::OnGaussianNoise)
+	ON_COMMAND(ID_SALT_NOISE, &CImageProcessView::OnSaltNoise)
+	ON_COMMAND(ID_PEPPERSALT_NOISE, &CImageProcessView::OnPeppersaltNoise)
+	ON_COMMAND(ID_PEPPER_NOISE, &CImageProcessView::OnPepperNoise)
+	ON_COMMAND(ID_CONTRAHARMONIC_MEAN_FILTER, &CImageProcessView::OnContraharmonicMeanFilter)
 END_MESSAGE_MAP()
 
 // CImageProcessView 构造/析构
@@ -1790,7 +1795,7 @@ void CImageProcessView::OnPepperSalt()
 	// TODO: 在此添加命令处理程序代码
 	if (numPicture == 0)
 	{
-		AfxMessageBox(_T("载入图片后才能进行高斯滤波!"));
+		AfxMessageBox(_T("载入图片后才能添加噪声!"));
 		return;
 	}
 	AfxMessageBox(_T("生成的图像请保存，并用于测试对比中值滤波的效果!"));
@@ -1798,7 +1803,7 @@ void CImageProcessView::OnPepperSalt()
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("椒盐噪声效果图"));
 	BmpCommonOp bmpcommonop;
-	BYTE * OutputImage =  bmpcommonop.AddPepperSaltNoise(m_pImage, 0.995, m_nImage, m_nWidth, m_nHeight, bih.biBitCount,  m_nLineByte);
+	BYTE * OutputImage =  bmpcommonop.AddPepperSaltNoise(m_pImage, 0.005, 0, m_nImage, m_nWidth, m_nHeight, bih.biBitCount,  m_nLineByte);
 	USES_CONVERSION;
 	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
 	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
@@ -2104,4 +2109,246 @@ void CImageProcessView::OnHomofilter()
 	} 
 
 	 
+}
+
+
+//******************高斯噪声*****************//
+void CImageProcessView::OnGaussianNoise()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能添加噪声!"));
+		return;
+	}
+
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("高斯噪声效果图"));
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("高斯噪声");
+	dlg.m_sHelpTitle = _T("高斯噪声参数设置");
+	//参数指定
+	dlg.m_P1Text = _T("请输入噪声比例");//参数1 噪声比例
+	dlg.m_P2Text = _T("请输入均值");//参数2 均值
+	dlg.m_P3Text = _T("请输入方差");//参数3 方差
+	//隐藏控件
+
+	//设置默认值
+	dlg.m_P1 = 0.2;
+	dlg.m_P2 = 30;
+	dlg.m_P3 = 400;
+
+
+
+	if (dlg.DoModal() == IDOK) {
+		if (dlg.m_P1<0 || dlg.m_P1 >1) {
+			AfxMessageBox(_T("噪声比例请控制在0-1之间!"));
+			return;
+		}
+		
+		BmpCommonOp bmpcommonop;
+		BYTE * OutputImage = bmpcommonop.GaussianNoise(m_pImage, dlg.m_P1, dlg.m_P2, dlg.m_P3, m_nImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+		USES_CONVERSION;
+		LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+		bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
+		
+		delete[] OutputImage;
+		numPicture = 2;
+		Invalidate();
+	}
+
+}
+
+
+//******************盐噪声*****************//
+void CImageProcessView::OnSaltNoise()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能添加噪声!"));
+		return;
+	}
+
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("盐噪声效果图"));
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("盐噪声");
+	dlg.m_sHelpTitle = _T("盐噪声参数设置");
+	//参数指定
+	dlg.m_P1Text = _T("请输入噪声比例"); //参数1 噪声比例
+	//隐藏控件
+	dlg.m_bShowP2 = false;
+	dlg.m_bShowP3 = false;
+	//设置默认值
+	dlg.m_P1 = 0.15;
+
+	if (dlg.DoModal() == IDOK) {
+		if (dlg.m_P1<0 || dlg.m_P1 >1) {
+			AfxMessageBox(_T("噪声比例请控制在0-1之间!"));
+			return;
+		}
+		double noiseRate = dlg.m_P1;
+		BmpCommonOp bmpcommonop;
+		BYTE * OutputImage = bmpcommonop.AddPepperSaltNoise(m_pImage, noiseRate, 1, m_nImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+		USES_CONVERSION;
+		LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+		bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
+		numPicture = 2;
+		delete[] OutputImage;
+		Invalidate();
+	}
+}
+
+
+//******************椒盐噪声*****************//
+void CImageProcessView::OnPeppersaltNoise()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能添加噪声!"));
+		return;
+	}
+
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("椒盐噪声效果图"));
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("椒盐噪声");
+	dlg.m_sHelpTitle = _T("椒盐噪声参数设置");
+	//参数指定
+	dlg.m_P1Text = _T("请输入噪声比例"); //参数1 噪声比例
+	//隐藏控件
+	dlg.m_bShowP2 = false;
+	dlg.m_bShowP3 = false;
+	//设置默认值
+	dlg.m_P1 = 0.05;
+	 
+	if (dlg.DoModal() == IDOK) {
+		if (dlg.m_P1<0 || dlg.m_P1 >1) {
+			AfxMessageBox(_T("噪声比例请控制在0-1之间!"));
+			return;
+		}
+		double noiseRate = dlg.m_P1;
+		BmpCommonOp bmpcommonop;
+		BYTE * OutputImage = bmpcommonop.AddPepperSaltNoise(m_pImage, noiseRate, 0, m_nImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+		USES_CONVERSION;
+		LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+		bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
+		numPicture = 2;
+		delete[] OutputImage;
+		Invalidate();
+	}
+
+
+	
+	
+	
+}
+
+
+//******************椒噪声*****************//
+void CImageProcessView::OnPepperNoise()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能添加噪声!"));
+		return;
+	}
+
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("椒噪声效果图"));
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("椒噪声");
+	dlg.m_sHelpTitle = _T("椒噪声参数设置");
+	//参数指定
+	dlg.m_P1Text = _T("请输入噪声比例"); //参数1 噪声比例
+	//隐藏控件
+	dlg.m_bShowP2 = false; 
+	dlg.m_bShowP3 = false;
+	//设置默认值
+	dlg.m_P1 = 0.25;
+
+	if (dlg.DoModal() == IDOK) {
+		if (dlg.m_P1<0 || dlg.m_P1 >1) {
+			AfxMessageBox(_T("噪声比例请控制在0-1之间!"));
+			return;
+		}
+		double noiseRate = dlg.m_P1;
+		BmpCommonOp bmpcommonop;
+		BYTE * OutputImage = bmpcommonop.AddPepperSaltNoise(m_pImage, noiseRate, 2, m_nImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+		USES_CONVERSION;
+		LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+		bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
+		numPicture = 2;
+		delete[] OutputImage;
+		Invalidate();
+	}
+}
+
+ 
+
+//******************逆谐波均值滤波器*****************//
+void CImageProcessView::OnContraharmonicMeanFilter()
+{
+	// TODO: 在此添加命令处理程序代码
+
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能滤波!"));
+		return;
+	}
+
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("逆谐波均值滤波效果图"));
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("逆谐波均值滤波");
+	dlg.m_sHelpTitle = _T("逆谐波均值滤波参数设置");
+	//参数指定
+	dlg.m_P1Text = _T("请输入m"); //参数1 m
+	dlg.m_P2Text = _T("请输入n"); //参数2 n
+	dlg.m_P3Text = _T("请输入Q"); //参数3 q
+	//隐藏控件
+ 
+	//设置默认值
+	dlg.m_P1 = 3;
+	dlg.m_P2 = 3;
+	dlg.m_P3 = 0;
+
+	if (dlg.DoModal() == IDOK) {
+		if (dlg.m_P1 <= 0 || dlg.m_P2 <= 0 || int(dlg.m_P1) % 2 == 0 || int(dlg.m_P2) % 2 == 0) {
+			AfxMessageBox(_T("输入m和n必须为正奇数!"), MB_OK, 0);
+			return;
+		}
+		BYTE *OutputImage = new BYTE[m_nImage];
+		BmpCommonOp bmpcommonop;
+		bmpcommonop.ContraharmonicMeanFilter(m_pImage, OutputImage, dlg.m_P1, dlg.m_P2, dlg.m_P3, m_nImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+
+		//保存图像数据到文件
+		USES_CONVERSION;
+		LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+		bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
+		numPicture = 2;
+		delete[] OutputImage;
+		Invalidate();
+	}
+
+ 
+
 }

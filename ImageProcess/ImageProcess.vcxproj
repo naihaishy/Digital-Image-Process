@@ -188,6 +188,7 @@
   <ItemGroup>
     <ClInclude Include="BmpCommonOp.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="CommonDlg.h" />
     <ClInclude Include="FilterDlg.h" />
     <ClInclude Include="Fourier.h" />
     <ClInclude Include="FrequencyDlg.h" />
@@ -208,6 +209,7 @@
   <ItemGroup>
     <ClCompile Include="BmpCommonOp.cpp" />
     <ClCompile Include="Common.cpp" />
+    <ClCompile Include="CommonDlg.cpp" />
     <ClCompile Include="FilterDlg.cpp" />
     <ClCompile Include="Fourier.cpp" />
     <ClCompile Include="FrequencyDlg.cpp" />

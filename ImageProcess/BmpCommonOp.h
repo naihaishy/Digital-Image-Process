@@ -7,6 +7,7 @@ Description:BMP文件的主要操作
 #include "Fourier.h"
 #include <complex>
 #include <math.h>
+#include <random>
 using namespace std;
 
  
@@ -42,7 +43,7 @@ public:
 	//成员函数
 
 	void WriteBmpDataToFile(LPCSTR FileName, BITMAPFILEHEADER BitmapFileHeader, BITMAPINFOHEADER BitmapInfoHeader, RGBQUAD colorTable[256], BYTE * Image, int ImageSize);
-	BYTE* AddPepperSaltNoise(BYTE * Image, double SNR, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte);
+	BYTE* AddPepperSaltNoise(BYTE * Image, double Rate, int noiseChose, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//椒盐噪声
 	void RGB2Gray(BYTE*Image, BYTE* DstImage, int ImageWidth, int ImageHeight, int BitCount, int LineByte);
 	void Normalized(int * Image, BYTE * DstImage, int ImageWidth, int ImageHeight, int BitCount, int LineByte); //图像数据归一化
 	void ShowBmpImage(CDC *cdc,BYTE* Image, int Position_x, int Position_y, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//显示BMP图像
@@ -58,5 +59,10 @@ public:
 	void ImgButterworthPassFilter(BYTE* DstImage, int nOrder,  int nFreq, int HLFlag, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//布特沃斯滤波
 	void ImgGaussianPassFilter(BYTE* DstImage, int Sigma, int HLFlag, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//高斯滤波
 	void ImgHomomorphicFilter(BYTE* Image, BYTE* DstImage, int Sigma, double c, double GammaH, double GammaL, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//同态滤波
+
+	BYTE* GaussianNoise(BYTE * Image, double Rate, double mean, double viarance, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//高斯噪声
+
+	void ContraharmonicMeanFilter(BYTE* Image, BYTE* DstImage, int m, int n, int  q, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//逆谐波均值滤波器
+
 };
 

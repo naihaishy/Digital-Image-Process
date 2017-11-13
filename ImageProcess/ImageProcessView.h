@@ -85,7 +85,8 @@ public:
 	void IFFT();//IFFT
 	void FrequencyDomainFiltering(CString PFFlag, int nFreq, int nOrder, int Sigma);// 频率域滤波
 	void HomomorphicFilter(int Sigma, double c, double GammaH, double GammaL);//同态滤波 
- 
+	
+	
 
 
 	virtual ~CImageProcessView();
@@ -128,6 +129,11 @@ public:
 	afx_msg void OnFrquencyHighboost();
 	afx_msg void OnHighFrequencyEmphasis();
 	afx_msg void OnHomofilter();
+	afx_msg void OnGaussianNoise();
+	afx_msg void OnSaltNoise();
+	afx_msg void OnPeppersaltNoise();
+	afx_msg void OnPepperNoise();
+	afx_msg void OnContraharmonicMeanFilter();
 };
 
 #ifndef _DEBUG  // ImageProcessView.cpp 中的调试版本

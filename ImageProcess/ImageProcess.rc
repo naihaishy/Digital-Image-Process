@@ -184,6 +184,15 @@ BEGIN
         MENUITEM "高提升滤波",                       ID_FRQUENCY_HIGHBOOST
         MENUITEM "高频强调滤波",                      ID_HIGH_FREQUENCY_EMPHASIS
     END
+    POPUP "作业4"
+    BEGIN
+        MENUITEM "盐噪声",                         ID_SALT_NOISE
+        MENUITEM "椒噪声",                         ID_PEPPER_NOISE
+        MENUITEM "椒盐噪声",                        ID_PEPPERSALT_NOISE
+        MENUITEM "高斯噪声",                        ID_GAUSSIAN_NOISE
+        MENUITEM "中值滤波",                        ID_MEDIAN_FILTER
+        MENUITEM "逆谐波均值滤波器",                    ID_CONTRAHARMONIC_MEAN_FILTER
+    END
     POPUP "测试"
     BEGIN
         MENUITEM "Test",                        ID_TEST
@@ -284,7 +293,7 @@ FONT 10, "Microsoft YaHei UI", 400, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "确定",IDOK,198,155,50,14
     PUSHBUTTON      "取消",IDCANCEL,252,155,50,14
-    LTEXT           "本程序目前仅支持8位和24位BMP位图图像 并且有些操作仅限于其中一种",IDC_STATIC,49,32,212,8
+    CTEXT           "本程序目前仅支持8位和24位BMP位图图像\n不支持连续操作,需要先保存，再打开进行操作",IDC_STATIC,24,32,261,39
     CONTROL         "Github",IDC_MFCLINK_GITHUB,"MfcLink",WS_TABSTOP,52,91,60,14
     CONTROL         "Email",IDC_MFCLINK_EMAIL,"MfcLink",WS_TABSTOP,52,103,60,14
 END
@@ -341,6 +350,22 @@ BEGIN
     EDITTEXT        IDC_EDIT_GAMMAL,102,101,76,14,ES_AUTOHSCROLL
     LTEXT           "C",IDC_STATIC_HOMOC,63,123,8,8
     EDITTEXT        IDC_EDIT_HOMOC,102,120,76,14,ES_AUTOHSCROLL
+END
+
+IDD_DIALOG_COMMON_PARA DIALOGEX 0, 0, 309, 176
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 10, "Microsoft YaHei UI", 400, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "确定",IDOK,198,155,50,14
+    PUSHBUTTON      "取消",IDCANCEL,252,155,50,14
+    EDITTEXT        IDC_EDIT_COMMON_P2,116,54,61,14,ES_AUTOHSCROLL
+    CTEXT           "Static",IDC_STATIC_COMMON_P1_TEXT,36,35,53,8
+    CTEXT           "Static",IDC_STATIC_COMMON_P2_TEXT,36,56,53,8
+    EDITTEXT        IDC_EDIT_COMMON_P1,116,33,61,14,ES_AUTOHSCROLL
+    CTEXT           "Static",IDC_STATIC_COMMON_HELPTEXT,84,16,114,8
+    CTEXT           "Static",IDC_STATIC_COMMON_P3_TEXT,35,77,53,8
+    EDITTEXT        IDC_EDIT_COMMON_P3,115,74,61,14,ES_AUTOHSCROLL
 END
 
 
@@ -462,6 +487,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 169
     END
+
+    IDD_DIALOG_COMMON_PARA, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 169
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -512,6 +545,11 @@ BEGIN
 END
 
 IDD_DIALOG_FREQUENCY AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG_COMMON_PARA AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
