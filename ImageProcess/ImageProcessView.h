@@ -62,7 +62,6 @@ public:
 	int m_nHistogramColor[256];  //统计值
 	double m_dHistogramColor[256]; //概率密度 PDF
  
-	
 
 
 
@@ -85,6 +84,8 @@ public:
 	void IFFT();//IFFT
 	void FrequencyDomainFiltering(CString PFFlag, int nFreq, int nOrder, int Sigma);// 频率域滤波
 	void HomomorphicFilter(int Sigma, double c, double GammaH, double GammaL);//同态滤波 
+	void AlphaTrimmedMeanFilter(int m, int n, int d);//修正的阿尔法均值滤波
+	void AdaptiveMedianFilter(int Smax);//自适应均值滤波
 	
 	
 
@@ -134,6 +135,11 @@ public:
 	afx_msg void OnPeppersaltNoise();
 	afx_msg void OnPepperNoise();
 	afx_msg void OnContraharmonicMeanFilter();
+	afx_msg void OnRepostIssue();
+	afx_msg void OnImproveSetting();
+	afx_msg void OnUserLogin();
+	afx_msg void OnAlphaTrimmedMeanFilter();
+	afx_msg void OnAdaptiveMedianFilter();
 };
 
 #ifndef _DEBUG  // ImageProcessView.cpp 中的调试版本

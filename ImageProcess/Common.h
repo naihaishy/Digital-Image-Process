@@ -12,5 +12,7 @@ public:
 	//void NormalDistribution();//正态分布
 
 	void GetConfig();//获取软件配置信息
+	void GetHttpBody(CString Host, CString Url, BYTE *Buffer);
+ 
 };
 

@@ -1104,3 +1104,71 @@ void BmpCommonOp::ContraharmonicMeanFilter(BYTE* Image, BYTE* DstImage, int m , 
 	}//end the whole image
 
 }
+
+
+
+/*************************************************************************
+*
+* Function:   FilterEdgeProcess()
+*
+* Description: 滤波的边缘处理
+*
+* Input:  Image 图像数据 a宽度边缘大小 b高度边缘大小 ImageWidth ImageHeight 图像宽高 BitCount图像位数 LineByte图像一行所占字节数
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::FilterEdgeProcess(BYTE* Image, BYTE* DstImage, int a, int b, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+	//边缘处理 四个边界 直接取附近值一组处理过的像素值
+	 
+
+	if (BitCount==8) {
+		//左右 相同的高度
+		for (int j = 0; j < ImageHeight; j++) {//Y
+			for (int i = 0; i < a; i++) {//左
+				*(DstImage + j*LineByte + i) = *(Image + j*LineByte + i + a);
+			}
+			for (int i = ImageWidth - a; i < ImageWidth; i++) {//右
+				*(DstImage + j*LineByte + i) = *(Image + j*LineByte + i - a);
+			}
+		}
+		//上下 相同的宽度
+		for (int i = 0; i < ImageWidth; i++) {
+			for (int j = ImageHeight - b; j < ImageHeight; j++) {//上
+				*(DstImage + j*LineByte + i) = *(Image + (j - b)*LineByte + i);
+			}
+			for (int j = 0; j < b; j++) {//下
+				*(DstImage + j*LineByte + i) = *(Image + (j + b)*LineByte + i);
+			}
+		}
+	}
+
+	if (BitCount==24) {
+		for (int j = 0; j < ImageHeight; j++) {
+			for (int i = 0; i < a; i++) {//左
+				*(DstImage + j*LineByte + i * 3) = *(Image + j*LineByte + i * 3 + a);
+				*(DstImage + j*LineByte + i * 3 + 1) = *(Image + j*LineByte + i * 3 + 1 + a);
+				*(DstImage + j*LineByte + i * 3 + 2) = *(Image + j*LineByte + i * 3 + 2 + a);
+			}
+			for (int i = ImageWidth - a; i < ImageWidth; i++) {//右
+				*(DstImage + j*LineByte + i * 3) = *(Image + j*LineByte + ImageWidth + i * 3 - a);
+				*(DstImage + j*LineByte + i * 3 + 1) = *(Image + j*LineByte + ImageWidth + i * 3 + 1 - a);
+				*(DstImage + j*LineByte + i * 3 + 2) = *(Image + j*LineByte + ImageWidth + i * 3 + 2 - a);
+			}
+		}
+		//上下 相同的宽度
+		for (int i = 0; i < ImageWidth; i++) {
+			for (int j = ImageHeight - b; j < ImageHeight; j++) {//上
+				*(DstImage + j*LineByte + i * 3) = *(Image + (j - b)*LineByte + i * 3);
+				*(DstImage + j*LineByte + i * 3 + 1) = *(Image + (j - b)*LineByte + i * 3 + 1);
+				*(DstImage + j*LineByte + i * 3 + 2) = *(Image + (j - b)*LineByte + i * 3 + 2);
+			}
+			for (int j = 0; j < b; j++) {//下
+				*(DstImage + j*LineByte + i * 3) = *(Image + (j + b)*LineByte + i * 3);
+				*(DstImage + j*LineByte + i * 3 + 1) = *(Image + (j + b)*LineByte + i * 3 + 1);
+				*(DstImage + j*LineByte + i * 3 + 2) = *(Image + (j + b)*LineByte + i * 3 + 2);
+			}
+		}
+	}
+	
+}

@@ -15,6 +15,9 @@
 #define IDD_DIALOG_HIGHBOOST_FILTER     328
 #define IDD_DIALOG_FREQUENCY            330
 #define IDD_DIALOG_COMMON_PARA          332
+#define IDD_DIALOG_IMPROVE              334
+#define IDD_DIALOG_USER_LOGIN           336
+#define IDD_DIALOG_USER_CENTER          338
 #define IDC_EDIT_CHARACTER              1000
 #define IDC_EDIT_CHARACTERX             1001
 #define IDC_EDIT_CHARACTERY             1002
@@ -23,6 +26,7 @@
 #define IDC_EDIT_CHH                    1004
 #define IDC_EDIT_LINEAR_N               1004
 #define IDC_EDIT_GAMMAL                 1004
+#define IDC_EDIT_USER_LOGIIN_PA         1004
 #define IDC_EDIT_ROTATEANGLE            1005
 #define IDC_EDIT_HOMOC                  1005
 #define IDC_MFCLINK_GITHUB              1015
@@ -44,6 +48,15 @@
 #define IDC_STATIC_COMMON_HELPTEXT      1040
 #define IDC_STATIC_COMMON_P3_TEXT       1041
 #define IDC_EDIT_COMMON_P3              1042
+#define IDC_RADIO_IMPROVE_YES           1044
+#define IDC_RADIO_IMPROVE_NO            1045
+#define IDC_BUTTON_LOGIN                1047
+#define IDC_BUTTON_REGISTER             1048
+#define IDC_EDIT_USER_LOGIIN_EM         1049
+#define IDC_STATIC_PICUSER              1050
+#define IDC_STATIC_USER_NAME            1051
+#define IDC_STATIC_USER_EMAIL           1052
+#define IDC_IPADDRESS_USER_LOGIN        1053
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_32773                        32773
@@ -123,14 +136,28 @@
 #define ID_MEDIAN_FILTER2               32852
 #define ID_32853                        32853
 #define ID_CONTRAHARMONIC_MEAN_FILTER   32854
+#define ID_32855                        32855
+#define ID_32856                        32856
+#define ID_32857                        32857
+#define ID_32858                        32858
+#define ID_REPOST_ISSUE                 32859
+#define ID_POST_ADVICE                  32861
+#define ID_IMPROVE_SETTING              32862
+#define ID_32863                        32863
+#define ID_USER_LOGIN                   32864
+#define ID_32865                        32865
+#define ID_32866                        32866
+#define ID_ALPHA_TRIMMED_MEAN           32867
+#define ID_ALPHA_TRIMMED_MEAN_FILTER    32868
+#define ID_ADAPTIVE_MEDIAN_FILTER       32869
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        334
-#define _APS_NEXT_COMMAND_VALUE         32855
-#define _APS_NEXT_CONTROL_VALUE         1041
+#define _APS_NEXT_RESOURCE_VALUE        340
+#define _APS_NEXT_COMMAND_VALUE         32870
+#define _APS_NEXT_CONTROL_VALUE         1054
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

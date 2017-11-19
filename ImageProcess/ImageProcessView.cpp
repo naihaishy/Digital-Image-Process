@@ -23,6 +23,8 @@
 #include "HighBoostFilterDlg.h"
 #include "FrequencyDlg.h"
 #include "CommonDlg.h"
+#include "ImproveDlg.h"
+//#include "UserDlg.h"
 
 
 #ifdef _DEBUG
@@ -71,6 +73,11 @@ BEGIN_MESSAGE_MAP(CImageProcessView, CScrollView)
 	ON_COMMAND(ID_PEPPERSALT_NOISE, &CImageProcessView::OnPeppersaltNoise)
 	ON_COMMAND(ID_PEPPER_NOISE, &CImageProcessView::OnPepperNoise)
 	ON_COMMAND(ID_CONTRAHARMONIC_MEAN_FILTER, &CImageProcessView::OnContraharmonicMeanFilter)
+	ON_COMMAND(ID_REPOST_ISSUE, &CImageProcessView::OnRepostIssue)
+	ON_COMMAND(ID_IMPROVE_SETTING, &CImageProcessView::OnImproveSetting)
+	ON_COMMAND(ID_USER_LOGIN, &CImageProcessView::OnUserLogin)
+	ON_COMMAND(ID_ALPHA_TRIMMED_MEAN_FILTER, &CImageProcessView::OnAlphaTrimmedMeanFilter)
+	ON_COMMAND(ID_ADAPTIVE_MEDIAN_FILTER, &CImageProcessView::OnAdaptiveMedianFilter)
 END_MESSAGE_MAP()
 
 // CImageProcessView 构造/析构
@@ -78,6 +85,8 @@ END_MESSAGE_MAP()
 CImageProcessView::CImageProcessView()
 {
 	// TODO: 在此处添加构造代码
+	
+	
 
 }
 
@@ -166,7 +175,6 @@ CImageProcessDoc* CImageProcessView::GetDocument() const // 非调试版本是�
 int numPicture = 0;
 CString flag  = _T("normal"); //标志位
 int boolFourierinit = 0;//傅里叶操作初始化标志
-
 
 //****************显示BMP格式图片****************//
 void CImageProcessView::ShowBitmap(CDC *pDC, CString BmpName)
@@ -1145,6 +1153,9 @@ void CImageProcessView::MedianFilter(int m,int n) { //m x 宽  n y高
 	USES_CONVERSION;
 	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
 	BmpCommonOp bmpcommomop;
+	//边缘处理
+	bmpcommomop.FilterEdgeProcess(OutputImage, OutputImage, a, b, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+
 	bmpcommomop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
 
 
@@ -1453,6 +1464,216 @@ void CImageProcessView::HomomorphicFilter(int Sigma, double c, double GammaH, do
 	Invalidate();
 }
 
+
+
+
+//******************修正的阿尔法均值滤波*****************//
+void CImageProcessView::AlphaTrimmedMeanFilter(int m, int n, int d) {
+
+	BYTE * OutputImage = new BYTE[m_nImage];
+	memcpy(OutputImage, m_pImage, m_nImage); //将原图数据拷贝到目标图像
+
+	Common common; //实例化common对象 内涵常用操作函数
+
+	int a = (m - 1) / 2; //m=2a+1
+	int b = (n - 1) / 2;  //n=2b+1
+	int currentPosition; //当前处理像素点位置
+	//8bit BMP 
+	if (bih.biBitCount == 8) {
+
+		int *arr = new int[m*n];
+		memset(arr, 0, sizeof(int)*m*n);
+
+		for (int y = b; y < m_nHeight - b; y++) {//Y  边缘的不处理
+			for (int x = a; x < m_nWidth - a; x++) {//X
+				currentPosition = y*m_nLineByte + x;
+				int k = 0;
+				int sum = 0;
+				  
+				for (int i = -a; i < a + 1; i++) {//m
+					for (int j = -b; j < b + 1; j++) {//n
+						int position = (y + j)*m_nLineByte + x + i; //周围点位置
+						arr[k] = *(m_pImage + position);
+						k++;
+					}
+				}//获取周围点像素数组完毕
+				//排序
+				common.InsertSort(arr, m*n);//得到排序好的数组
+
+				//减去d个点 前d/2和后d/2 计算中间部分均值
+				for (int kk = d; kk < m*n - d; kk++) {
+					sum += arr[kk];//和
+				}
+
+				*(OutputImage + currentPosition) = sum / (m*n - 2*d) + 0.5;//四舍五入
+				
+			}
+		}
+
+		 
+	}//end 8bit
+
+	 //24bit BMP
+	if (bih.biBitCount == 24) {
+
+		int *arr_r = new int[m*n];
+		int *arr_g = new int[m*n];
+		int *arr_b = new int[m*n];
+		memset(arr_r, 0, sizeof(int)*m*n);
+		memset(arr_g, 0, sizeof(int)*m*n);
+		memset(arr_b, 0, sizeof(int)*m*n);
+
+		for (int y = b; y <= m_nHeight - b; y++) {//Y  边缘的不处理
+			for (int x = a; x <= m_nWidth - a; x++) {//X
+				currentPosition = y*m_nLineByte + x * 3;
+				int k = 0;
+				int sum_r = 0, sum_g = 0, sum_b = 0;
+				if ((y + b)*m_nLineByte + (x + a) * 3 + 2 < m_nImage) {//防止越界
+					for (int i = -a; i < a + 1; i++) {//m
+						for (int j = -b; j < b + 1; j++) {//n
+							int position_r = (y + j)*m_nLineByte + (x + i) * 3;
+							int position_g = (y + j)*m_nLineByte + (x + i) * 3 + 1;
+							int position_b = (y + j)*m_nLineByte + (x + i) * 3 + 2;
+							arr_r[k] = *(m_pImage + position_r); //R
+							arr_g[k] = *(m_pImage + position_g); //G
+							arr_b[k] = *(m_pImage + position_b); //B
+							k++;
+						}
+					}//获取周围点像素数组完毕
+					 //排序
+					common.InsertSort(arr_r, m*n);
+					common.InsertSort(arr_g, m*n);
+					common.InsertSort(arr_b, m*n);
+					//减去d个点 前d/2和后d/2 计算中间部分均值
+					for (int l = d / 2; l < m*n - d / 2; l++) {
+						sum_r += arr_r[l];
+						sum_g += arr_g[l];
+						sum_b += arr_b[l];
+					}
+
+
+					*(OutputImage + currentPosition) = sum_r / (m*n - d) + 0.5; //R
+					*(OutputImage + currentPosition + 1) = sum_g / (m*n - d) + 0.5; //G
+					*(OutputImage + currentPosition + 2) = sum_b / (m*n - d) + 0.5; //B
+
+
+				}//end if
+
+			}
+		}
+
+		
+ 
+	}
+
+	BmpCommonOp  bmpcommonop;
+	//边缘处理
+	bmpcommonop.FilterEdgeProcess(OutputImage, OutputImage, a, b, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+
+	//将BMP图像数据写入文件
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	//BmpCommonOp bmpcommonop;
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
+
+
+	delete[] OutputImage;
+	numPicture = 2;
+	Invalidate();
+
+
+}
+
+
+//**************自适应中值滤波****************//
+void CImageProcessView::AdaptiveMedianFilter(int Smax) {
+
+	BYTE * OutputImage = new BYTE[m_nImage];
+	memcpy(OutputImage, m_pImage, m_nImage); //将原图数据拷贝到目标图像  
+	Common common; //实例化common对象 内涵常用操作函数
+ 
+	int currentPosition; //当前处理像素点位置
+	int surroundPosition;//周围点位置
+	int edge = (Smax - 1) / 2;
+	
+
+
+	//8bit BMP 
+	if (bih.biBitCount == 8) {
+
+		for (int y = edge; y < m_nHeight-edge;y++) {//Y
+			for (int x = edge; x < m_nWidth-edge;x++) {//X
+				int m = 3;//初始窗口大小为3x3 
+				currentPosition = y*m_nLineByte + x;//当前点
+				while (m < Smax) {
+					int a = (m - 1) / 2;//m=2a+1
+					int *arr = new int[m*m];//存放窗口像素值
+					memset(arr, 0, sizeof(int)*m*m);//初始化为0
+					int k = 0;
+					for (int i = -a; i < a + 1; i++) {//m
+						for (int j = -a; j < a + 1; j++) {//n
+							surroundPosition = (y + j)*m_nLineByte + x + i; //周围点位置
+							arr[k] = *(m_pImage + surroundPosition);
+							k++;
+						}
+					}//获取周围点像素数组完毕
+					//排序
+					common.InsertSort(arr, m*m);//得到排序好的数组 从小到大
+
+					int median = arr[(m*m-1)/2];//得到中值
+					int min = arr[0];//最小
+					int max = arr[m*m - 1];//最大
+					int pix = *(m_pImage + currentPosition);//当前像素值
+					//A
+					if (median>min && median<max) {//中值既不是最大也不是最小
+						//B
+						if (pix>min && pix<max) {//当前像素既不是最大也不是最小
+							*(OutputImage + currentPosition) = pix;
+						}
+						else {//输出中值
+							*(OutputImage + currentPosition) = median;
+						}
+						//释放内存
+						delete[] arr;
+						break;//跳出循环 已经不需要增加窗口的循环处理了
+					}
+					//增加窗口大小
+					m += 2;//奇数
+
+				}//end while
+
+			}
+		}
+ 
+		 
+
+	}//end 8bit
+
+	//24bit
+	if (bih.biBitCount == 24) {
+		
+	}//end 24bit
+
+
+
+
+
+	 //将BMP图像数据写入文件
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	BmpCommonOp bmpcommomop;
+
+	//边缘处理
+	bmpcommomop.FilterEdgeProcess(OutputImage, OutputImage, edge, edge, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+
+	bmpcommomop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, OutputImage, m_nImage);
+
+
+	delete[] OutputImage;
+	numPicture = 2;
+	Invalidate();
+
+}
 
 
 
@@ -2300,7 +2521,6 @@ void CImageProcessView::OnPepperNoise()
 }
 
  
-
 //******************逆谐波均值滤波器*****************//
 void CImageProcessView::OnContraharmonicMeanFilter()
 {
@@ -2352,3 +2572,154 @@ void CImageProcessView::OnContraharmonicMeanFilter()
  
 
 }
+
+
+//******************修正的阿尔法均值滤波*****************//
+void CImageProcessView::OnAlphaTrimmedMeanFilter()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行修正的阿尔法均值滤波!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("修正的阿尔法均值滤波效果图"));
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("修正的阿尔法均值滤波");
+	dlg.m_sHelpTitle = _T("修正的阿尔法均值滤波参数设置");
+	//参数指定
+	dlg.m_P1Text = _T("请输入m"); //参数1 m
+	dlg.m_P2Text = _T("请输入n"); //参数2 n
+	dlg.m_P3Text = _T("请输入2d"); //参数3 d
+	//隐藏控件
+
+	//设置默认值
+	dlg.m_P1 = 5;//m
+	dlg.m_P2 = 5;//n
+	dlg.m_P3 = 5;//d
+
+	if (dlg.DoModal() == IDOK) {
+
+		if (dlg.m_P1 <= 0 || dlg.m_P2 <= 0 || int(dlg.m_P1) % 2 == 0 || int(dlg.m_P2) % 2 == 0) {
+			AfxMessageBox(_T("输入m和n必须为正奇数!"), MB_OK, 0);
+			return;
+		}
+		if (dlg.m_P3<0 || dlg.m_P3 > int(dlg.m_P1*dlg.m_P2)) {
+			AfxMessageBox(_T("输入d请在0-m*n之间"));
+			return;
+		}
+
+		AlphaTrimmedMeanFilter(dlg.m_P1, dlg.m_P2, dlg.m_P3);//
+
+	}
+}
+
+
+//******************自适应中值滤波*****************//
+void CImageProcessView::OnAdaptiveMedianFilter()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行自适应中值滤波!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("自适应中值滤波效果图"));
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("自适应中值滤波");
+	dlg.m_sHelpTitle = _T("自适应中值滤波参数设置");
+	//参数指定
+	dlg.m_P1Text = _T("请输入s"); //参数1 s
+	//隐藏控件
+	dlg.m_bShowP2 = false;
+	dlg.m_bShowP3 = false;
+	//设置默认值
+	dlg.m_P1 = 7;//s
+
+	if (dlg.DoModal() == IDOK) {
+
+		if (dlg.m_P1<0 || dlg.m_P1 > m_nWidth || dlg.m_P1>m_nHeight){
+			AfxMessageBox(_T("输入S为正整数并且不得大于图像高宽!"));
+			return;
+		}
+		if(int(dlg.m_P1)/2 == 0) {
+			AfxMessageBox(_T("输入S为奇数!"));
+			return;
+		}
+
+		AdaptiveMedianFilter(int(dlg.m_P1));
+
+	}
+}
+
+
+
+
+
+/*----------------------------------------------------------------------
+								软件设置
+------------------------------------------------------------------------*/
+
+void CImageProcessView::OnRepostIssue()
+{
+	// TODO: 在此添加命令处理程序代码
+
+}
+
+
+void CImageProcessView::OnImproveSetting()
+{
+	// TODO: 在此添加命令处理程序代码
+	CImproveDlg dlg;
+	
+	if (dlg.DoModal() == IDOK) {//写入ini文件
+		if (dlg.m_bImproveYes) {
+			if (WritePrivateProfileString(_T("Setting"), _T("Improve"), _T("no"), _T("./config.ini"))) 
+				AfxMessageBox(_T("保存成功!"), MB_OK, 0);
+		}
+		else {
+			if (WritePrivateProfileString(_T("Setting"), _T("Improve"), _T("yes"), _T("./config.ini")))
+				AfxMessageBox(_T("保存成功!"), MB_OK, 0);
+		}
+	}
+}
+
+
+
+void CImageProcessView::OnUserLogin()
+{
+	// TODO: 在此添加命令处理程序代码
+	
+	//CString loginInfo, loginTime;
+	//bool m_bUserlogin;
+	//GetPrivateProfileString(_T("Information"), _T("Login"), _T("no"), loginInfo.GetBuffer(12), 12, _T("./config.ini"));
+	//GetPrivateProfileString(_T("Information"), _T("LoginTime"), _T("0"), loginTime.GetBuffer(20), 20, _T("./config.ini"));
+	// 
+	//USES_CONVERSION;
+	//LPCSTR loginTimeStr = (LPCSTR)T2A(loginTime);
+	//int oldlogin= atoi(loginTimeStr);
+	//int current = time(0);
+
+	////30分钟有效期
+	//if (loginInfo == _T("yes")  && (current - oldlogin) < 1800 )
+	//	m_bUserlogin = 1;
+	//else
+	//	m_bUserlogin = 0;
+
+
+	//CUserDlg dlg;
+	//dlg.m_Userlogin = m_bUserlogin;//传递用户登录信息
+	//dlg.DoModal();
+
+}
+
+
+

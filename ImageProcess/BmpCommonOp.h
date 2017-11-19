@@ -64,5 +64,7 @@ public:
 
 	void ContraharmonicMeanFilter(BYTE* Image, BYTE* DstImage, int m, int n, int  q, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//逆谐波均值滤波器
 
+	void FilterEdgeProcess(BYTE* Image,BYTE* DstImage,int a,int b, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//滤波的边缘处理
+
 };
 

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Common.h"
-
+#include <afxinet.h> //Http
 
 Common::Common()
 {
@@ -34,7 +34,6 @@ void Common::InsertSort(int a[], int n) {
 		}
 	}
 }
-
 
 
 
@@ -84,6 +83,8 @@ void Common::CStringToArray(CString string, float *arr) {
 	}*/
 	 
 }
+
+
 
 /*************************************************************************
 * Function:   SplitString()
@@ -165,3 +166,75 @@ float * Common::SplitString(CString str, CString split)
 void Common::GetConfig() {
 
 }
+
+
+
+/*************************************************************************
+* Function:   SetConfig()
+*
+* Description:    获取软件配置信息
+*
+* Input:
+*
+* Returns:
+************************************************************************/
+//void Common::SetConfig(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString) {
+//	CFileFind finder;   //查找是否存在ini文件
+//	BOOL ifFind = finder.FindFile(_T("config.ini"));
+//	CString configIni = _T("config.ini");
+//	//
+//	if (!ifFind)	{//不存在，则生成一个新的默认设置的ini文件 
+//		WritePrivateProfileStringW(_T("xwreg"), _T("IP"), _T("10.210.0.9"), configIni);
+// 
+//	}
+//	else {
+//		CString strObject;
+//		 
+//		WritePrivateProfileString(_T("xwreg"), _T("IP"), strObject, _T("d:\\qzze.ini"));
+//	}
+//
+//
+//
+//}
+
+
+
+/*************************************************************************
+* Function:   GetHttpBody()
+*
+* Description:    获取HTTP请求
+*
+* Input:
+*
+* Returns:
+************************************************************************/
+void Common::GetHttpBody(CString requestHost, CString requestUrl, BYTE *Buffer) {
+	//通过 http GET 协议
+	CInternetSession session;
+	session.SetOption(INTERNET_OPTION_CONNECT_TIMEOUT, 1000 * 20);
+	session.SetOption(INTERNET_OPTION_CONNECT_BACKOFF, 1000);
+	session.SetOption(INTERNET_OPTION_CONNECT_RETRIES, 1);
+
+	CHttpConnection* pConnection = session.GetHttpConnection(requestHost, (INTERNET_PORT)80);
+	CHttpFile* pFile = pConnection->OpenRequest(CHttpConnection::HTTP_VERB_GET, requestUrl);
+	CString szHeaders = _T("Accept: text/plain, text/html, text/htm\r\n");
+	pFile->AddRequestHeaders(szHeaders);//请求头
+	pFile->SendRequest();//发送请求
+	DWORD dwRet;
+	pFile->QueryInfoStatusCode(dwRet);
+
+	if (dwRet = HTTP_STATUS_OK) {
+		pFile->Read((void *)Buffer, sizeof(Buffer));
+	}
+	else {
+		CString errText;
+		errText.Format(L"POST出错，错误码：%d", dwRet);
+		AfxMessageBox(errText);
+	}
+		
+	session.Close();
+	pFile->Close();
+	delete pFile;
+}
+
+ 
