@@ -26,10 +26,12 @@ public:
 	double m_P1;
 	double m_P2;
 	double m_P3;
+	CString m_P4;
 
 	CString m_P1Text;
 	CString m_P2Text;
-//	CString m_P3Text;
+	CString m_P3Text;
+	CString m_P4Text;
 
 	CString m_sWindowTitle;
 	CString m_sHelpTitle;
@@ -37,6 +39,7 @@ public:
 	bool m_bShowP1;
 	bool m_bShowP2;
 	bool m_bShowP3;
+	bool m_bShowP4;
 
 
 
@@ -45,6 +48,5 @@ public:
 
 	
 	virtual BOOL OnInitDialog();
-	
-	CString m_P3Text;
+ 
 };

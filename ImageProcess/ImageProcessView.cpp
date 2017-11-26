@@ -12,19 +12,14 @@
 
 #include "ImageProcessDoc.h"
 #include "ImageProcessView.h"
-#include "WriteCharDlg.h"
-#include "InterpolationDlg.h"
-#include "RotateDlg.h"
 #include "HelpDlg.h"
 #include "Common.h"
 #include "BmpCommonOp.h"
 #include "HistogramDlg.h"
-#include "FilterDlg.h"
-#include "HighBoostFilterDlg.h"
-#include "FrequencyDlg.h"
 #include "CommonDlg.h"
 #include "ImproveDlg.h"
 //#include "UserDlg.h"
+#include <afxinet.h> //Http
 
 
 #ifdef _DEBUG
@@ -78,6 +73,8 @@ BEGIN_MESSAGE_MAP(CImageProcessView, CScrollView)
 	ON_COMMAND(ID_USER_LOGIN, &CImageProcessView::OnUserLogin)
 	ON_COMMAND(ID_ALPHA_TRIMMED_MEAN_FILTER, &CImageProcessView::OnAlphaTrimmedMeanFilter)
 	ON_COMMAND(ID_ADAPTIVE_MEDIAN_FILTER, &CImageProcessView::OnAdaptiveMedianFilter)
+	ON_COMMAND(ID_DOWNLOAD_TEST_IMAGES, &CImageProcessView::OnDownloadTestImages)
+	ON_COMMAND(ID_GRAY, &CImageProcessView::OnGray)
 END_MESSAGE_MAP()
 
 // CImageProcessView 构造/析构
@@ -252,7 +249,7 @@ void CImageProcessView::ShowBitmap(CDC *pDC, CString BmpName)
 
 		//设置字体信息
 		CFont font;
-		font.CreateFont(20, 20, 0, 0, 200, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_MODERN, _T("Times New Roman"));
+		font.CreateFont(20, 20, 0, 0, 200, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_MODERN, _T("Microsoft YaHei"));
 		dcBmp.SetTextColor(RGB(255, 0, 0));
 		dcBmp.SelectObject(&font); //将字体属性选入DC
 		dcBmp.SetBkMode(TRANSPARENT); //背景透明
@@ -1180,7 +1177,8 @@ void CImageProcessView::GaussFilter(int m) { //这里仅使用3x3的模板 高�
 	}
 	if (m == 5) {
 		int gaussMask[] = { 1, 4,7,4,1,4,16,26,16,4,7,26,41,26,7,4,16,26,16,4,1,4,7,4,1 };
-		TemplateFilter(m_pImage, OutputImage, gaussMask, 3, 3);
+
+		TemplateFilter(m_pImage, OutputImage, gaussMask, 5, 5);
 		delete[] OutputImage;
 		numPicture = 2;
 		Invalidate();
@@ -1605,7 +1603,7 @@ void CImageProcessView::AdaptiveMedianFilter(int Smax) {
 			for (int x = edge; x < m_nWidth-edge;x++) {//X
 				int m = 3;//初始窗口大小为3x3 
 				currentPosition = y*m_nLineByte + x;//当前点
-				while (m < Smax) {
+				while (m <= Smax) {
 					int a = (m - 1) / 2;//m=2a+1
 					int *arr = new int[m*m];//存放窗口像素值
 					memset(arr, 0, sizeof(int)*m*m);//初始化为0
@@ -1619,7 +1617,6 @@ void CImageProcessView::AdaptiveMedianFilter(int Smax) {
 					}//获取周围点像素数组完毕
 					//排序
 					common.InsertSort(arr, m*m);//得到排序好的数组 从小到大
-
 					int median = arr[(m*m-1)/2];//得到中值
 					int min = arr[0];//最小
 					int max = arr[m*m - 1];//最大
@@ -1797,29 +1794,43 @@ void CImageProcessView::OnWriteCharcter()
 	m_pDrawText.RemoveAll();//清除
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("写入字符效果图"));
-	//定义写入字符输入对话框
-	CWriteCharDlg dlg;
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("写入字符");
+	dlg.m_sHelpTitle = _T("写入字符参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	dlg.m_bShowP2 = true;
+	dlg.m_bShowP4 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入X坐标"); //参数1 xPosition 
+	dlg.m_P2Text = _T("请输入Y坐标"); //参数2 yPosition 
+	dlg.m_P4Text = _T("请输入字符串"); //参数3 char 
+	//设置默认值
+	dlg.m_P1 = 1;
+	dlg.m_P2 = 1;
+	dlg.m_P4 = _T("U");
+
 	//显示对话框
 	if (dlg.DoModal() == IDOK ) 
 	{
-	 
-
-		if (dlg.m_xPosition <= 0 || dlg.m_yPosition <= 0) {
+		if (int(dlg.m_P1) <= 0 || int(dlg.m_P2) <= 0) {
 			AfxMessageBox(_T("输入坐标必须为正整数!"), MB_OK, 0);
 			return;
 		}
-		if (dlg.m_xPosition > m_nWidth || dlg.m_yPosition > m_nHeight) {
+		if (dlg.m_P1 > m_nWidth || dlg.m_P2 > m_nHeight) {
 			AfxMessageBox(_T("输入坐标不能为超过原图长宽!"), MB_OK, 0);
 			return;
 		}
 
-		if (dlg.m_wCharacter.GetLength()==0) {
+		if (dlg.m_P4.GetLength()==0) {
 			AfxMessageBox(_T("写入字符不得为空!"), MB_OK, 0);
 			return;
 		}
 
 		CDC *pDc = GetDC();	 //获取当前DC
-		WriteCharOnImage(pDc, BmpName, dlg.m_wCharacter, dlg.m_xPosition, dlg.m_yPosition);
+		WriteCharOnImage(pDc, BmpName, dlg.m_P4, int(dlg.m_P1), int(dlg.m_P2));
 
 	}
 
@@ -1841,17 +1852,28 @@ void CImageProcessView::OnBilinearInterpolation()
 	m_pDrawText.RemoveAll();//清除
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("双线性内插效果图"));
-	//显示对话框
-	CInterpolationDlg dlg;
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("双线性内插");
+	dlg.m_sHelpTitle = _T("双线性内插参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	dlg.m_bShowP2 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入缩放后宽度"); //参数1 宽度 
+	dlg.m_P2Text = _T("请输入缩放后高度"); //参数2 高度 
+	//设置默认值
+	dlg.m_P1 = 1152; 
+	dlg.m_P2 = 864;
 	
 	if (dlg.DoModal() == IDOK) 
 	{
-		if (dlg.m_nWidth <= 0 || dlg.m_nHeight <= 0) {
+		if (dlg.m_P1 <= 0 || dlg.m_P2 <= 0) {
 			AfxMessageBox(_T("输入宽和高必须为正整数!"), MB_OK, 0);
 			return;
 		}
-
-		BilinearInterpolation(dlg.m_nWidth, dlg.m_nHeight);
+		BilinearInterpolation(int(dlg.m_P1), int(dlg.m_P2));
 		 
 	}
 
@@ -1873,11 +1895,21 @@ void CImageProcessView::OnRotate()
 	m_pDrawText.RemoveAll();//清除
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("图片旋转效果图"));
-	//显示对话框
-	CRotateDlg dlg;
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("图片旋转");
+	dlg.m_sHelpTitle = _T("图片旋转参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入旋转角度"); //参数1 angle 
+	//设置默认值
+	dlg.m_P1 = 45;//旋转角度45度
+
 	if (dlg.DoModal() == IDOK)
 	{
-		RotateImage(dlg.m_nRotateAngle); //旋转
+		RotateImage(int(dlg.m_P1)); //旋转
 	}
 
 
@@ -1944,14 +1976,28 @@ void CImageProcessView::OnMeanFilter()
 	m_pDrawText.RemoveAll();//清除
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("均值滤波效果图"));
-	CFilterDlg dlg;
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("均值滤波");
+	dlg.m_sHelpTitle = _T("均值滤波参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	dlg.m_bShowP2 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入m"); //参数1 m
+	dlg.m_P2Text = _T("请输入n"); //参数2 n
+	//设置默认值
+	dlg.m_P1 = 3;
+	dlg.m_P2 = 3;
+
 	if (dlg.DoModal() ==IDOK) {
-		if (dlg.m_nLinearM <= 0 || dlg.m_nLinearN <= 0  || dlg.m_nLinearM %2==0 || dlg.m_nLinearN%2==0) {
+		if (dlg.m_P1 <= 0 || dlg.m_P2 <= 0  || int(dlg.m_P1) %2==0 || int(dlg.m_P2) %2==0) {
 			AfxMessageBox(_T("输入m和n必须为正奇数!"), MB_OK, 0);
 			return;
 		}
 
-		MeanFilter(dlg.m_nLinearM, dlg.m_nLinearN);
+		MeanFilter(int(dlg.m_P1), int(dlg.m_P2));
 	}
 	
 }
@@ -1969,16 +2015,30 @@ void CImageProcessView::OnMedianFilter()
 	m_pDrawText.RemoveAll();//清除
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("中值滤波效果图"));
-	CFilterDlg dlg;
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("中值滤波");
+	dlg.m_sHelpTitle = _T("中值滤波参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	dlg.m_bShowP2 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入m"); //参数1 m
+	dlg.m_P2Text = _T("请输入n"); //参数2 n
+	//设置默认值
+	dlg.m_P1 = 3;
+	dlg.m_P2 = 3;
+
 	if (dlg.DoModal() == IDOK) {
-		if (dlg.m_nLinearM <= 0 || dlg.m_nLinearN <= 0 || dlg.m_nLinearM % 2 == 0 || dlg.m_nLinearN % 2 == 0) {
+		if (dlg.m_P1 <= 0 || dlg.m_P2 <= 0 || int(dlg.m_P1) % 2 == 0 || int(dlg.m_P2) % 2 == 0) {
 			AfxMessageBox(_T("输入m和n必须为正奇数!"), MB_OK, 0);
 			return;
 		}
- 
-		MedianFilter(dlg.m_nLinearM, dlg.m_nLinearN);
-	}
 
+		MedianFilter(int(dlg.m_P1), int(dlg.m_P2));
+	}
+ 
 
 
 }
@@ -1997,15 +2057,31 @@ void CImageProcessView::OnGaussFilter()
 	m_pDrawText.RemoveAll();//清除
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("高斯滤波效果图"));
-	CFilterDlg dlg;
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("高斯滤波");
+	dlg.m_sHelpTitle = _T("高斯滤波参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	dlg.m_bShowP2 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入m"); //参数1 m
+	dlg.m_P2Text = _T("请输入n"); //参数2 n
+	//设置默认值
+	dlg.m_P1 = 3;
+	dlg.m_P2 = 3;
+
 	if (dlg.DoModal() == IDOK) {
-		if (dlg.m_nLinearM <= 0 || dlg.m_nLinearN <= 0 || dlg.m_nLinearM % 2 == 0 || dlg.m_nLinearN % 2 == 0) {
+		if (dlg.m_P1 <= 0 || dlg.m_P2 <= 0 || int(dlg.m_P1) % 2 == 0 || int(dlg.m_P2) % 2 == 0) {
 			AfxMessageBox(_T("输入m和n必须为正奇数!"), MB_OK, 0);
 			return;
 		}
 
-		GaussFilter(dlg.m_nLinearM);
+		GaussFilter(int(dlg.m_P1));
 	}
+
+ 
 
 }
 
@@ -2043,11 +2119,23 @@ void CImageProcessView::OnHighboostFilter()
 		AfxMessageBox(_T("载入图片后才能进行高提升滤波!"));
 		return;
 	}
-	CHighBoostFilterDlg dlg;
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("高提升滤波");
+	dlg.m_sHelpTitle = _T("高提升滤波参数设置");
+	//显示控件
+	dlg.m_bShowP4 = true;
+	//参数指定
+	dlg.m_P4Text = _T("请输入一组K值\r多个K值请用英语半角逗号隔开"); //参数1 K
+	//设置默认值
+	dlg.m_P4 = _T("1, 2, 3, 4, 4.5, 5, 7, 9");//K
+
+
 	if (dlg.DoModal() == IDOK) {
 		Common commonl;
 		float *karr;
-		karr = commonl.SplitString(dlg.m_nHighBoostK, _T(","));
+		karr = commonl.SplitString(dlg.m_P4, _T(","));
 		//float karr[] = { 1, 2, 3, 4, 4.5, 5, 7, 9 };
 		int karr_size = _msize(karr) / sizeof(float);
 		m_pDrawText.RemoveAll();//清除
@@ -2093,13 +2181,7 @@ void CImageProcessView::OnFft()
 }
 
 
-void CImageProcessView::OnTest()
-{
-	// TODO: 在此添加命令处理程序代码
-	
 
-	 
-}
 
 //******************IFFT*****************//
 void CImageProcessView::OnIfft()
@@ -2138,16 +2220,25 @@ void CImageProcessView::OnIlpf()
 	m_pDrawText.RemoveAll();//清除
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("理想低通滤波效果图"));
-	CFrequencyDlg dlg;
-	dlg.m_sWindowTitle = _T("理想低通滤波器设置");
-	dlg.m_sHelpTitle = _T("请输入截止频率");
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("理想低通滤波器");
+	dlg.m_sHelpTitle = _T("理想低通滤波器参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入截止频率");//参数1 截止频率
+	//设置默认值
+	dlg.m_P1 = 50;
+
 	
 	if (dlg.DoModal() == IDOK) {
-		if (dlg.m_nCutoffFre<0 ) {
+		if (dlg.m_P1<0 ) {
 			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
 			return;
 		}
-		FrequencyDomainFiltering(_T("ILPF"), dlg.m_nCutoffFre, 0, 0);
+		FrequencyDomainFiltering(_T("ILPF"), dlg.m_P1, 0, 0);
 	}
 }
 
@@ -2164,16 +2255,25 @@ void CImageProcessView::OnBlpf()
 	m_pDrawText.RemoveAll();//清除
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("布特沃斯低通滤波效果图"));
-	CFrequencyDlg dlg;
-	dlg.m_sWindowTitle = _T("布特沃斯低通滤波器设置");
-	dlg.m_sHelpTitle = _T("请输入截止频率");
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("布特沃斯低通滤波器");
+	dlg.m_sHelpTitle = _T("布特沃斯低通滤波器参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入截止频率");//参数1 截止频率
+	//设置默认值
+	dlg.m_P1 = 50;
+
 
 	if (dlg.DoModal() == IDOK) {
-		if (dlg.m_nCutoffFre<0) {
+		if (dlg.m_P1<0) {
 			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
 			return;
 		}
-		FrequencyDomainFiltering(_T("BLPF"), dlg.m_nCutoffFre, 2, 0); //默认2阶
+		FrequencyDomainFiltering(_T("BLPF"), dlg.m_P1, 2, 0); //默认2阶
  
 	}
 }
@@ -2191,16 +2291,25 @@ void CImageProcessView::OnGlpf()
 	m_pDrawText.RemoveAll();//清除
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("高斯低通滤波效果图"));
-	CFrequencyDlg dlg;
-	dlg.m_sWindowTitle = _T("高斯低通滤波器设置");
-	dlg.m_sHelpTitle = _T("请输入截止频率");
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("高斯低通滤波器");
+	dlg.m_sHelpTitle = _T("高斯低通滤波器参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入截止频率");//参数1 截止频率
+	//设置默认值
+	dlg.m_P1 = 50;
+
 
 	if (dlg.DoModal() == IDOK) {
-		if (dlg.m_nCutoffFre<0) {
+		if (dlg.m_P1<0) {
 			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
 			return;
 		}
-		FrequencyDomainFiltering(_T("GLPF"), dlg.m_nCutoffFre, 0, dlg.m_nCutoffFre); // a=D0
+		FrequencyDomainFiltering(_T("GLPF"), dlg.m_P1, 0, dlg.m_P1); // a=D0
 		 
 	}
 }
@@ -2218,16 +2327,26 @@ void CImageProcessView::OnIhpf()
 	m_pDrawText.RemoveAll();//清除
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("理想高通滤波效果图"));
-	CFrequencyDlg dlg;
-	dlg.m_sWindowTitle = _T("理想高通滤波器设置");
-	dlg.m_sHelpTitle = _T("请输入截止频率");
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("理想高通滤波器");
+	dlg.m_sHelpTitle = _T("理想高通滤波器参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入截止频率");//参数1 截止频率
+	//设置默认值
+	dlg.m_P1 = 50;
+
+ 
 
 	if (dlg.DoModal() == IDOK) {
-		if (dlg.m_nCutoffFre<0) {
+		if (dlg.m_P1<0) {
 			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
 			return;
 		}
-		FrequencyDomainFiltering(_T("IHPF"), dlg.m_nCutoffFre, 0, 0);
+		FrequencyDomainFiltering(_T("IHPF"), dlg.m_P1, 0, 0);
 	 
 	}
 }
@@ -2245,16 +2364,25 @@ void CImageProcessView::OnGhpf()
 	m_pDrawText.RemoveAll();//清除
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("高斯高通滤波效果图"));
-	CFrequencyDlg dlg;
-	dlg.m_sWindowTitle = _T("高斯高通滤波器设置");
-	dlg.m_sHelpTitle = _T("请输入截止频率");
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("高斯高通滤波器");
+	dlg.m_sHelpTitle = _T("高斯高通滤波器参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入截止频率");//参数1 截止频率
+	//设置默认值
+	dlg.m_P1 = 50;
+
 
 	if (dlg.DoModal() == IDOK) {
-		if (dlg.m_nCutoffFre<0) {
+		if (dlg.m_P1<0) {
 			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
 			return;
 		}
-		FrequencyDomainFiltering(_T("GHPF"), dlg.m_nCutoffFre, 0, dlg.m_nCutoffFre); // a=D0
+		FrequencyDomainFiltering(_T("GHPF"), dlg.m_P1, 0, dlg.m_P1); // a=D0
 	}
 }
 
@@ -2271,16 +2399,29 @@ void CImageProcessView::OnBhpf()
 	m_pDrawText.RemoveAll();//清除
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("布特沃斯高通滤波效果图"));
-	CFrequencyDlg dlg;
-	dlg.m_sWindowTitle = _T("布特沃斯高通滤波器设置");
-	dlg.m_sHelpTitle = _T("请输入截止频率");
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("布特沃斯高通滤波器");
+	dlg.m_sHelpTitle = _T("布特沃斯高通滤波器参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	dlg.m_bShowP2 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入截止频率");//参数1 截止频率
+	dlg.m_P2Text = _T("请输入阶数");//参数1 阶数
+	//设置默认值
+	dlg.m_P1 = 50;
+	dlg.m_P2 = 2;
+
+ 
 
 	if (dlg.DoModal() == IDOK) {
-		if (dlg.m_nCutoffFre<0) {
-			AfxMessageBox(_T("截止频率不得为负"), MB_OK, 0);
+		if (dlg.m_P1<0 || dlg.m_P2<0) {
+			AfxMessageBox(_T("截止频率或者阶数不得为负"), MB_OK, 0);
 			return;
 		}
-		FrequencyDomainFiltering(_T("BHPF"), dlg.m_nCutoffFre, 2, 0); //2阶
+		FrequencyDomainFiltering(_T("BHPF"), dlg.m_P1, dlg.m_P2, 0); //2阶
 	}
 }
 
@@ -2317,16 +2458,35 @@ void CImageProcessView::OnHomofilter()
 	m_pDrawText.RemoveAll();//清除
 	m_pDrawText.Add(_T("原图"));
 	m_pDrawText.Add(_T("同态滤波效果图"));
-	CFrequencyDlg dlg;
-	dlg.m_sWindowTitle = _T("同态滤波中高通滤波器设置");
-	dlg.m_sHelpTitle = _T("请输入截止频率和GammaH GammaL");
-	dlg.showGammaControls = 1;
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("同态滤波中高通滤波器");
+	dlg.m_sHelpTitle = _T("同态滤波中高通滤波器参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	dlg.m_bShowP2 = true;
+	dlg.m_bShowP3 = true;
+	dlg.m_bShowP4 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入截止频率");//参数1 截止频率
+	dlg.m_P2Text = _T("请输入C");//参数2 C 
+	dlg.m_P3Text = _T("请输入GammaH");//参数3 GammaH
+	dlg.m_P4Text = _T("请输入GammaL");//参数4 GammaL
+	//设置默认值
+	dlg.m_P1 = 600;
+	dlg.m_P2 = 0.2;
+	dlg.m_P3 = 2.5;
+	dlg.m_P4 = _T("0.2");
+	 
+
+ 
 	if (dlg.DoModal() == IDOK) {
-		if (dlg.m_nCutoffFre<0 || dlg.m_dGammaH <0 || dlg.m_dGammaL <0 || dlg.m_dHomoC<0) {
+		if (dlg.m_P1<0 || dlg.m_P2 <0 || dlg.m_P3 <0 || _tstof(dlg.m_P4) <0 ) {
 			AfxMessageBox(_T("参数不得为负"), MB_OK, 0);
 			return;
 		}
-		HomomorphicFilter(dlg.m_nCutoffFre, dlg.m_dHomoC, dlg.m_dGammaH, dlg.m_dGammaL); // 一般取Sigma=nFreq  默认给定  GammaH 2与 GammaL 0.25 c=1
+		HomomorphicFilter(dlg.m_P1, dlg.m_P2, dlg.m_P3, _tstof(dlg.m_P4)); // 一般取Sigma=nFreq  默认给定  GammaH 2与 GammaL 0.25 c=1
 	} 
 
 	 
@@ -2351,12 +2511,14 @@ void CImageProcessView::OnGaussianNoise()
 	//标题显示
 	dlg.m_sWindowTitle = _T("高斯噪声");
 	dlg.m_sHelpTitle = _T("高斯噪声参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	dlg.m_bShowP2 = true;
+	dlg.m_bShowP3 = true;
 	//参数指定
 	dlg.m_P1Text = _T("请输入噪声比例");//参数1 噪声比例
 	dlg.m_P2Text = _T("请输入均值");//参数2 均值
 	dlg.m_P3Text = _T("请输入方差");//参数3 方差
-	//隐藏控件
-
 	//设置默认值
 	dlg.m_P1 = 0.2;
 	dlg.m_P2 = 30;
@@ -2402,11 +2564,10 @@ void CImageProcessView::OnSaltNoise()
 	//标题显示
 	dlg.m_sWindowTitle = _T("盐噪声");
 	dlg.m_sHelpTitle = _T("盐噪声参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
 	//参数指定
 	dlg.m_P1Text = _T("请输入噪声比例"); //参数1 噪声比例
-	//隐藏控件
-	dlg.m_bShowP2 = false;
-	dlg.m_bShowP3 = false;
 	//设置默认值
 	dlg.m_P1 = 0.15;
 
@@ -2446,11 +2607,10 @@ void CImageProcessView::OnPeppersaltNoise()
 	//标题显示
 	dlg.m_sWindowTitle = _T("椒盐噪声");
 	dlg.m_sHelpTitle = _T("椒盐噪声参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
 	//参数指定
 	dlg.m_P1Text = _T("请输入噪声比例"); //参数1 噪声比例
-	//隐藏控件
-	dlg.m_bShowP2 = false;
-	dlg.m_bShowP3 = false;
 	//设置默认值
 	dlg.m_P1 = 0.05;
 	 
@@ -2495,11 +2655,10 @@ void CImageProcessView::OnPepperNoise()
 	//标题显示
 	dlg.m_sWindowTitle = _T("椒噪声");
 	dlg.m_sHelpTitle = _T("椒噪声参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
 	//参数指定
 	dlg.m_P1Text = _T("请输入噪声比例"); //参数1 噪声比例
-	//隐藏控件
-	dlg.m_bShowP2 = false; 
-	dlg.m_bShowP3 = false;
 	//设置默认值
 	dlg.m_P1 = 0.25;
 
@@ -2540,12 +2699,14 @@ void CImageProcessView::OnContraharmonicMeanFilter()
 	//标题显示
 	dlg.m_sWindowTitle = _T("逆谐波均值滤波");
 	dlg.m_sHelpTitle = _T("逆谐波均值滤波参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	dlg.m_bShowP2 = true;
+	dlg.m_bShowP3 = true;
 	//参数指定
 	dlg.m_P1Text = _T("请输入m"); //参数1 m
 	dlg.m_P2Text = _T("请输入n"); //参数2 n
 	dlg.m_P3Text = _T("请输入Q"); //参数3 q
-	//隐藏控件
- 
 	//设置默认值
 	dlg.m_P1 = 3;
 	dlg.m_P2 = 3;
@@ -2591,12 +2752,14 @@ void CImageProcessView::OnAlphaTrimmedMeanFilter()
 	//标题显示
 	dlg.m_sWindowTitle = _T("修正的阿尔法均值滤波");
 	dlg.m_sHelpTitle = _T("修正的阿尔法均值滤波参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	dlg.m_bShowP2 = true;
+	dlg.m_bShowP3 = true;
 	//参数指定
 	dlg.m_P1Text = _T("请输入m"); //参数1 m
 	dlg.m_P2Text = _T("请输入n"); //参数2 n
 	dlg.m_P3Text = _T("请输入2d"); //参数3 d
-	//隐藏控件
-
 	//设置默认值
 	dlg.m_P1 = 5;//m
 	dlg.m_P2 = 5;//n
@@ -2636,11 +2799,10 @@ void CImageProcessView::OnAdaptiveMedianFilter()
 	//标题显示
 	dlg.m_sWindowTitle = _T("自适应中值滤波");
 	dlg.m_sHelpTitle = _T("自适应中值滤波参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
 	//参数指定
 	dlg.m_P1Text = _T("请输入s"); //参数1 s
-	//隐藏控件
-	dlg.m_bShowP2 = false;
-	dlg.m_bShowP3 = false;
 	//设置默认值
 	dlg.m_P1 = 7;//s
 
@@ -2723,3 +2885,92 @@ void CImageProcessView::OnUserLogin()
 
 
 
+
+//******************下载测试图像*****************//
+void CImageProcessView::OnDownloadTestImages()
+{
+	// TODO: 在此添加命令处理程序代码
+	CString url = _T("https://cdn.zhfsky.com/Test-Images.zip");
+	CInternetSession session;
+	CInternetFile* file =(CInternetFile*)session.OpenURL(url, 1, INTERNET_FLAG_TRANSFER_BINARY);
+
+	if (file == NULL){
+		file->Close();
+		delete file;
+		session.Close();
+		MessageBox(_T("下载文件失败!"), _T("提示"), MB_ICONERROR);
+		return;
+	}
+
+	CFile downFile;
+
+	if (downFile.Open(_T("Test-Images.zip"), CFile::modeCreate | CFile::modeWrite | CFile::typeBinary, NULL))
+	{
+		int readlen = -1;
+		char buf[1024];
+		while (1)
+		{
+			//char* buf = new char[1024];
+			readlen = file->Read(buf, 1024);
+			if (readlen == 0)
+			{
+				//delete buf;
+				break;
+			}
+			downFile.Write(buf, readlen);
+			//delete buf;
+			ZeroMemory(buf, 1024);
+		}
+		downFile.Close();
+		AfxMessageBox(_T("测试图片下载完成!"));
+	}
+	else
+	{
+		MessageBox(_T("下载文件失败!"), _T("提示"), MB_ICONERROR);
+		file->Close();
+		delete file;
+		session.Close();
+		return;
+	}
+
+	file->Close();
+	delete file;
+	session.Close();
+
+}
+
+
+void CImageProcessView::OnGray()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行灰度变换!"));
+		return;
+	}
+
+	BYTE * GraySrcImage = new BYTE[m_nImage];
+	BmpCommonOp bmpcommonop;
+	bmpcommonop.RGB2Gray(m_pImage, GraySrcImage, m_nWidth, m_nHeight,bih.biBitCount, m_nLineByte);
+	//将BMP图像数据写入文件
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, GraySrcImage, m_nImage);
+
+	delete[] GraySrcImage;
+	numPicture = 2;
+	Invalidate();
+
+}
+
+
+
+
+void CImageProcessView::OnTest()
+{
+	// TODO: 在此添加命令处理程序代码
+
+
+
+}

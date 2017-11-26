@@ -11,9 +11,6 @@
 #define IDD_DIALOG_ROTATE               315
 #define IDD_DIALOG_HELP                 317
 #define IDD_DIALOG_HISTOGRAM            323
-#define IDD_DIALOG_FILTER               325
-#define IDD_DIALOG_HIGHBOOST_FILTER     328
-#define IDD_DIALOG_FREQUENCY            330
 #define IDD_DIALOG_COMMON_PARA          332
 #define IDD_DIALOG_IMPROVE              334
 #define IDD_DIALOG_USER_LOGIN           336
@@ -24,23 +21,12 @@
 #define IDC_EDIT_CHW                    1003
 #define IDC_EDIT2                       1004
 #define IDC_EDIT_CHH                    1004
-#define IDC_EDIT_LINEAR_N               1004
-#define IDC_EDIT_GAMMAL                 1004
 #define IDC_EDIT_USER_LOGIIN_PA         1004
 #define IDC_EDIT_ROTATEANGLE            1005
-#define IDC_EDIT_HOMOC                  1005
 #define IDC_MFCLINK_GITHUB              1015
 #define IDC_MFCLINK_EMAIL               1016
 #define IDC_MFCPROPERTYGRID1            1019
 #define IDC_STATIC_HISTOGRAM            1020
-#define IDC_EDIT_LINEAR_M               1026
-#define IDC_EDIT_HIGHBOOST_K            1028
-#define IDC_EDIT_FREQUENCY_CUT          1029
-#define IDC_STATIC_FREDLG_TITLE         1030
-#define IDC_EDIT_GAMMAH                 1032
-#define IDC_STATIC_GAMMAH               1033
-#define IDC_STATIC_GAMMAL               1034
-#define IDC_STATIC_HOMOC                1035
 #define IDC_EDIT_COMMON_P2              1036
 #define IDC_EDIT_COMMON_P1              1037
 #define IDC_STATIC_COMMON_P1_TEXT       1038
@@ -57,6 +43,8 @@
 #define IDC_STATIC_USER_NAME            1051
 #define IDC_STATIC_USER_EMAIL           1052
 #define IDC_IPADDRESS_USER_LOGIN        1053
+#define IDC_STATIC_COMMON_P4_TEXT       1054
+#define IDC_EDIT_COMMON_P4              1055
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_32773                        32773
@@ -150,14 +138,20 @@
 #define ID_ALPHA_TRIMMED_MEAN           32867
 #define ID_ALPHA_TRIMMED_MEAN_FILTER    32868
 #define ID_ADAPTIVE_MEDIAN_FILTER       32869
+#define ID_32870                        32870
+#define ID_DOWNLOAD_TEST_IMAGES         32871
+#define ID_32872                        32872
+#define ID_GRAY                         32873
+#define ID_32874                        32874
+#define ID_WORD_OFFSET                  32875
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        340
-#define _APS_NEXT_COMMAND_VALUE         32870
-#define _APS_NEXT_CONTROL_VALUE         1054
+#define _APS_NEXT_COMMAND_VALUE         32876
+#define _APS_NEXT_CONTROL_VALUE         1056
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

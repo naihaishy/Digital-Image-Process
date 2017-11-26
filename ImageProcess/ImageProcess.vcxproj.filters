@@ -39,15 +39,6 @@
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="WriteCharDlg.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="InterpolationDlg.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="RotateDlg.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="HelpDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -57,19 +48,10 @@
     <ClInclude Include="HistogramDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="FilterDlg.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Common.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="HighBoostFilterDlg.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Fourier.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="FrequencyDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="CommonDlg.h">
@@ -98,15 +80,6 @@
     <ClCompile Include="ImageProcessView.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="WriteCharDlg.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="InterpolationDlg.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="RotateDlg.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="HelpDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -116,19 +89,10 @@
     <ClCompile Include="HistogramDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="FilterDlg.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Common.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="HighBoostFilterDlg.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Fourier.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="FrequencyDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CommonDlg.cpp">

@@ -12,16 +12,16 @@ BmpCommonOp::BmpCommonOp()
 
 BmpCommonOp::~BmpCommonOp()
 {
-	if (m_bFourierinit) {//曾经初始化过 即使用了频域处理
-		delete[] m_TimeDomain;
-		delete[] m_TimeDomainB;
-		delete[] m_TimeDomainG;
-		delete[] m_TimeDomainR;
-		delete[] m_FrequencyDomain;
-		delete[] m_FrequencyDomainB;
-		delete[] m_FrequencyDomainG;
-		delete[] m_FrequencyDomainR;
-	}
+	//if (m_bFourierinit) {//曾经初始化过 即使用了频域处理
+	//	delete[] m_TimeDomain;
+	//	delete[] m_TimeDomainB;
+	//	delete[] m_TimeDomainG;
+	//	delete[] m_TimeDomainR;
+	//	delete[] m_FrequencyDomain;
+	//	delete[] m_FrequencyDomainB;
+	//	delete[] m_FrequencyDomainG;
+	//	delete[] m_FrequencyDomainR;
+	//}
 	
 }
 

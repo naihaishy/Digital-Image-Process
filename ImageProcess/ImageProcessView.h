@@ -140,6 +140,8 @@ public:
 	afx_msg void OnUserLogin();
 	afx_msg void OnAlphaTrimmedMeanFilter();
 	afx_msg void OnAdaptiveMedianFilter();
+	afx_msg void OnDownloadTestImages();
+	afx_msg void OnGray();
 };
 
 #ifndef _DEBUG  // ImageProcessView.cpp 中的调试版本
