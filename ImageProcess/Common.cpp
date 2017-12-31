@@ -375,12 +375,11 @@ void Common::UploadByPost(CString strFileName, CString  strServerUrl, CString st
 		TRACE(L"%s", strResponse.GetBuffer());
 
 		//将Response写入文件中
-		CFile resultFile(_T("images/result.txt"), CFile::modeCreate | CFile::modeWrite);//
-		CString aa;
-		aa.Format(_T("%s \t"), strResponse.GetBuffer());
-		resultFile.Write(aa, sizeof(aa));
+		CStdioFile resultFile(_T("images/result.txt"), CFile::modeCreate | CFile::modeWrite|CFile::modeNoTruncate);//
+		resultFile.SeekToEnd();
+		resultFile.WriteString(strResponse + _T("\r\n") );
 		resultFile.Close();// 关闭文件 
-
+		AfxMessageBox(strResponse);
 
 		//close everything up.
 		pHTTP->Close();
