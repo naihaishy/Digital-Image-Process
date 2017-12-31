@@ -19,7 +19,15 @@
 #include "CommonDlg.h"
 #include "ImproveDlg.h"
 //#include "UserDlg.h"
+#include "VideoDlg.h"
 #include <afxinet.h> //Http
+#include <algorithm>  
+#include "Segment.h"
+#include "Threshold.h"
+#include "Morphology.h"
+#include "Hough.h"
+#include "Test.h"
+
 
 
 #ifdef _DEBUG
@@ -59,9 +67,9 @@ BEGIN_MESSAGE_MAP(CImageProcessView, CScrollView)
 	ON_COMMAND(ID_BHPF, &CImageProcessView::OnBhpf)
 	ON_COMMAND(ID_GHPF, &CImageProcessView::OnGhpf)
 	ON_COMMAND(ID_IHPF, &CImageProcessView::OnIhpf)
-	ON_COMMAND(ID_FRQUENCY_LAPLACE, &CImageProcessView::OnFrquencyLaplace)
-	ON_COMMAND(ID_FRQUENCY_HIGHBOOST, &CImageProcessView::OnFrquencyHighboost)
-	ON_COMMAND(ID_HIGH_FREQUENCY_EMPHASIS, &CImageProcessView::OnHighFrequencyEmphasis)
+	//ON_COMMAND(ID_FRQUENCY_LAPLACE, &CImageProcessView::OnFrquencyLaplace)
+	//ON_COMMAND(ID_FRQUENCY_HIGHBOOST, &CImageProcessView::OnFrquencyHighboost)
+	//ON_COMMAND(ID_HIGH_FREQUENCY_EMPHASIS, &CImageProcessView::OnHighFrequencyEmphasis)
 	ON_COMMAND(ID_HOMOFILTER, &CImageProcessView::OnHomofilter)
 	ON_COMMAND(ID_GAUSSIAN_NOISE, &CImageProcessView::OnGaussianNoise)
 	ON_COMMAND(ID_SALT_NOISE, &CImageProcessView::OnSaltNoise)
@@ -75,6 +83,27 @@ BEGIN_MESSAGE_MAP(CImageProcessView, CScrollView)
 	ON_COMMAND(ID_ADAPTIVE_MEDIAN_FILTER, &CImageProcessView::OnAdaptiveMedianFilter)
 	ON_COMMAND(ID_DOWNLOAD_TEST_IMAGES, &CImageProcessView::OnDownloadTestImages)
 	ON_COMMAND(ID_GRAY, &CImageProcessView::OnGray)
+	ON_COMMAND(ID_VIDEO_PLAY, &CImageProcessView::OnVideoPlay)
+	ON_COMMAND(ID_IMAGE_SEG, &CImageProcessView::OnImageSeg)
+	//ON_COMMAND(ID_EDGE_DETECTION, &CImageProcessView::OnEdgeDetection)
+	ON_COMMAND(ID_SOBEL_OPERATOR, &CImageProcessView::OnSobelOperator)
+	//ON_COMMAND(ID_LOG_OPERATOR, &CImageProcessView::OnLogOperator)
+	//ON_COMMAND(ID_DOG_OPERATOR, &CImageProcessView::OnDogOperator)
+	//ON_COMMAND(ID_PREWITT_OPERATOR, &CImageProcessView::OnPrewittOperator)
+	ON_COMMAND(ID_CANNY_EDGE_DETACTION, &CImageProcessView::OnCannyEdgeDetaction)
+	ON_COMMAND(ID_BASIC_GLOBAL_THRESHOLD, &CImageProcessView::OnBasicGlobalThreshold)
+	ON_COMMAND(ID_OTSU_THRESHOLD, &CImageProcessView::OnOtsuThreshold)
+	ON_COMMAND(ID_LOCAL_THRESHOLD, &CImageProcessView::OnLocalThreshold)
+	ON_COMMAND(ID_DILATION, &CImageProcessView::OnDilation)
+	
+	
+	ON_COMMAND(ID_EROSION, &CImageProcessView::OnErosion)
+	ON_COMMAND(ID_WATER_DIGIFINALL, &CImageProcessView::OnWaterDigifinall)
+	ON_COMMAND(ID_HOUGH_TRANSFORM, &CImageProcessView::OnHoughTransform)
+	ON_COMMAND(ID_DIG_PROJECTION, &CImageProcessView::OnDigProjection)
+	ON_COMMAND(ID_IMAGE_POSITIVE, &CImageProcessView::OnImagePositive)
+	ON_COMMAND(ID_DIGITAL_SEGMENT, &CImageProcessView::OnDigitalSegment)
+	 
 END_MESSAGE_MAP()
 
 // CImageProcessView 构造/析构
@@ -987,7 +1016,7 @@ void CImageProcessView::HistogramEqualization() {
 }
 
 //******************模板滤波*****************//
-void CImageProcessView::TemplateFilter(BYTE* Image, BYTE* DstImage, int *mask, int m , int n) {
+void CImageProcessView::TemplateFilter(BYTE* Image, BYTE* DstImage, int *mask, int m , int n, bool needWc=true) {
 
 	//BYTE * OutputImage = new BYTE[m_nImage];
 	memcpy(DstImage, Image, m_nImage); //初始化 将原图数据拷贝到目标图像
@@ -995,12 +1024,19 @@ void CImageProcessView::TemplateFilter(BYTE* Image, BYTE* DstImage, int *mask, i
 	int b = (n - 1) / 2;  //n=2b+1
 
 	//获取数组权值总和
-	int weight_count = 0;
-	for (int j = 0; j < n; j++) {
-		for (int i = 0; i < m; i++) {
-			weight_count += *(mask+j*m+i);
+	int weight_count;
+	if (needWc) {//是否需要计算模板之和
+		weight_count = 0;
+		for (int j = 0; j < n; j++) {
+			for (int i = 0; i < m; i++) {
+				weight_count += *(mask + j*m + i);
+			}
 		}
 	}
+	else {
+		weight_count = 1;
+	}
+	
 
 	for (int y = b; y < m_nHeight - b; y++) { // Y 边缘的不处理
 		for (int x = a; x < m_nWidth - a; x++) {//X
@@ -1673,6 +1709,409 @@ void CImageProcessView::AdaptiveMedianFilter(int Smax) {
 }
 
 
+//**************边缘检测****************//
+void CImageProcessView::EdgeDetection(int Detector, int Smooth, double Threshold, double Threshold2=0.0) {
+
+	//初始化
+	Segment segment;
+	BmpCommonOp bmpcommonop;
+	//内存分配
+	double * SrcImage = new double[m_nImage];
+	double * EdgeOutImage = new double[m_nImage];
+	BYTE * DstImage = new BYTE[m_nImage];
+
+	//类型转换
+	for (int i = 0; i < m_nImage; ++i) {
+		SrcImage[i] = m_pImage[i]; //BYTE=> double 格式化输入图像数据
+	}
+	
+	//边缘检测
+	segment.EdgeDetection(SrcImage, EdgeOutImage, m_nImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte, Detector, Smooth, Threshold, Threshold2);
+	
+	
+	//类型转换
+	for (int i = 0; i < m_nImage; ++i) {
+		DstImage[i] = BYTE( int(EdgeOutImage[i] + 0.5 ) ); //double=> BYTE 格式化输出图像数据
+	}
+
+	//将图像数据保存为图像
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);	
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
+
+	//内存释放
+	delete[] SrcImage;
+	delete[] EdgeOutImage;
+	delete[] DstImage;
+ 
+	//显示效果图像
+	numPicture = 2;
+	Invalidate();
+	
+}
+
+
+//**************阈值处理****************//
+void CImageProcessView::Thresholding(int Type, double Args[] = {}) {
+	//初始化
+	Threshold threshold;
+	BmpCommonOp bmpcommonop;
+
+	//内存分配
+	double * SrcImage = new double[m_nImage];
+	double * ThresholdOutImage = new double[m_nImage];
+	BYTE * DstImage = new BYTE[m_nImage];
+
+	//类型转换
+	for (int i = 0; i < m_nImage; ++i) {
+		SrcImage[i] = m_pImage[i]; //BYTE=> double 格式化输入图像数据
+	}
+
+	//灰度化
+	if (bih.biBitCount==24) {
+		bmpcommonop.RGB2Gray(SrcImage, SrcImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	}
+	
+	//噪声处理
+	bmpcommonop.GaussFilter(SrcImage, SrcImage, m_nImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte, 5, 5);//高斯滤波
+	
+	//阈值处理
+	threshold.BaseThresholding(SrcImage, ThresholdOutImage, m_nImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte, Type, Args);
+
+	//类型转换
+	for (int i = 0; i < m_nImage; ++i) {
+		DstImage[i] = BYTE(int(ThresholdOutImage[i] + 0.5)); //double=> BYTE 格式化输出图像数据
+	}
+
+
+	//将图像数据保存为图像
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
+
+	//内存释放
+	delete[] SrcImage;
+	delete[] ThresholdOutImage;
+	delete[] DstImage;
+
+	//显示效果图像
+	numPicture = 2;
+	Invalidate();
+}
+
+
+//**************形态学处理****************//
+void CImageProcessView::Morphologying(int type){
+
+	Morphology morphology;
+
+	double * SrcImage = new double[m_nImage];
+	double * OutImage = new double[m_nImage];
+	BYTE * DstImage = new BYTE[m_nImage];
+
+	//类型转换
+	for (int i = 0; i < m_nImage; ++i) {
+		SrcImage[i] = m_pImage[i]; //BYTE=> double 格式化输入图像数据
+	}
+
+	//semask设计
+	double *SeMask = new double[9];
+	for (int i = 0; i < 9; i++) {
+		SeMask[i] = 255; //有效
+	}
+
+	switch (type){
+		case 1://膨胀
+			morphology.Dilation(SrcImage, OutImage, SeMask, 3, 3, m_nImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+			break;
+		case 2://腐蚀
+			break;
+			morphology.Erosion(SrcImage, OutImage, SeMask, 3, 3, m_nImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	}
+
+	//类型转换
+	for (int i = 0; i < m_nImage; ++i) {
+		DstImage[i] = BYTE(int(OutImage[i] + 0.5)); //double=> BYTE 格式化输出图像数据
+	}
+
+
+	//将图像数据保存为图像
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	BmpCommonOp bmpcommonop;
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
+
+	//内存释放
+	delete[] SrcImage;
+	delete[] OutImage;
+	delete[] DstImage;
+
+	//显示效果图像
+	numPicture = 2;
+	Invalidate();
+
+}
+//****************霍夫变换***************//
+void CImageProcessView::HoughTransform(){
+	//初始化
+
+	BmpCommonOp bmpcommonop;
+
+	//内存分配
+	double * SrcImage = new double[m_nImage];
+	double * EdgeOutImage = new double[m_nImage];
+	BYTE * DstImage = new BYTE[m_nImage];
+
+	//类型转换
+	for (int i = 0; i < m_nImage; ++i) {
+		SrcImage[i] = m_pImage[i]; //BYTE=> double 格式化输入图像数据
+	}
+
+	Hough hough;
+	//霍夫变换检测直线
+	hough.HoughLines(SrcImage, EdgeOutImage, m_nImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte, 1);
+
+
+	//类型转换
+	for (int i = 0; i < m_nImage; ++i) {
+		DstImage[i] = BYTE(int(EdgeOutImage[i] + 0.5)); //double=> BYTE 格式化输出图像数据
+	}
+
+
+
+	//将图像数据保存为图像
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
+
+	//内存释放
+	delete[] SrcImage;
+	delete[] EdgeOutImage;
+	delete[] DstImage;
+
+	//显示效果图像
+	numPicture = 2;
+	Invalidate();
+}
+
+
+
+//****************水表数字检测***************//
+void CImageProcessView::WaterDigifinall(){
+
+	//初始化
+	Segment segment;
+	BmpCommonOp bmpcommonop;
+	Morphology morphology;
+	Hough hough;
+	Threshold threshold;
+
+	//内存分配
+	double * SrcImage = new double[m_nImage];//原图 double类型
+	double * EdgeOutImage = new double[m_nImage];//边缘检测后的二值化图像
+	double * morDilationImage = new double[m_nImage];//膨胀后的图像
+	double * houghOutImage = new double[m_nImage];//霍夫变换检测出来的直线(红色 带有二值化的图像)
+ 
+	//初始化
+	for (int i = 0; i < m_nImage; ++i) {
+		SrcImage[i] = 0;
+		EdgeOutImage[i] = 0;
+		morDilationImage[i] = 0;
+		houghOutImage[i] = 0;
+	}
+	 
+ 
+
+	//类型转换
+	for (int i = 0; i < m_nImage; ++i) {
+		SrcImage[i] = m_pImage[i]; //BYTE=> double 格式化输入图像数据
+	}
+
+	//Canny边缘检测
+	double ThresholdL = 120; 
+	double ThresholdH = 240;
+	segment.EdgeDetection(SrcImage, EdgeOutImage, m_nImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte, EDGE_DETECTOR_CANNY, SMOOTH_GAUSSIAN, ThresholdL, ThresholdH);
+
+	//膨胀操作
+	double *SeMask = new double[9];
+	for (int i = 0; i < 9; i++) {
+		SeMask[i] = 255; //有效
+	}
+	morphology.Dilation(EdgeOutImage, morDilationImage, SeMask, 3, 3, m_nImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+
+
+	//霍夫变换检测直线
+	hough.HoughLines(morDilationImage, houghOutImage, m_nImage, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	
+	vector<CPoint> rectPoints = hough.GetRectPoints();//得到 距离数字最近的 矩形框的四个点
+
+	//从原图中截取矩形框内像素   
+	double *digOnlyImage = segment.RectSeg(SrcImage, rectPoints, bfh, bih, m_nWidth, m_nHeight, bih.biBitCount, m_nLineByte);
+	
+	//注意***从下面开始是处理矩形框内的像素*** 
+
+	//反色 目的是为了下面的阈值处理 （因为数字是黑色的）
+	for (int i = 0;i < segment.m_RectSegSize;i++) {
+		digOnlyImage[i] = 255 - digOnlyImage[i];
+	}
+	//灰度化
+	if (bih.biBitCount == 24) {
+		bmpcommonop.RGB2Gray(digOnlyImage, digOnlyImage, segment.m_RectSegWidth, segment.m_RectSegHeight, bih.biBitCount, segment.m_RectSegLineByte);
+	}
+		
+	 
+
+	//阈值处理 
+	double args[] = { 52.0 };//采用基本全局阈值处理 40
+	double *ThresholdOutImage = new double[segment.m_RectSegSize];
+	for (int i = 0;i < segment.m_RectSegSize;i++) {
+		ThresholdOutImage[i] = 0;//初始化
+	}
+	threshold.BaseThresholding(digOnlyImage, ThresholdOutImage, segment.m_RectSegSize, segment.m_RectSegWidth, segment.m_RectSegHeight, bih.biBitCount, segment.m_RectSegLineByte, THRESHOLDING_BASIC_GLOBAL, args);
+	
+	//膨胀
+	double *SegDilationImage = new double[segment.m_RectSegSize];
+	for (int i = 0;i < segment.m_RectSegSize;i++) {
+		SegDilationImage[i] = 0;//初始化
+	}
+	morphology.Dilation(ThresholdOutImage, SegDilationImage, SeMask, 3, 3, segment.m_RectSegSize, segment.m_RectSegWidth, segment.m_RectSegHeight, bih.biBitCount, segment.m_RectSegLineByte);
+
+
+	//每个数字的分割
+	segment.DigitalSeg(SegDilationImage, segment.m_RectSegbfh, segment.m_RectSegbih, m_pPal , segment.m_RectSegWidth, segment.m_RectSegHeight, bih.biBitCount, segment.m_RectSegLineByte);
+
+	AfxMessageBox(_T("数字分割完毕, 输出在images/digits目录下!"));
+
+	//数字的识别
+	Test test;
+	test.DigitPredict();
+
+	//数字识别结果的显示
+	AfxMessageBox(_T("数字分类完毕, 输出为images目录下的result.txt文件!"));
+
+
+
+
+
+	 /*
+	  * 下面是将各个阶段效果图的显示出来
+	  */
+
+	BYTE *DstImageEdge = new BYTE[m_nImage];
+	for (int i = 0; i < m_nImage; ++i)
+		DstImageEdge[i] = BYTE(int(EdgeOutImage[i] + 0.5));//Canny边缘检测
+
+	BYTE *DstImageDilation  = new BYTE[m_nImage];
+	for (int i = 0; i < m_nImage; ++i)
+		DstImageDilation[i] = BYTE(int(houghOutImage[i] + 0.5));//膨胀
+
+	BYTE *DstImageHough = new BYTE[m_nImage];
+	for (int i = 0; i < m_nImage; ++i)
+		DstImageHough[i] = BYTE(int(houghOutImage[i] + 0.5));//霍夫变换
+
+
+
+	BYTE *DstImageDig = new BYTE[segment.m_RectSegSize];
+	for (int i = 0; i < segment.m_RectSegSize; ++i)
+		DstImageDig[i] = BYTE(int(digOnlyImage[i] + 0.5));//数字矩形区域
+
+	BYTE *DstImageThreshold = new BYTE[segment.m_RectSegSize];
+	for (int i = 0; i < segment.m_RectSegSize; ++i) 
+		DstImageThreshold[i] = BYTE(int(SegDilationImage[i] + 0.5));//数字区域阈值处理
+
+	
+		
+	//将图像数据保存为图像
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+
+
+	bmpcommonop.WriteBmpDataToFile("images/CannyDector.bmp", bfh, bih, m_pPal, DstImageEdge, m_nImage, m_nWidth, m_nHeight);//Canny边缘检测
+	bmpcommonop.WriteBmpDataToFile("images/CannyDialation.bmp", bfh, bih, m_pPal, DstImageDilation, m_nImage, m_nWidth, m_nHeight);//膨胀
+	bmpcommonop.WriteBmpDataToFile("images/CannyHough.bmp", bfh, bih, m_pPal, DstImageHough, m_nImage, m_nWidth, m_nHeight);//霍夫变换
+
+	bmpcommonop.WriteBmpDataToFile("images/DigRectangle.bmp", segment.m_RectSegbfh, segment.m_RectSegbih, m_pPal, DstImageDig, segment.m_RectSegSize, segment.m_RectSegWidth, segment.m_RectSegHeight);
+	bmpcommonop.WriteBmpDataToFile("images/DigThreshold.bmp", segment.m_RectSegbfh, segment.m_RectSegbih, m_pPal, DstImageThreshold, segment.m_RectSegSize, segment.m_RectSegWidth, segment.m_RectSegHeight);
+
+
+
+	AfxMessageBox(_T("各个流程的图像输出在images目录下，请查看!"));
+
+
+	//数字识别
+	//Test test;
+	//test.DigitPredict();
+
+
+	//内存释放
+	delete[] SrcImage;
+	delete[] EdgeOutImage;
+	delete[] morDilationImage;
+	delete[] houghOutImage;
+	delete[] digOnlyImage;
+	delete[] ThresholdOutImage;
+	
+	delete[] DstImageEdge;
+	delete[] DstImageDilation;
+	delete[] DstImageHough;
+	delete[] DstImageDig;
+	delete[] DstImageThreshold;
+ 
+
+	//显示效果图像
+	numPicture = 1;
+	Invalidate();
+	
+
+
+}
+
+//****************数字投影图***************//
+void CImageProcessView::DigProjection(){
+	BYTE* DstImage = new BYTE[m_nImage];
+	memset(DstImage, 0, m_nImage);
+
+	int *Arr = new int[m_nWidth] { 0 };
+	//向x轴投影
+	int biasy = 15;
+	for (int i = 0; i < m_nWidth; i++) {
+		for (int j = biasy; j < m_nHeight - biasy; j++) {
+			int position = j * m_nLineByte + i * bih.biBitCount / 8;//当前处理像素中心点
+																	//B单通道
+			if (m_pImage[position] == 255) {
+				Arr[i] += 1;
+			}
+		}
+	}
+
+	//找到投影图
+	for (int i = 0;i < m_nWidth;i++) {
+		for (int j = 0;j < Arr[i];j++) {
+			int position = j * m_nLineByte + i * bih.biBitCount / 8;
+			for (int k = 0;k < bih.biBitCount / 8;k++) {
+				DstImage[position + k] = 255;
+			}
+		}
+	}
+
+	//将图像数据保存为图像
+	BmpCommonOp bmpcommonop;
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
+
+	//显示效果图像
+	numPicture = 2;
+	Invalidate();
+
+
+}
+
+
+
+
+
+
 
 /*----------------------------------------------------------------------
 								消息处理
@@ -2137,7 +2576,7 @@ void CImageProcessView::OnHighboostFilter()
 		float *karr;
 		karr = commonl.SplitString(dlg.m_P4, _T(","));
 		//float karr[] = { 1, 2, 3, 4, 4.5, 5, 7, 9 };
-		int karr_size = _msize(karr) / sizeof(float);
+		int karr_size = _msize(karr) / sizeof(float);//数组的大小
 		m_pDrawText.RemoveAll();//清除
 		m_pDrawText.Add(_T("原图"));
 		HighboostFilter(karr, karr_size); //k>1
@@ -2948,7 +3387,9 @@ void CImageProcessView::OnGray()
 		AfxMessageBox(_T("载入图片后才能进行灰度变换!"));
 		return;
 	}
-
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("灰度变换效果图"));
 	BYTE * GraySrcImage = new BYTE[m_nImage];
 	BmpCommonOp bmpcommonop;
 	bmpcommonop.RGB2Gray(m_pImage, GraySrcImage, m_nWidth, m_nHeight,bih.biBitCount, m_nLineByte);
@@ -2967,10 +3408,472 @@ void CImageProcessView::OnGray()
 
 
 
-void CImageProcessView::OnTest()
+
+
+
+void CImageProcessView::OnVideoPlay()
 {
 	// TODO: 在此添加命令处理程序代码
+	CString filter = _T("MP4|*.mp4||");
+	CFileDialog fileDlg(TRUE, NULL, NULL, OFN_HIDEREADONLY, filter, this);
+	CString VidoeName;
 
+	//按下确定按钮 dlg.DoModal() 函数显示对话框
+	if (fileDlg.DoModal() == IDOK)
+	{
+
+		VidoeName = fileDlg.GetPathName();     //获取文件路径名   如D:\pic\abc.bmp
+		EntName = fileDlg.GetFileExt();      //获取文件扩展名
+		EntName.MakeLower();             //将文件扩展名转换为一个小写字符
+	}
+
+	CVideoDlg videoDlg;
+	videoDlg.m_vidoeUrl = VidoeName;
+	videoDlg.DoModal();
+}
+
+//******************图像分割*****************//
+void CImageProcessView::OnImageSeg()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行图像分割!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("图像分割效果图"));
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("图像分割");
+	dlg.m_sHelpTitle = _T("图像分割参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入s"); //参数1 s
+							   //设置默认值
+	dlg.m_P1 = 7;//s
+
+	if (dlg.DoModal() == IDOK) {
+
+		if (dlg.m_P1<0 || dlg.m_P1 > m_nWidth || dlg.m_P1>m_nHeight) {
+			AfxMessageBox(_T("输入S为正整数并且不得大于图像高宽!"));
+			return;
+		}
+		if (int(dlg.m_P1) / 2 == 0) {
+			AfxMessageBox(_T("输入S为奇数!"));
+			return;
+		}
+
+		//AdaptiveMedianFilter(int(dlg.m_P1));
+
+	}
+}
+
+ 
+
+//******************Sobel算子*****************//
+void CImageProcessView::OnSobelOperator()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行Sobel算子边缘检测!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("Sobel算子边缘检测效果图"));
+
+	EdgeDetection(EDGE_DETECTOR_SOBEL, SMOOTH_MEAN, 0.1);
+
+}
+
+////******************LoG算子*****************//
+//void CImageProcessView::OnLogOperator()
+//{
+//	// TODO: 在此添加命令处理程序代码
+//}
+//
+////******************DoG算子*****************//
+//void CImageProcessView::OnDogOperator()
+//{
+//	// TODO: 在此添加命令处理程序代码
+//}
+//
+//
+//void CImageProcessView::OnPrewittOperator()
+//{
+//	// TODO: 在此添加命令处理程序代码
+//	if (numPicture == 0)
+//	{
+//		AfxMessageBox(_T("载入图片后才能进行Prewitt算子边缘检测!"));
+//		return;
+//	}
+//	m_pDrawText.RemoveAll();//清除
+//	m_pDrawText.Add(_T("原图"));
+//	m_pDrawText.Add(_T("Prewitt算子边缘检测效果图"));
+//}
+
+//******************Canny边缘检测*****************//
+void CImageProcessView::OnCannyEdgeDetaction()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行Canny边缘检测!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("Canny边缘检测效果图"));
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("Canny边缘检测");
+	dlg.m_sHelpTitle = _T("Canny边缘检测双阈值参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	dlg.m_bShowP2 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入低阈值");
+	dlg.m_P2Text = _T("请输入高阈值");
+	//设置默认值
+	dlg.m_P1 = 90;//s
+	dlg.m_P2 = 180;//s
+
+	if (dlg.DoModal() == IDOK) {
+
+		if (dlg.m_P1 <= 0 || dlg.m_P2 <= 0) {
+			AfxMessageBox(_T("输入为正数!"));
+			return;
+		}
+		EdgeDetection(EDGE_DETECTOR_CANNY, SMOOTH_GAUSSIAN, dlg.m_P1, dlg.m_P2);
+		
+	}
+
+	
+}
+
+//******************基本全局阈值处理*****************//
+void CImageProcessView::OnBasicGlobalThreshold()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行阈值处理!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("阈值处理效果图"));
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("基本全局阈值处理");
+	dlg.m_sHelpTitle = _T("基本全局阈值处理参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入deta"); //参数1 deta
+	//设置默认值
+	dlg.m_P1 = 0.01;//s
+
+	if (dlg.DoModal() == IDOK) {
+
+		if (dlg.m_P1<=0 ) {
+			AfxMessageBox(_T("输入deta要为正数!"));
+			return;
+		}
+
+		double args[] = { dlg.m_P1 };
+		Thresholding(THRESHOLDING_BASIC_GLOBAL, args);//阈值处理函数
+
+	}
 
 
 }
+
+
+//******************OTSU阈值处理*****************//
+void CImageProcessView::OnOtsuThreshold()
+{
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行OTSU阈值处理!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("OTSU阈值处理效果图"));
+
+	Thresholding(THRESHOLDING_OTSU);//阈值处理函数
+}
+
+
+//******************局部阈值处理*****************//
+void CImageProcessView::OnLocalThreshold()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行阈值处理!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("阈值处理效果图"));
+
+	CCommonDlg dlg;
+	//标题显示
+	dlg.m_sWindowTitle = _T("基于局部均值与方差的阈值处理");
+	dlg.m_sHelpTitle = _T("局部阈值处理参数设置");
+	//显示控件
+	dlg.m_bShowP1 = true;
+	dlg.m_bShowP2 = true;
+	dlg.m_bShowP3 = true;
+	//参数指定
+	dlg.m_P1Text = _T("请输入窗口大小");  
+	dlg.m_P2Text = _T("请输入局部均值倍数, 高于此倍数将被置255"); 
+	dlg.m_P3Text = _T("请输入局部方差倍数, 高于此倍数将被置255");  
+	//设置默认值
+	dlg.m_P1 = 5;//s
+	dlg.m_P2 = 5;//s
+	dlg.m_P3 = 5;//s
+
+	if (dlg.DoModal() == IDOK) {
+
+		if (dlg.m_P1<0 || dlg.m_P1 > m_nWidth || dlg.m_P1>m_nHeight) {
+			AfxMessageBox(_T("输入窗口大小为正整数并且不得大于图像高宽!"));
+			return;
+		}
+		if (int(dlg.m_P1) / 2 == 0) {
+			AfxMessageBox(_T("输入窗口大小为奇数!"));
+			return;
+		}
+
+		double args[] = { dlg.m_P1 , dlg.m_P2 , dlg.m_P3};
+		Thresholding(THRESHOLDING_LOCAL, args);//阈值处理函数
+
+	}
+}
+
+
+
+//******************形态学膨胀*****************//
+void CImageProcessView::OnDilation()
+{
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行处理!"));
+		return;
+	}
+
+	/*for (int i = 0;i < m_nImage / 8;i++) {
+		if ( (m_pImage[i] != 0) && (m_pImage[i] != 255) ) {
+			AfxMessageBox(_T("请先二值化"));
+			return;
+		}
+	}*/
+
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("膨胀效果图"));
+
+	Morphologying(1);
+
+}
+
+
+//******************形态学腐蚀*****************//
+void CImageProcessView::OnErosion()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行处理!"));
+		return;
+	}
+	/*for (int i = 0;i < m_nImage / 8;i++) {
+		if ( (m_pImage[i] != 0) && (m_pImage[i] != 255) ) {
+			AfxMessageBox(_T("请先二值化"));
+			return;
+		}
+	}*/
+
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("腐蚀效果图"));
+	Morphologying(2);
+	
+}
+
+
+//******************霍夫变换*****************//
+void CImageProcessView::OnHoughTransform()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行霍夫变换!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("霍夫变换效果图"));
+
+	for (int i = 0;i < m_nImage / 8;i++) {
+		if (m_pImage[i] != 0 && m_pImage[i] != 255) {
+			AfxMessageBox(_T("请先二值化"));
+			return;
+		}
+	}
+
+	HoughTransform();
+
+}
+
+
+
+
+
+
+
+
+//******************数字投影图*****************//
+void CImageProcessView::OnDigProjection() {
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行 !"));
+		return;
+	}
+
+	for (int i = 0;i < m_nImage / 8;i++) {
+		if (m_pImage[i] != 0 && m_pImage[i] != 255) {
+			AfxMessageBox(_T("请先二值化"));
+			return;
+		}
+	}
+
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T(" 效果图"));
+
+	DigProjection();
+}
+
+
+
+//******************水表数字检测*****************//
+void CImageProcessView::OnWaterDigifinall()
+{
+	// TODO: 在此添加命令处理程序代码
+	//第5次作业的最终集成效果 上面的菜单只是单独拆分了功能 该项是最终效果
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行水表数字检测!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("水表数字检测效果图"));
+	WaterDigifinall();
+}
+
+
+
+
+
+
+//******************反色处理*****************//
+void CImageProcessView::OnImagePositive()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行反色处理!"));
+		return;
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+	m_pDrawText.Add(_T("图像反色处理效果图"));
+	BYTE *DstImage = new BYTE[m_nImage];
+	for (int i = 0; i < m_nImage; ++i) {
+		DstImage[i] = 255 - m_pImage[i];
+	}
+	//将图像数据保存为图像
+	BmpCommonOp bmpcommonop;
+	USES_CONVERSION;
+	LPCSTR BmpFileNameLin = (LPCSTR)T2A(BmpNameLin);
+	bmpcommonop.WriteBmpDataToFile(BmpFileNameLin, bfh, bih, m_pPal, DstImage, m_nImage);
+
+	//显示效果图像
+	numPicture = 2;
+	Invalidate();
+}
+
+//******************数字分割*****************//
+void CImageProcessView::OnDigitalSegment()
+{
+	// TODO: 在此添加命令处理程序代码
+	if (numPicture == 0)
+	{
+		AfxMessageBox(_T("载入图片后才能进行数字分割!"));
+		return;
+	}
+	for (int i = 0;i < m_nImage / 8;i++) {
+		if (m_pImage[i] != 0 && m_pImage[i] != 255) {
+			AfxMessageBox(_T("请先二值化"));
+			return;
+		}
+	}
+	m_pDrawText.RemoveAll();//清除
+	m_pDrawText.Add(_T("原图"));
+
+	Segment seg;
+	double *SrcImage = new double[m_nImage];
+	//类型转换
+	for (int i = 0; i < m_nImage; ++i) {
+		SrcImage[i] = m_pImage[i]; //BYTE=> double 格式化输入图像数据
+	}
+
+	seg.DigitalSeg(SrcImage, bfh, bih, m_pPal, m_nWidth, m_nHeight, m_nBitCount, m_nLineByte);
+
+	AfxMessageBox(_T("数字分割完毕, 输出在程序文件夹下!"));
+
+
+}
+
+
+void CImageProcessView::OnTest()
+{
+	// TODO: 在此添加命令处理程序代码
+	//if (numPicture == 0)
+	//{
+	//	AfxMessageBox(_T("载入图片后才能进行测试!"));
+	//	return;
+	//}
+	//m_pDrawText.RemoveAll();//清除
+	//m_pDrawText.Add(_T("原图"));
+	Test test;
+	test.DigitPredict();
+	
+	 
+ 
+ 
+ 
+
+}
+
+
+
+
+
+
+
+
+
+

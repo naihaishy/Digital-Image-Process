@@ -11,6 +11,20 @@ Common::~Common()
 {
 }
 
+int Common::findIndexofArr(int ar[], int n, int element)//查找元素并返回位置下标,find(数组，长度，元素)  
+{
+	int i = 0;
+	int index = -1;//原始下标，没找到元素返回-1  
+	for (i = 0; i <n; i++)
+	{
+		if (element == ar[i])
+		{
+			index = i;//记录元素下标  
+		}
+	}
+	return index;//返回下标  
+}
+
 /*************************************************************************
 * Function:   InsertSort()
 *
@@ -155,6 +169,23 @@ float * Common::SplitString(CString str, CString split)
 
 
 /*************************************************************************
+* Function:   GetGaussianKernel()
+*
+* Description:    获取软件配置信息
+*
+* Input:
+*
+* Returns:
+************************************************************************/
+void Common::GetGaussianKernel(double **gaus, const int size, const double sigma){
+	const double PI = 4.0*atan(1.0); //圆周率π赋值  
+	 
+	return;
+}
+
+
+
+/*************************************************************************
 * Function:   GetConfig()
 *
 * Description:    获取软件配置信息
@@ -235,6 +266,195 @@ void Common::GetHttpBody(CString requestHost, CString requestUrl, BYTE *Buffer) 
 	session.Close();
 	pFile->Close();
 	delete pFile;
+}
+
+void Common::LogToFile(double * Input, int Size) {
+  
+   
+	//CFile file(_T("log.txt"), CFile::modeCreate | CFile::modeWrite);
+	//for (int i = 0; i < polarWidth * polarHeight; i++) {
+	//	CString aa;
+	//	aa.Format(_T("%f \t"), houghAccAry[i]);
+	//	file.Write(aa, sizeof(CString));
+	//}
+	//// 关闭文件   
+	//file.Close();
+
+ }
+
+
+
+ 
+/*************************************************************************
+* Function:   UploadFile()
+*
+* Description:    HTTP上传文件
+*
+* Input:
+*
+* Returns:
+************************************************************************/
+
+void Common::UploadByPost(CString strFileName, CString  strServerUrl, CString strServerUploadFile)
+{
+
+	DWORD dwTotalRequestLength;
+	DWORD dwChunkLength;
+	DWORD dwReadLength;
+	DWORD dwResponseLength;
+	CHttpFile* pHTTP = NULL;
+
+	dwChunkLength = 64 * 1024;
+	void* pBuffer = malloc(dwChunkLength);
+	CFile file;
+
+	if (!file.Open(strFileName.GetBuffer(),
+		CFile::modeRead | CFile::shareDenyWrite))
+	{
+		return;
+	}
+
+	CInternetSession session(_T("sendFile"));
+	CHttpConnection *connection = NULL;
+
+	try
+	{
+		//Create the multi-part form data that goes before and after the actual file upload.
+
+		CString strHTTPBoundary = _T("----WebKitFormBoundarytcFcFiMKaoCRdCof");
+		CString strPreFileData = MakePreFileData(strHTTPBoundary, file.GetFileName());
+		CString strPostFileData = MakePostFileData(strHTTPBoundary);
+		CString strRequestHeaders = MakeRequestHeaders(strHTTPBoundary);
+		dwTotalRequestLength = strPreFileData.GetLength() + strPostFileData.GetLength() + file.GetLength();
+
+		connection = session.GetHttpConnection(/*L"www.YOURSITE.com"*/strServerUrl.GetBuffer(), NULL, INTERNET_DEFAULT_HTTP_PORT);
+
+		pHTTP = connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, strServerUploadFile.GetBuffer());//_T("/YOUURL/submit_file.pl"));
+		pHTTP->AddRequestHeaders(strRequestHeaders);
+		pHTTP->SendRequestEx(dwTotalRequestLength, HSR_SYNC | HSR_INITIATE);
+
+		//Write out the headers and the form variables
+		//pHTTP->Write((LPSTR)(LPCSTR)strPreFileData.GetBuffer(), strPreFileData.GetLength());
+		pHTTP->Write((LPSTR)(LPCSTR)CW2A(strPreFileData.GetBuffer()), strPreFileData.GetLength());
+
+		//upload the file.
+
+		dwReadLength = -1;
+		int length = file.GetLength(); //used to calculate percentage complete.
+		while (0 != dwReadLength)
+		{
+			dwReadLength = file.Read(pBuffer, dwChunkLength);
+			if (0 != dwReadLength)
+			{
+				pHTTP->Write(pBuffer, dwReadLength);
+			}
+		}
+
+		file.Close();
+
+		//Finish the upload.
+		//pHTTP->Write((LPSTR)(LPCSTR)strPostFileData.GetBuffer(), strPostFileData.GetLength());
+		pHTTP->Write((LPSTR)(LPCSTR)CW2A(strPostFileData.GetBuffer()), strPostFileData.GetLength());
+		pHTTP->EndRequest(HSR_SYNC);
+
+
+		//get the response from the server.
+		LPSTR szResponse;
+		CString strResponse;
+		dwResponseLength = pHTTP->GetLength();
+		while (0 != dwResponseLength)
+		{
+			szResponse = (LPSTR)malloc(dwResponseLength + 1);
+			szResponse[dwResponseLength] = '\0';
+			pHTTP->Read(szResponse, dwResponseLength);
+			strResponse += szResponse;
+			free(szResponse);
+			dwResponseLength = pHTTP->GetLength();
+		}
+
+		TRACE(L"%s", strResponse.GetBuffer());
+
+		//将Response写入文件中
+		CFile resultFile(_T("images/result.txt"), CFile::modeCreate | CFile::modeWrite);//
+		CString aa;
+		aa.Format(_T("%s \t"), strResponse.GetBuffer());
+		resultFile.Write(aa, sizeof(aa));
+		resultFile.Close();// 关闭文件 
+
+
+		//close everything up.
+		pHTTP->Close();
+		connection->Close();
+		session.Close();
+	}
+	catch (CInternetException* e)
+	{
+		TRACE(L"error: %d \n", e->m_dwError);
+	}
+	catch (CFileException* e)
+	{
+		TRACE(L"error: %d \n", e->m_cause);
+	}
+	catch (...)
+	{
+		TRACE(L" unexpected error");
+	}
+
+}
+
+
+CString Common::MakeRequestHeaders(CString& strBoundary)
+{
+	CString strFormat;
+	CString strData;
+	strFormat = _T("Content-Type: multipart/form-data; boundary=%s\r\n");
+	strFormat += _T("User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36\r\n");
+	strFormat += _T("Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8\r\n");
+	strFormat += _T("Accept-Language: zh-CN,zh;q=0.9,en;q=0.8\r\n");
+	strData.Format(strFormat, strBoundary);
+	return strData;
+}
+
+CString Common::MakePreFileData(CString& strBoundary, CString& strFileName)
+{
+	CString strFormat;
+	CString strData;
+
+	strFormat += _T("--%s");
+	strFormat += _T("\r\n");
+	strFormat += _T("Content-Disposition: form-data; name=\"file\"; filename=\"%s\"");
+	strFormat += _T("\r\n");
+	strFormat += _T("Content-Type: text/plain");
+
+	strFormat += _T("\r\n");
+	strFormat += _T(" XXXXX ");
+	strFormat += _T("\r\n\r\n");
+
+	strData.Format(strFormat, strBoundary,/* m_Name, strBoundary,*/ strFileName);
+
+	return strData;
+}
+
+CString Common::MakePostFileData(CString& strBoundary)
+{
+
+	CString strFormat;
+	CString strData;
+
+	strFormat = _T("\r\n");
+	strFormat += _T("--%s");
+	strFormat += _T("\r\n");
+	strFormat += _T("Content-Disposition: form-data; name=\"submit\"");
+	strFormat += _T("\r\n\r\n");
+	strFormat += _T("Submit");
+	strFormat += _T("\r\n");
+	strFormat += _T("--%s--");
+	strFormat += _T("\r\n");
+
+	strData.Format(strFormat, strBoundary, strBoundary);
+
+	return strData;
+
 }
 
  

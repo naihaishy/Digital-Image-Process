@@ -63,6 +63,27 @@
     <ClInclude Include="UserDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="VideoDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CWMPPlayer4.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Segment.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Threshold.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Morphology.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Hough.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Test.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ImageProcess.cpp">
@@ -102,6 +123,27 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="UserDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CWMPPlayer4.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Segment.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Threshold.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Morphology.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Hough.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Test.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

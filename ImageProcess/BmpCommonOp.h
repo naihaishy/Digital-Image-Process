@@ -43,8 +43,18 @@ public:
 	//成员函数
 
 	void WriteBmpDataToFile(LPCSTR FileName, BITMAPFILEHEADER BitmapFileHeader, BITMAPINFOHEADER BitmapInfoHeader, RGBQUAD colorTable[256], BYTE * Image, int ImageSize);
+	void WriteBmpDataToFile(LPCSTR FileName, BITMAPFILEHEADER BitmapFileHeader, BITMAPINFOHEADER BitmapInfoHeader, RGBQUAD colorTable[256], BYTE * Image, int ImageSize, int ImageWidth, int ImageHeight);
+	void WriteBmpDataToFile(LPCSTR FileName, BITMAPFILEHEADER BitmapFileHeader, BITMAPINFOHEADER BitmapInfoHeader, RGBQUAD colorTable[256], BYTE * Image, int ImageSize, int Bitcount);
 	BYTE* AddPepperSaltNoise(BYTE * Image, double Rate, int noiseChose, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//椒盐噪声
 	void RGB2Gray(BYTE*Image, BYTE* DstImage, int ImageWidth, int ImageHeight, int BitCount, int LineByte);
+	void RGB2Gray(double *Image, double* DstImage, int ImageWidth, int ImageHeight, int BitCount, int LineByte);
+	//void RGB2Gray8Bit(BYTE * Image, BYTE * DstImage, int ImageWidth, int ImageHeight, int BitCount, int LineByte, BITMAPFILEHEADER BitmapFileHeader, BITMAPINFOHEADER BitmapInfoHeader, RGBQUAD colorTable[256]);
+	//BYTE * RGB2Gray8Bit(BYTE * Image, int ImageWidth, int ImageHeight, int BitCount, int LineByte, BITMAPFILEHEADER BitmapFileHeader, BITMAPINFOHEADER BitmapInfoHeader, RGBQUAD colorTable[256]);
+	//BYTE * RGB2Gray8Bit(BYTE * Image, BITMAPFILEHEADER BitmapFileHeader, BITMAPINFOHEADER BitmapInfoHeader, RGBQUAD colorTable[256]);
+	//BYTE * RGB2Gray8Bit(BYTE * Image, BITMAPFILEHEADER & BitmapFileHeader, BITMAPINFOHEADER & BitmapInfoHeader, RGBQUAD colorTable[256]);
+	//BYTE * RGB2Gray8Bit(BYTE * Image, int ImageWidth, int ImageHeight, int BitCount);
+	//BYTE * RGB24BitToGray8Bit(BYTE * Image, int ImageWidth, int ImageHeight);
+	void RGB24BitToGray8Bit(BYTE * Image, BYTE * DstImage, int ImageWidth, int ImageHeight);
 	void Normalized(int * Image, BYTE * DstImage, int ImageWidth, int ImageHeight, int BitCount, int LineByte); //图像数据归一化
 	void ShowBmpImage(CDC *cdc,BYTE* Image, int Position_x, int Position_y, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//显示BMP图像
 	void WriteTextOnScreen(CDC *pDC, int Position_x, int Position_y);
@@ -65,6 +75,11 @@ public:
 	void ContraharmonicMeanFilter(BYTE* Image, BYTE* DstImage, int m, int n, int  q, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//逆谐波均值滤波器
 
 	void FilterEdgeProcess(BYTE* Image,BYTE* DstImage,int a,int b, int ImageWidth, int ImageHeight, int BitCount, int LineByte);//滤波的边缘处理
-
+	void TemplateFilter(double* Image, double* DstImage, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte, int *mask, int m, int n, bool needWc); //模板滤波
+	void MeanFilter(double* Image, double* DstImage, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte, int m, int n);//均值滤波
+	void MedianFilter(double* Image, double* DstImage, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte, int m, int n);//中值滤波
+	void GaussFilter(double* Image, double* DstImage, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte, int m, int n);//高斯滤波
+	
+	
 };
 

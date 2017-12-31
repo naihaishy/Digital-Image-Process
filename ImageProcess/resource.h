@@ -6,23 +6,15 @@
 #define IDP_OLE_INIT_FAILED             100
 #define IDR_MAINFRAME                   128
 #define IDR_ImageProcessTYPE            130
-#define IDD_DIALOG_WRITECHAR            310
-#define IDD_DIALOG_INTERPOLATION        312
-#define IDD_DIALOG_ROTATE               315
 #define IDD_DIALOG_HELP                 317
 #define IDD_DIALOG_HISTOGRAM            323
 #define IDD_DIALOG_COMMON_PARA          332
 #define IDD_DIALOG_IMPROVE              334
 #define IDD_DIALOG_USER_LOGIN           336
 #define IDD_DIALOG_USER_CENTER          338
-#define IDC_EDIT_CHARACTER              1000
-#define IDC_EDIT_CHARACTERX             1001
-#define IDC_EDIT_CHARACTERY             1002
-#define IDC_EDIT_CHW                    1003
+#define IDD_DIALOG_VIDEO                340
 #define IDC_EDIT2                       1004
-#define IDC_EDIT_CHH                    1004
 #define IDC_EDIT_USER_LOGIIN_PA         1004
-#define IDC_EDIT_ROTATEANGLE            1005
 #define IDC_MFCLINK_GITHUB              1015
 #define IDC_MFCLINK_EMAIL               1016
 #define IDC_MFCPROPERTYGRID1            1019
@@ -45,6 +37,7 @@
 #define IDC_IPADDRESS_USER_LOGIN        1053
 #define IDC_STATIC_COMMON_P4_TEXT       1054
 #define IDC_EDIT_COMMON_P4              1055
+#define IDC_OCX1                        1056
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_32773                        32773
@@ -144,14 +137,59 @@
 #define ID_GRAY                         32873
 #define ID_32874                        32874
 #define ID_WORD_OFFSET                  32875
+#define ID_32876                        32876
+#define ID_32877                        32877
+#define ID_VIDEO_PLAY                   32878
+#define ID_TARGET_F                     32879
+#define ID_32880                        32880
+#define ID_IMAGE_SEGEMENT               32881
+#define ID_IMAGE_SEG                    32882
+#define ID_32883                        32883
+#define ID_EDGE_                        32884
+#define ID_EDGE_DE                      32885
+#define ID_EDGE_DETECTION               32886
+#define ID_32887                        32887
+#define ID_32888                        32888
+#define ID_32889                        32889
+#define ID_SOBEL_OPERATOR               32890
+#define ID_LOG_OPERATOR                 32891
+#define ID_DOG_OPERATOR                 32892
+#define ID_32893                        32893
+#define ID_PREWITT_OPERATOR             32894
+#define ID_32895                        32895
+#define ID_CANNY_EDGE_DETACTION         32896
+#define ID_32897                        32897
+#define ID_32898                        32898
+#define ID_32899                        32899
+#define ID_32900                        32900
+#define ID_32901                        32901
+#define ID_BASIC_GLOBAL_THRESHOLD       32902
+#define ID_OTSU_THRESHOLD               32903
+#define ID_MULTI_THRESHOLDS             32904
+#define ID_VARIABLE_THRESHOLD           32905
+#define ID_LOCAL_THRESHOLD              32906
+#define ID_DILATION                     32913
+#define ID_32914                        32914
+#define ID_EROSION                      32915
+#define ID_32916                        32916
+#define ID_WATER_DIGI                   32917
+#define ID_WATER_DIGIFINALL             32918
+#define ID_HOUGH_TRANSFORM              32919
+#define ID_32920                        32920
+#define ID_DIG_PROJECTION               32921
+#define ID_IMAGE_POSITIVE               32922
+#define ID_32923                        32923
+#define ID_DIGITAL_SEGMENT              32924
+#define ID_32925                        32925
+#define ID_RECT_SEG                     32926
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        340
-#define _APS_NEXT_COMMAND_VALUE         32876
-#define _APS_NEXT_CONTROL_VALUE         1056
+#define _APS_NEXT_RESOURCE_VALUE        343
+#define _APS_NEXT_COMMAND_VALUE         32927
+#define _APS_NEXT_CONTROL_VALUE         1057
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

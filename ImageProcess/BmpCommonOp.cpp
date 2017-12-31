@@ -75,6 +75,89 @@ void BmpCommonOp::WriteBmpDataToFile(LPCSTR FileName, BITMAPFILEHEADER BitmapFil
 	return ;
 }
 
+void BmpCommonOp::WriteBmpDataToFile(LPCSTR FileName, BITMAPFILEHEADER BitmapFileHeader, BITMAPINFOHEADER BitmapInfoHeader, RGBQUAD colorTable[256], BYTE * Image, int ImageSize, int ImageWidth, int ImageHeight) {
+
+
+	FILE *fpw = NULL;
+
+	fopen_s(&fpw, FileName, "wb+");
+	//修改文件头和信息头
+	BitmapFileHeader.bfSize = ImageSize + BitmapFileHeader.bfOffBits;
+	BitmapInfoHeader.biWidth = ImageWidth;
+	BitmapInfoHeader.biHeight = ImageHeight;
+
+
+	//写入文件头
+	fwrite(&BitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, fpw);
+	//写入信息头
+	fwrite(&BitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, fpw);
+
+	//写入颜色表
+	if (BitmapInfoHeader.biBitCount == 8)  // 8bit BMP
+	{
+		if (BitmapInfoHeader.biClrUsed == 0) //如果该值为零,则有2的biBitCount次幂个元素
+		{
+			fwrite(colorTable, sizeof(RGBQUAD), 256, fpw);
+		}
+		else {
+			fwrite(colorTable, sizeof(RGBQUAD), BitmapInfoHeader.biClrUsed, fpw);
+		}
+	}
+
+
+	//写入位图像素数据
+	fwrite(Image, ImageSize, 1, fpw);
+
+	fclose(fpw); //关闭文件指针
+
+	return;
+}
+
+/*************************************************************************
+*
+* Function:  WriteBmpDataToFile ()
+*
+* Description:   将BMP文件数据写入文件
+*
+* Input:  FileName 要写入文件的绝对路径和名称; bfh 文件头 bih 信息头 colorTable颜色表
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::WriteBmpDataToFile(LPCSTR FileName, BITMAPFILEHEADER BitmapFileHeader, BITMAPINFOHEADER BitmapInfoHeader, RGBQUAD colorTable[256], BYTE * Image, int ImageSize, int Bitcount) {
+
+
+	FILE *fpw = NULL;
+
+	fopen_s(&fpw, FileName, "wb+");
+
+	//写入文件头
+	fwrite(&BitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, fpw);
+	//写入信息头
+	fwrite(&BitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, fpw);
+
+	//写入颜色表
+	if (BitmapInfoHeader.biBitCount == 8)  // 8bit BMP
+	{
+		if (BitmapInfoHeader.biClrUsed == 0) //如果该值为零,则有2的biBitCount次幂个元素
+		{
+			fwrite(colorTable, sizeof(RGBQUAD), 256, fpw);
+		}
+		else {
+			fwrite(colorTable, sizeof(RGBQUAD), BitmapInfoHeader.biClrUsed, fpw);
+		}
+	}
+
+
+	//写入位图像素数据
+	fwrite(Image, ImageSize, 1, fpw);
+
+	fclose(fpw); //关闭文件指针
+
+	return;
+}
+
+
 
 
 /*************************************************************************
@@ -162,12 +245,80 @@ void BmpCommonOp::RGB2Gray(BYTE*Image, BYTE* DstImage, int ImageWidth, int Image
 		}
 	}
 
-
-
 }
 
 
 
+/*************************************************************************
+*
+* Function:  RGB2Gray ()
+*
+* Description:   彩色像素转为灰度像素 不作为图像
+*
+* Input: Image 图像数据   ImageSize图像像素大小 ImageWidth ImageHeight 图像宽高 BitCount图像位数 LineByte图像一行所占字节数
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::RGB2Gray(double *Image, double* DstImage, int ImageWidth, int ImageHeight, int BitCount, int LineByte) {
+	if (BitCount != 24) return;
+
+	for (int j = 0; j < ImageHeight; j++) {
+		for (int i = 0; i < ImageWidth; i++) {
+			int position = j*LineByte + i * 3;
+			int value_b = *(Image + position);//B
+			int value_g = *(Image + position + 1);//G
+			int value_r = *(Image + position + 2);//R
+
+			double value_gray = (value_r * 30 + value_g * 59 + value_b * 11) / 100 ;
+
+			*(DstImage + position) = value_gray;
+			*(DstImage + position + 1) = value_gray;
+			*(DstImage + position + 2) = value_gray;
+
+		}
+	}
+}
+
+
+
+/*************************************************************************
+*
+* Function:  RGB2Gray8Bit ()
+*
+* Description:   彩色像素转为灰度像素 不作为图像
+*
+* Input: Image 图像数据   ImageSize图像像素大小 ImageWidth ImageHeight 图像宽高 BitCount图像位数 LineByte图像一行所占字节数
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::RGB24BitToGray8Bit(BYTE * Image, BYTE* DstImage, int ImageWidth, int ImageHeight){
+
+	int oldLineByte = (ImageWidth*24 + 31) / 32 * 4;
+	int oldImageSize = oldLineByte * ImageHeight;
+
+	int newLineByte = (ImageWidth *8 + 31) / 32 * 4;
+	int newImageSize = newLineByte * ImageHeight;
+
+	//像素值
+	for (int j = 0; j < ImageHeight; j++) {
+		for (int i = 0; i < ImageWidth; i++) {
+			int positionOld = j * oldLineByte + i * 3;
+			int positionNew = j * newLineByte + i;
+			int value_b = *(Image + positionOld);//B
+			int value_g = *(Image + positionOld + 1);//G
+			int value_r = *(Image + positionOld + 2);//R
+
+			int value_gray = (value_r * 30 + value_g * 59 + value_b * 11) / 100 + 0.5;
+
+			*(DstImage + positionNew) = value_gray;
+		}
+	}
+
+ 
+
+}
 /*************************************************************************
 *
 * Function:  Normalized ()
@@ -1172,3 +1323,164 @@ void BmpCommonOp::FilterEdgeProcess(BYTE* Image, BYTE* DstImage, int a, int b, i
 	}
 	
 }
+
+
+
+/*************************************************************************
+*
+* Function:   TemplateFilter()
+*
+* Description: 模板滤波
+*
+* Input:  Image 图像数据  ImageWidth ImageHeight 图像宽高 BitCount图像位数 LineByte图像一行所占字节数
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::TemplateFilter(double* Image, double* DstImage, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte, int *mask, int m, int n, bool needWc=true) {
+
+	memcpy(DstImage, Image, ImageSize*sizeof(double) ); //初始化 将原图数据拷贝到目标图像
+	int a = (m - 1) / 2; //m=2a+1
+	int b = (n - 1) / 2;  //n=2b+1
+
+						  //获取数组权值总和
+	int weight_count;
+	if (needWc) {//是否需要计算模板之和
+		weight_count = 0;
+		for (int j = 0; j < n; j++) {
+			for (int i = 0; i < m; i++) {
+				weight_count += *(mask + j*m + i);
+			}
+		}
+	}
+	else {
+		weight_count = 1;
+	}
+
+	//8bit
+	if (BitCount == 8) {
+		for (int y = b; y < ImageHeight - b; y++) { // Y 边缘的不处理
+			for (int x = a; x < ImageWidth - a; x++) {//X
+				int sum = 0;
+				int currentPosition = y * LineByte + x;//当前处理像素点位置
+				int position; //周围点位置
+				for (int i = -a; i < a + 1; i++) {//m
+					for (int j = -b; j < b + 1; j++) {//n
+
+						if ((y + b)*LineByte + (x + a) < ImageSize) {//防止越界
+							position = (y + j)*LineByte + x + i;
+							sum += *(Image + position) * (*(mask + (i + a) + (j + b)*m));
+							
+						}
+					}
+				}
+				*(DstImage + currentPosition) = sum / weight_count;
+			}
+		}
+	}// end for 8bit
+
+
+	//24bit
+	if (BitCount == 24) {
+		for (int y = b; y < ImageHeight - b; y++) { // Y 边缘的不处理
+			for (int x = a; x < ImageWidth - a; x++) {//X
+
+				int sum_r = 0, sum_g = 0, sum_b = 0; //加权和
+				int currentPosition = y * LineByte + x * 3;//当前处理像素点位置 RGB 
+
+				for (int i = -a; i < a + 1; i++) {//m
+					for (int j = -b; j < b + 1; j++) {//n
+						if ((y + b)*LineByte + (x + a) * 3 + 2 < ImageSize) {//防止越界  
+
+							int position_r = (y + j)*LineByte + (x + i) * 3;
+							int position_g = (y + j)*LineByte + (x + i) * 3 + 1;
+							int position_b = (y + j)*LineByte + (x + i) * 3 + 2;
+
+							sum_r += *(Image + position_r)*(*(mask + (i + a) + (j + b)*m)); //R
+							sum_g += *(Image + position_g)*(*(mask + (i + a) + (j + b)*m)); //G
+							sum_b += *(Image + position_b)*(*(mask + (i + a) + (j + b)*m)); //B
+
+						}
+
+					}
+				}
+				*(DstImage + currentPosition) = sum_r / weight_count; //R
+				*(DstImage + currentPosition + 1) = sum_g / weight_count; //G
+				*(DstImage + currentPosition + 2) = sum_b / weight_count; //B
+			}
+		}
+	}// end for 24bit
+
+
+
+	 
+}
+
+
+
+/*************************************************************************
+*
+* Function:   MeanFilter()
+*
+* Description: 均值滤波
+*
+* Input:  Image 图像数据  ImageWidth ImageHeight 图像宽高 BitCount图像位数 LineByte图像一行所占字节数
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::MeanFilter(double* Image, double* DstImage, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte, int m, int n) {
+	
+	//初始化
+	memcpy(DstImage, Image, ImageSize*sizeof(double)); //将原图数据拷贝到目标图像
+	//构造均值模板
+	int *meanMask = new int[m*n];
+	for (int i = 0; i < m*n; i++)
+		meanMask[i] = 1;
+	//将模板传递模板滤波函数 
+	TemplateFilter(Image, DstImage, ImageSize, ImageWidth, ImageHeight, BitCount, LineByte, meanMask, m, n);
+
+}
+
+
+/*************************************************************************
+*
+* Function:   MedianFilter()
+*
+* Description: 中值滤波
+*
+* Input:  Image 图像数据  ImageWidth ImageHeight 图像宽高 BitCount图像位数 LineByte图像一行所占字节数
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::MedianFilter(double* Image, double* DstImage, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte, int m, int n) {
+
+}
+
+
+/*************************************************************************
+*
+* Function:   GaussFilter()
+*
+* Description: 高斯滤波
+*
+* Input:  Image 图像数据  ImageWidth ImageHeight 图像宽高 BitCount图像位数 LineByte图像一行所占字节数
+*
+* Returns:
+*
+************************************************************************/
+void BmpCommonOp::GaussFilter(double* Image, double* DstImage, int ImageSize, int ImageWidth, int ImageHeight, int BitCount, int LineByte, int m, int n) {
+	//初始化
+	memcpy(DstImage, Image, sizeof(Image) / sizeof(double)); //将原图数据拷贝到目标图像
+	int gaussMask3[] = { 1, 2, 1 ,  2, 4, 2 ,  1, 2, 1 };//定义mask
+	int gaussMask5[] = { 1, 4,7,4,1,4,16,26,16,4,7,26,41,26,7,4,16,26,16,4,1,4,7,4,1 };
+	if (m == 3)
+		TemplateFilter(Image, DstImage, ImageSize, ImageWidth, ImageHeight, BitCount, LineByte, gaussMask3, 3, 3);
+	if (m == 5) 
+		TemplateFilter(Image, DstImage, ImageSize, ImageWidth, ImageHeight, BitCount, LineByte, gaussMask5, 5, 5);
+	
+}
+
+
+

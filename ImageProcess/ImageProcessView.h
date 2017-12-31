@@ -39,7 +39,7 @@ public:
 	CString BmpNameLin;    //保存图像副本文件  
 
 	CStringArray m_pDrawText; //图像的绘制标题
-
+ 
 
 	int m_nWidth;       //图像实际宽度  
 	int m_nHeight;      //图像实际高度  
@@ -78,7 +78,7 @@ public:
 	void MeanFilter(int m, int n);//均值滤波
 	void MedianFilter(int m, int n);//中值滤波
 	void GaussFilter(int m);//高斯滤波
-	void TemplateFilter(BYTE* Image, BYTE* DstImage, int *mask, int m , int n ); //模板滤波
+	void TemplateFilter(BYTE* Image, BYTE* DstImage, int *mask, int m , int n, bool needWc); //模板滤波
 	void HighboostFilter(float karr[], int n);//高提升滤波
 	void FFT();//FFT
 	void IFFT();//IFFT
@@ -86,7 +86,15 @@ public:
 	void HomomorphicFilter(int Sigma, double c, double GammaH, double GammaL);//同态滤波 
 	void AlphaTrimmedMeanFilter(int m, int n, int d);//修正的阿尔法均值滤波
 	void AdaptiveMedianFilter(int Smax);//自适应均值滤波
+	void EdgeDetection(int Detector, int Smooth, double Threshold, double Threshold2);//边缘检测
+	void Thresholding(int Type, double args[]);//阈值处理
+	void Morphologying(int type);//形态学处理
+	void HoughTransform();//霍夫变换
+	void WaterDigifinall();//
+	void DigProjection();//数字投影图
+ 
 	
+	 
 	
 
 
@@ -142,6 +150,25 @@ public:
 	afx_msg void OnAdaptiveMedianFilter();
 	afx_msg void OnDownloadTestImages();
 	afx_msg void OnGray();
+	afx_msg void OnVideoPlay();
+	afx_msg void OnImageSeg();
+	//afx_msg void OnEdgeDetection();
+	afx_msg void OnSobelOperator();
+	//afx_msg void OnLogOperator();
+	//afx_msg void OnDogOperator();
+	//afx_msg void OnPrewittOperator();
+	afx_msg void OnCannyEdgeDetaction();
+	afx_msg void OnBasicGlobalThreshold();
+	afx_msg void OnOtsuThreshold();
+	afx_msg void OnLocalThreshold();
+	afx_msg void OnDilation();
+	afx_msg void OnErosion();
+	afx_msg void OnWaterDigifinall();
+	afx_msg void OnHoughTransform();
+	afx_msg void OnDigProjection();
+	afx_msg void OnImagePositive();
+	afx_msg void OnDigitalSegment();
+ 
 };
 
 #ifndef _DEBUG  // ImageProcessView.cpp 中的调试版本

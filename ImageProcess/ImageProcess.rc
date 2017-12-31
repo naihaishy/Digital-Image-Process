@@ -195,6 +195,37 @@ BEGIN
         MENUITEM "修正的阿尔法均值滤波",                  ID_ALPHA_TRIMMED_MEAN_FILTER
         MENUITEM "自适应中值滤波",                     ID_ADAPTIVE_MEDIAN_FILTER
     END
+    POPUP "作业5"
+    BEGIN
+        MENUITEM "图像分割",                        ID_IMAGE_SEG
+        POPUP "边缘检测"
+        BEGIN
+            MENUITEM "Sobel算子",                     ID_SOBEL_OPERATOR
+            MENUITEM "Prewitt算子",                   ID_PREWITT_OPERATOR
+            MENUITEM "LoG算子",                       ID_LOG_OPERATOR
+            MENUITEM "DoG算子",                       ID_DOG_OPERATOR
+        END
+        MENUITEM "Canny边缘检测",                   ID_CANNY_EDGE_DETACTION
+        POPUP "阈值处理"
+        BEGIN
+            MENUITEM "基本全局阈值",                      ID_BASIC_GLOBAL_THRESHOLD
+            MENUITEM "OTSU阈值",                      ID_OTSU_THRESHOLD
+            MENUITEM "多阈值",                         ID_MULTI_THRESHOLDS
+            MENUITEM "可变阈值",                        ID_VARIABLE_THRESHOLD
+            MENUITEM "局部阈值",                        ID_LOCAL_THRESHOLD
+        END
+        POPUP "形态学"
+        BEGIN
+            MENUITEM "膨胀",                          ID_DILATION
+            MENUITEM "腐蚀",                          ID_EROSION
+        END
+        MENUITEM "霍夫变换",                        32919
+        MENUITEM "矩形框裁剪",                       ID_RECT_SEG
+        MENUITEM "图像反色",                        32922
+        MENUITEM "数字投影图",                       ID_DIG_PROJECTION
+        MENUITEM "数字切割",                        ID_DIGITAL_SEGMENT
+        MENUITEM "水表数字提取(最终效果)",                ID_WATER_DIGIFINALL
+    END
     POPUP "测试"
     BEGIN
         MENUITEM "Test",                        ID_TEST
@@ -256,46 +287,6 @@ BEGIN
     LTEXT           "ImageProcess，1.0 版",IDC_STATIC,43,14,114,8,SS_NOPREFIX
     LTEXT           "Copyright (C) 2017",IDC_STATIC,43,26,114,8
     DEFPUSHBUTTON   "确定",IDOK,150,62,50,14,WS_GROUP
-END
-
-IDD_DIALOG_WRITECHAR DIALOGEX 0, 0, 309, 176
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "写入字符"
-FONT 10, "Microsoft YaHei UI", 400, 0, 0x0
-BEGIN
-    DEFPUSHBUTTON   "确定",IDOK,198,155,50,14
-    PUSHBUTTON      "取消",IDCANCEL,252,155,50,14
-    EDITTEXT        IDC_EDIT_CHARACTER,149,34,60,14,ES_AUTOHSCROLL
-    LTEXT           "请输入Y坐标",IDC_STATIC,66,81,45,8
-    EDITTEXT        IDC_EDIT_CHARACTERX,149,57,59,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_EDIT_CHARACTERY,149,80,59,14,ES_AUTOHSCROLL
-    LTEXT           "请输入字符",IDC_STATIC,66,36,41,8
-    LTEXT           "请输入X坐标",IDC_STATIC,66,59,45,8
-END
-
-IDD_DIALOG_INTERPOLATION DIALOGEX 0, 0, 309, 176
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "双线性插值"
-FONT 10, "Microsoft YaHei UI", 400, 0, 0x0
-BEGIN
-    DEFPUSHBUTTON   "确定",IDOK,198,155,50,14
-    PUSHBUTTON      "取消",IDCANCEL,252,155,50,14
-    LTEXT           "请输入变化后图像大小(单位:像素)",IDC_STATIC,25,24,131,25
-    LTEXT           "宽度：",IDC_STATIC,80,60,21,8
-    LTEXT           "高度：",IDC_STATIC,80,84,21,8
-    EDITTEXT        IDC_EDIT_CHW,141,58,58,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_EDIT_CHH,141,82,57,14,ES_AUTOHSCROLL
-END
-
-IDD_DIALOG_ROTATE DIALOGEX 0, 0, 309, 176
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "旋转"
-FONT 10, "Microsoft YaHei UI", 400, 0, 0x0
-BEGIN
-    DEFPUSHBUTTON   "确定",IDOK,198,155,50,14
-    PUSHBUTTON      "取消",IDCANCEL,252,155,50,14
-    LTEXT           "请设置旋转角度：",IDC_STATIC,72,47,53,8
-    EDITTEXT        IDC_EDIT_ROTATEANGLE,158,45,59,14,ES_AUTOHSCROLL
 END
 
 IDD_DIALOG_HELP DIALOGEX 0, 0, 309, 176
@@ -381,6 +372,14 @@ BEGIN
     CONTROL         "",IDC_IPADDRESS_USER_LOGIN,"SysIPAddress32",WS_TABSTOP,126,66,100,15
 END
 
+IDD_DIALOG_VIDEO DIALOGEX 0, 0, 309, 176
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 10, "Microsoft YaHei UI", 400, 0, 0x0
+BEGIN
+    CONTROL         "",IDC_OCX1,"{6BF52A52-394A-11D3-B153-00C04F79FAA6}",WS_TABSTOP,7,7,295,162
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -437,30 +436,6 @@ BEGIN
         BOTTOMMARGIN, 76
     END
 
-    IDD_DIALOG_WRITECHAR, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 302
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 169
-    END
-
-    IDD_DIALOG_INTERPOLATION, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 302
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 169
-    END
-
-    IDD_DIALOG_ROTATE, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 302
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 169
-    END
-
     IDD_DIALOG_HELP, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -508,6 +483,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 169
     END
+
+    IDD_DIALOG_VIDEO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 169
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -517,22 +500,7 @@ END
 // AFX_DIALOG_LAYOUT
 //
 
-IDD_DIALOG_WRITECHAR AFX_DIALOG_LAYOUT
-BEGIN
-    0
-END
-
-IDD_DIALOG_INTERPOLATION AFX_DIALOG_LAYOUT
-BEGIN
-    0
-END
-
 IDD_ABOUTBOX AFX_DIALOG_LAYOUT
-BEGIN
-    0
-END
-
-IDD_DIALOG_ROTATE AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -563,6 +531,11 @@ BEGIN
 END
 
 IDD_DIALOG_USER_CENTER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG_VIDEO AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -600,6 +573,22 @@ BEGIN
 0x6f6f, 0x746c, 0x7069, 0x463e, 0x4c41, 0x4553, 0x2f3c, 0x464d, 0x4c43, 
 0x6e69, 0x5f6b, 0x7546, 0x6c6c, 0x6554, 0x7478, 0x6f54, 0x6c6f, 0x6974, 
 0x3e70, 
+    0
+END
+
+IDD_DIALOG_VIDEO DLGINIT
+BEGIN
+    IDC_OCX1, 0x376, 166, 0
+0x0000, 0x0000, 0x0300, 0x0000, 0x0008, 0x0000, 0x0000, 0x0005, 0x0000, 
+0x0000, 0x0000, 0x3ff0, 0x0003, 0x0000, 0x0000, 0x0005, 0x0000, 0x0000, 
+0x0000, 0x0000, 0x0008, 0x0002, 0x0000, 0x0000, 0x0003, 0x0001, 0x0000, 
+0x000b, 0xffff, 0x0003, 0x0000, 0x0000, 0x000b, 0xffff, 0x0008, 0x0002, 
+0x0000, 0x0000, 0x0003, 0x0032, 0x0000, 0x000b, 0x0000, 0x0008, 0x000a, 
+0x0000, 0x0066, 0x0075, 0x006c, 0x006c, 0x0000, 0x000b, 0x0000, 0x000b, 
+0x0000, 0x000b, 0xffff, 0x000b, 0xffff, 0x000b, 0x0000, 0x0008, 0x0002, 
+0x0000, 0x0000, 0x0008, 0x0002, 0x0000, 0x0000, 0x0008, 0x0002, 0x0000, 
+0x0000, 0x0008, 0x0002, 0x0000, 0x0000, 0x000b, 0x0000, 0x3cfa, 0x0000, 
+0x27ca, 0x0000, 
     0
 END
 
@@ -758,6 +747,17 @@ STRINGTABLE
 BEGIN
     ID_IHPF                 "理想高通滤波进行锐化图像"
     ID_GHPF                 "高斯高通滤波进行锐化图像"
+END
+
+STRINGTABLE
+BEGIN
+    ID_LOCAL_THRESHOLD      "基于均值和方差的局部阈值处理"
+END
+
+STRINGTABLE
+BEGIN
+    ID_DIG_PROJECTION       "矩形框内数字二值化图像的投影图"
+    ID_32923                "阈值化数字矩形区域进行数字分割"
 END
 
 #endif    // 中文(简体，中国) resources
